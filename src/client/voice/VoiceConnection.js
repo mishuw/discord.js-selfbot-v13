@@ -459,10 +459,7 @@ class VoiceConnection extends EventEmitter {
    */
   authenticate(options = {}) {
     this.sendVoiceStateUpdate(options);
-    this.connectTimeout = setTimeout(
-      () => this.authenticateFailed('VOICE_CONNECTION_TIMEOUT'),
-      15_000,
-    ).unref();
+    this.connectTimeout = setTimeout(() => this.authenticateFailed('VOICE_CONNECTION_TIMEOUT'), 15_000).unref();
   }
 
   /**
