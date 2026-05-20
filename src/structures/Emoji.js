@@ -92,10 +92,7 @@ class Emoji extends Base {
    * @readonly
    */
   get url() {
-    return (
-      this.id &&
-      this.client.rest.cdn.Emoji(this.id, this.animated ? 'gif' : 'png')
-    );
+    return this.id && this.client.rest.cdn.Emoji(this.id, this.animated ? 'gif' : 'png');
   }
 
   /**
@@ -129,9 +126,7 @@ class Emoji extends Base {
    * reaction.message.channel.send(`The emoji used was: ${reaction.emoji}`);
    */
   toString() {
-    return this.id
-      ? `<${this.animated ? 'a' : ''}:${this.name}:${this.id}>`
-      : this.name;
+    return this.id ? `<${this.animated ? 'a' : ''}:${this.name}:${this.id}>` : this.name;
   }
 
   toJSON() {

@@ -87,10 +87,7 @@ class ThreadChannel extends Channel {
        * <info>Always `null` in public threads</info>
        * @type {?boolean}
        */
-      this.invitable =
-        this.type === 'GUILD_PRIVATE_THREAD'
-          ? (data.thread_metadata.invitable ?? false)
-          : null;
+      this.invitable = this.type === 'GUILD_PRIVATE_THREAD' ? data.thread_metadata.invitable ?? false : null;
 
       /**
        * Whether the thread is archived
@@ -116,9 +113,7 @@ class ThreadChannel extends Channel {
 
       if ('create_timestamp' in data.thread_metadata) {
         // Note: this is needed because we can't assign directly to getters
-        this._createdTimestamp = Date.parse(
-          data.thread_metadata.create_timestamp,
-        );
+        this._createdTimestamp = Date.parse(data.thread_metadata.create_timestamp);
       }
     } else {
       this.locked ??= null;
@@ -128,8 +123,7 @@ class ThreadChannel extends Channel {
       this.invitable ??= null;
     }
 
-    this._createdTimestamp ??=
-      this.type === 'GUILD_PRIVATE_THREAD' ? super.createdTimestamp : null;
+    this._createdTimestamp ??= this.type === 'GUILD_PRIVATE_THREAD' ? super.createdTimestamp : null;
 
     if ('last_message_id' in data) {
       /**
@@ -146,9 +140,7 @@ class ThreadChannel extends Channel {
        * The timestamp when the last pinned message was pinned, if there was one
        * @type {?number}
        */
-      this.lastPinTimestamp = data.last_pin_timestamp
-        ? new Date(data.last_pin_timestamp).getTime()
-        : null;
+      this.lastPinTimestamp = data.last_pin_timestamp ? new Date(data.last_pin_timestamp).getTime() : null;
     } else {
       this.lastPinTimestamp ??= null;
     }
@@ -207,10 +199,8 @@ class ThreadChannel extends Channel {
       this.appliedTags ??= [];
     }
 
-    if (data.member && this.client.user)
-      this.members._add({ user_id: this.client.user.id, ...data.member });
-    if (data.messages)
-      for (const message of data.messages) this.messages._add(message);
+    if (data.member && this.client.user) this.members._add({ user_id: this.client.user.id, ...data.member });
+    if (data.messages) for (const message of data.messages) this.messages._add(message);
   }
 
   /**
@@ -229,7 +219,7 @@ class ThreadChannel extends Channel {
    * @readonly
    */
   get guildMembers() {
-    return this.members.cache.mapValues((member) => member.guildMember);
+    return this.members.cache.mapValues(member => member.guildMember);
   }
 
   /**
@@ -349,8 +339,7 @@ class ThreadChannel extends Channel {
    */
   async edit(data, reason) {
     let autoArchiveDuration = data.autoArchiveDuration;
-    if (autoArchiveDuration === 'MAX')
-      autoArchiveDuration = resolveAutoArchiveMaxLimit(this.guild);
+    if (autoArchiveDuration === 'MAX') autoArchiveDuration = resolveAutoArchiveMaxLimit(this.guild);
 
     const newData = await this.client.api.channels(this.id).patch({
       data: {
@@ -359,8 +348,7 @@ class ThreadChannel extends Channel {
         auto_archive_duration: autoArchiveDuration,
         rate_limit_per_user: data.rateLimitPerUser,
         locked: data.locked,
-        invitable:
-          this.type === 'GUILD_PRIVATE_THREAD' ? data.invitable : undefined,
+        invitable: this.type === 'GUILD_PRIVATE_THREAD' ? data.invitable : undefined,
         applied_tags: data.appliedTags,
         flags: 'flags' in data ? ChannelFlags.resolve(data.flags) : undefined,
       },
@@ -411,8 +399,7 @@ class ThreadChannel extends Channel {
    * @returns {Promise<ThreadChannel>}
    */
   async setInvitable(invitable = true, reason) {
-    if (this.type !== 'GUILD_PRIVATE_THREAD')
-      throw new RangeError('THREAD_INVITABLE_TYPE', this.type);
+    if (this.type !== 'GUILD_PRIVATE_THREAD') throw new RangeError('THREAD_INVITABLE_TYPE', this.type);
     return this.edit({ invitable }, reason);
   }
 
@@ -463,10 +450,7 @@ class ThreadChannel extends Channel {
    * @returns {Promise<ThreadChannel>}
    */
   pin(reason) {
-    return this.edit(
-      { flags: this.flags.add(ChannelFlags.FLAGS.PINNED) },
-      reason,
-    );
+    return this.edit({ flags: this.flags.add(ChannelFlags.FLAGS.PINNED) }, reason);
   }
 
   /**
@@ -475,10 +459,7 @@ class ThreadChannel extends Channel {
    * @returns {Promise<ThreadChannel>}
    */
   unpin(reason) {
-    return this.edit(
-      { flags: this.flags.remove(ChannelFlags.FLAGS.PINNED) },
-      reason,
-    );
+    return this.edit({ flags: this.flags.remove(ChannelFlags.FLAGS.PINNED) }, reason);
   }
 
   /**
@@ -507,9 +488,7 @@ class ThreadChannel extends Channel {
    */
   get editable() {
     return (
-      (this.ownerId === this.client.user.id &&
-        (this.type !== 'GUILD_PRIVATE_THREAD' || this.joined)) ||
-      this.manageable
+      (this.ownerId === this.client.user.id && (this.type !== 'GUILD_PRIVATE_THREAD' || this.joined)) || this.manageable
     );
   }
 
@@ -523,9 +502,7 @@ class ThreadChannel extends Channel {
       !this.archived &&
       !this.joined &&
       this.permissionsFor(this.client.user)?.has(
-        this.type === 'GUILD_PRIVATE_THREAD'
-          ? Permissions.FLAGS.MANAGE_THREADS
-          : Permissions.FLAGS.VIEW_CHANNEL,
+        this.type === 'GUILD_PRIVATE_THREAD' ? Permissions.FLAGS.MANAGE_THREADS : Permissions.FLAGS.VIEW_CHANNEL,
         false,
       )
     );
@@ -573,9 +550,7 @@ class ThreadChannel extends Channel {
 
     return (
       !(this.archived && this.locked && !this.manageable) &&
-      (this.type !== 'GUILD_PRIVATE_THREAD' ||
-        this.joined ||
-        this.manageable) &&
+      (this.type !== 'GUILD_PRIVATE_THREAD' || this.joined || this.manageable) &&
       permissions.has(Permissions.FLAGS.SEND_MESSAGES_IN_THREADS, false) &&
       this.guild.members.me.communicationDisabledUntilTimestamp < Date.now()
     );
@@ -625,10 +600,6 @@ class ThreadChannel extends Channel {
   // Doesn't work on Thread channels; setNSFW() {}
 }
 
-TextBasedChannel.applyToClass(ThreadChannel, true, [
-  'fetchWebhooks',
-  'setRateLimitPerUser',
-  'setNSFW',
-]);
+TextBasedChannel.applyToClass(ThreadChannel, true, ['fetchWebhooks', 'setRateLimitPerUser', 'setNSFW']);
 
 module.exports = ThreadChannel;

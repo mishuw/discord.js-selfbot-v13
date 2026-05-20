@@ -26,7 +26,7 @@ class CategoryChannel extends GuildChannel {
    * @readonly
    */
   get children() {
-    return this.guild.channels.cache.filter((c) => c.parentId === this.id);
+    return this.guild.channels.cache.filter(c => c.parentId === this.id);
   }
 
   /**

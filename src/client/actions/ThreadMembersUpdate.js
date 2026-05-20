@@ -11,11 +11,11 @@ class ThreadMembersUpdateAction extends Action {
       const old = thread.members.cache.clone();
       thread.memberCount = data.member_count;
 
-      data.added_members?.forEach((rawMember) => {
+      data.added_members?.forEach(rawMember => {
         thread.members._add(rawMember);
       });
 
-      data.removed_member_ids?.forEach((memberId) => {
+      data.removed_member_ids?.forEach(memberId => {
         thread.members.cache.delete(memberId);
       });
 

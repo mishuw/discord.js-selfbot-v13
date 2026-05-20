@@ -8,13 +8,8 @@ const { RPCErrorCodes } = require('discord-api-types/v10');
 const WebSocketShard = require('./WebSocketShard');
 const PacketHandlers = require('./handlers');
 const { Error } = require('../../errors');
-const {
-  Events,
-  ShardEvents,
-  Status,
-  WSCodes,
-  WSEvents,
-} = require('../../util/Constants');
+const { Events, ShardEvents, Status, WSCodes, WSEvents } = require('../../util/Constants');
+const { EventBatcher } = require('../../util/EventBatcher');
 
 const BeforeReadyWhitelist = [
   WSEvents.READY,
@@ -52,6 +47,17 @@ class WebSocketManager extends EventEmitter {
     Object.defineProperty(this, 'client', { value: client });
 
     /**
+     * The event batcher for optimizing frequent event processing
+     * @type {EventBatcher}
+     * @private
+     */
+    this.eventBatcher = new EventBatcher(client, {
+      batchSize: client.options.eventBatchSize || 50,
+      flushInterval: client.options.eventFlushInterval || 100,
+      maxBatchAge: client.options.eventMaxBatchAge || 50,
+    });
+
+    /**
      * The gateway this manager uses
      * @type {?string}
      */
@@ -76,10 +82,7 @@ class WebSocketManager extends EventEmitter {
      * @private
      * @name WebSocketManager#shardQueue
      */
-    Object.defineProperty(this, 'shardQueue', {
-      value: new Set(),
-      writable: true,
-    });
+    Object.defineProperty(this, 'shardQueue', { value: new Set(), writable: true });
 
     /**
      * An array of queued events before this WebSocketManager became ready
@@ -127,10 +130,7 @@ class WebSocketManager extends EventEmitter {
    * @private
    */
   debug(message, shard) {
-    this.client.emit(
-      Events.DEBUG,
-      `[WS => ${shard ? `Shard ${shard.id}` : 'Manager'}] ${message}`,
-    );
+    this.client.emit(Events.DEBUG, `[WS => ${shard ? `Shard ${shard.id}` : 'Manager'}] ${message}`);
   }
 
   /**
@@ -141,7 +141,7 @@ class WebSocketManager extends EventEmitter {
     let gatewayURL = 'wss://gateway.discord.gg';
     await this.client.api.gateway
       .get({ auth: false })
-      .then((r) => (gatewayURL = r.url))
+      .then(r => (gatewayURL = r.url))
       .catch(() => {});
 
     const total = Infinity;
@@ -161,19 +161,14 @@ class WebSocketManager extends EventEmitter {
     let { shards } = this.client.options;
 
     if (shards === 'auto') {
-      this.debug(
-        `Using the recommended shard count provided by Discord: ${recommendedShards}`,
-      );
+      this.debug(`Using the recommended shard count provided by Discord: ${recommendedShards}`);
       this.totalShards = this.client.options.shardCount = recommendedShards;
-      shards = this.client.options.shards = Array.from(
-        { length: recommendedShards },
-        (_, i) => i,
-      );
+      shards = this.client.options.shards = Array.from({ length: recommendedShards }, (_, i) => i);
     }
 
     this.totalShards = shards.length;
     this.debug(`Spawning shards: ${shards.join(', ')}`);
-    this.shardQueue = new Set(shards.map((id) => new WebSocketShard(this, id)));
+    this.shardQueue = new Set(shards.map(id => new WebSocketShard(this, id)));
 
     return this.createShards();
   }
@@ -192,7 +187,7 @@ class WebSocketManager extends EventEmitter {
     this.shardQueue.delete(shard);
 
     if (!shard.eventsAttached) {
-      shard.on(ShardEvents.ALL_READY, (unavailableGuilds) => {
+      shard.on(ShardEvents.ALL_READY, unavailableGuilds => {
         /**
          * Emitted when a shard turns ready.
          * @event Client#shardReady
@@ -205,12 +200,8 @@ class WebSocketManager extends EventEmitter {
         this.checkShardsReady();
       });
 
-      shard.on(ShardEvents.CLOSE, (event) => {
-        if (
-          event.code === 1_000
-            ? this.destroyed
-            : UNRECOVERABLE_CLOSE_CODES.includes(event.code)
-        ) {
+      shard.on(ShardEvents.CLOSE, event => {
+        if (event.code === 1_000 ? this.destroyed : UNRECOVERABLE_CLOSE_CODES.includes(event.code)) {
           /**
            * Emitted when a shard's WebSocket disconnects and will no longer reconnect.
            * @event Client#shardDisconnect
@@ -236,11 +227,7 @@ class WebSocketManager extends EventEmitter {
 
         this.shardQueue.add(shard);
 
-        if (shard.sessionId)
-          this.debug(
-            `Session id is present, attempting an immediate reconnect...`,
-            shard,
-          );
+        if (shard.sessionId) this.debug(`Session id is present, attempting an immediate reconnect...`, shard);
         this.reconnect();
       });
 
@@ -249,10 +236,7 @@ class WebSocketManager extends EventEmitter {
       });
 
       shard.on(ShardEvents.DESTROYED, () => {
-        this.debug(
-          'Shard was destroyed but no WebSocket connection was present! Reconnecting...',
-          shard,
-        );
+        this.debug('Shard was destroyed but no WebSocket connection was present! Reconnecting...', shard);
 
         this.client.emit(Events.SHARD_RECONNECTING, shard.id);
 
@@ -280,9 +264,7 @@ class WebSocketManager extends EventEmitter {
     }
     // If we have more shards, add a 5s delay
     if (this.shardQueue.size) {
-      this.debug(
-        `Shard Queue Size: ${this.shardQueue.size}; continuing in 5 seconds...`,
-      );
+      this.debug(`Shard Queue Size: ${this.shardQueue.size}; continuing in 5 seconds...`);
       await sleep(5_000);
       return this.createShards();
     }
@@ -301,9 +283,7 @@ class WebSocketManager extends EventEmitter {
     try {
       await this.createShards();
     } catch (error) {
-      this.debug(
-        `Couldn't reconnect or fetch information about the gateway. ${error}`,
-      );
+      this.debug(`Couldn't reconnect or fetch information about the gateway. ${error}`);
       if (error.httpStatus !== 401) {
         this.debug(`Possible network error occurred. Retrying in 5s...`);
         await sleep(5_000);
@@ -345,13 +325,17 @@ class WebSocketManager extends EventEmitter {
    */
   destroy() {
     if (this.destroyed) return;
-    this.debug(
-      `Manager was destroyed. Called by:\n${new Error('MANAGER_DESTROYED').stack}`,
-    );
+    this.debug(`Manager was destroyed. Called by:\n${new Error('MANAGER_DESTROYED').stack}`);
     this.destroyed = true;
+
+    // Nettoyer l'EventBatcher
+    if (this.eventBatcher) {
+      this.eventBatcher.destroy();
+      this.eventBatcher = null;
+    }
+
     this.shardQueue.clear();
-    for (const shard of this.shards.values())
-      shard.destroy({ closeCode: 1_000, reset: true, emit: false, log: false });
+    for (const shard of this.shards.values()) shard.destroy({ closeCode: 1_000, reset: true, emit: false, log: false });
   }
 
   /**
@@ -377,7 +361,13 @@ class WebSocketManager extends EventEmitter {
     }
 
     if (packet && PacketHandlers[packet.t]) {
-      PacketHandlers[packet.t](this.client, packet, shard);
+      // Utiliser l'EventBatcher pour optimiser les événements fréquents
+      const wasBatched = this.eventBatcher.addEvent(packet.t, packet.d, shard.id);
+
+      if (!wasBatched) {
+        // L'événement n'a pas été batché, le traiter normalement
+        PacketHandlers[packet.t](this.client, packet, shard);
+      }
     } else if (packet) {
       /**
        * Emitted whenever a packet isn't handled.
@@ -397,10 +387,7 @@ class WebSocketManager extends EventEmitter {
    */
   checkShardsReady() {
     if (this.status === Status.READY) return;
-    if (
-      this.shards.size !== this.totalShards ||
-      this.shards.some((s) => s.status !== Status.READY)
-    ) {
+    if (this.shards.size !== this.totalShards || this.shards.some(s => s.status !== Status.READY)) {
       return;
     }
 

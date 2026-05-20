@@ -9,17 +9,13 @@ const { fetch } = require('undici');
 const { Colors, Events } = require('./Constants');
 const { Error: DiscordError, RangeError, TypeError } = require('../errors');
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
-const isObject = (d) => typeof d === 'object' && d !== null;
+const isObject = d => typeof d === 'object' && d !== null;
 
 let deprecationEmittedForSplitMessage = false;
 let deprecationEmittedForRemoveMentions = false;
 let deprecationEmittedForResolveAutoArchiveMaxLimit = false;
 
-const TextSortableGroupTypes = [
-  'GUILD_TEXT',
-  'GUILD_ANNOUCMENT',
-  'GUILD_FORUM',
-];
+const TextSortableGroupTypes = ['GUILD_TEXT', 'GUILD_ANNOUCMENT', 'GUILD_FORUM'];
 const VoiceSortableGroupTypes = ['GUILD_VOICE', 'GUILD_STAGE_VOICE'];
 const CategorySortableGroupTypes = ['GUILD_CATEGORY'];
 
@@ -91,12 +87,10 @@ class Util extends null {
     if (!isObject(obj)) return obj;
 
     const objProps = Object.keys(obj)
-      .filter((k) => !k.startsWith('_'))
-      .map((k) => ({ [k]: true }));
+      .filter(k => !k.startsWith('_'))
+      .map(k => ({ [k]: true }));
 
-    props = objProps.length
-      ? Object.assign(...objProps, ...props)
-      : Object.assign({}, ...props);
+    props = objProps.length ? Object.assign(...objProps, ...props) : Object.assign({}, ...props);
 
     const out = {};
 
@@ -106,28 +100,21 @@ class Util extends null {
 
       const element = obj[prop];
       const elemIsObj = isObject(element);
-      const valueOf =
-        elemIsObj && typeof element.valueOf === 'function'
-          ? element.valueOf()
-          : null;
+      const valueOf = elemIsObj && typeof element.valueOf === 'function' ? element.valueOf() : null;
       const hasToJSON = elemIsObj && typeof element.toJSON === 'function';
 
       // If it's a Collection, make the array of keys
-      if (element instanceof Collection)
-        out[newProp] = Array.from(element.keys());
+      if (element instanceof Collection) out[newProp] = Array.from(element.keys());
       // If the valueOf is a Collection, use its array of keys
-      else if (valueOf instanceof Collection)
-        out[newProp] = Array.from(valueOf.keys());
+      else if (valueOf instanceof Collection) out[newProp] = Array.from(valueOf.keys());
       // If it's an array, call toJSON function on each element if present, otherwise flatten each element
-      else if (Array.isArray(element))
-        out[newProp] = element.map((e) => e.toJSON?.() ?? Util.flatten(e));
+      else if (Array.isArray(element)) out[newProp] = element.map(e => e.toJSON?.() ?? Util.flatten(e));
       // If it's an object with a primitive `valueOf`, use that value
       else if (typeof valueOf !== 'object') out[newProp] = valueOf;
       // If it's an object with a toJSON function, use the return value of it
       else if (hasToJSON) out[newProp] = element.toJSON();
       // If element is an object, use the flattened version of it
-      else if (typeof element === 'object')
-        out[newProp] = Util.flatten(element);
+      else if (typeof element === 'object') out[newProp] = Util.flatten(element);
       // If it's a primitive
       else if (!elemIsObj) out[newProp] = element;
     }
@@ -152,10 +139,7 @@ class Util extends null {
    * @deprecated This will be removed in the next major version.
    * @returns {string[]}
    */
-  static splitMessage(
-    text,
-    { maxLength = 2_000, char = '\n', prepend = '', append = '' } = {},
-  ) {
+  static splitMessage(text, { maxLength = 2_000, char = '\n', prepend = '', append = '' } = {}) {
     if (!deprecationEmittedForSplitMessage) {
       process.emitWarning(
         'The Util.splitMessage method is deprecated and will be removed in the next major version.',
@@ -169,22 +153,18 @@ class Util extends null {
     if (text.length <= maxLength) return [text];
     let splitText = [text];
     if (Array.isArray(char)) {
-      while (
-        char.length > 0 &&
-        splitText.some((elem) => elem.length > maxLength)
-      ) {
+      while (char.length > 0 && splitText.some(elem => elem.length > maxLength)) {
         const currentChar = char.shift();
         if (currentChar instanceof RegExp) {
-          splitText = splitText.flatMap((chunk) => chunk.match(currentChar));
+          splitText = splitText.flatMap(chunk => chunk.match(currentChar));
         } else {
-          splitText = splitText.flatMap((chunk) => chunk.split(currentChar));
+          splitText = splitText.flatMap(chunk => chunk.split(currentChar));
         }
       }
     } else {
       splitText = text.split(char);
     }
-    if (splitText.some((elem) => elem.length > maxLength))
-      throw new RangeError('SPLIT_MAX_LEN');
+    if (splitText.some(elem => elem.length > maxLength)) throw new RangeError('SPLIT_MAX_LEN');
     const messages = [];
     let msg = '';
     for (const chunk of splitText) {
@@ -194,7 +174,7 @@ class Util extends null {
       }
       msg += (msg && msg !== prepend ? char : '') + chunk;
     }
-    return messages.concat(msg).filter((m) => m);
+    return messages.concat(msg).filter(m => m);
   }
 
   /**
@@ -314,9 +294,7 @@ class Util extends null {
    * @returns {string}
    */
   static escapeInlineCode(text) {
-    return text.replace(/(?<=^|[^`])``?(?=[^`]|$)/g, (match) =>
-      match.length === 2 ? '\\`\\`' : '\\`',
-    );
+    return text.replace(/(?<=^|[^`])``?(?=[^`]|$)/g, match => (match.length === 2 ? '\\`\\`' : '\\`'));
   }
 
   /**
@@ -449,13 +427,7 @@ class Util extends null {
     if (text.includes('%')) text = decodeURIComponent(text);
     if (!text.includes(':')) return { animated: false, name: text, id: null };
     const match = text.match(/<?(?:(a):)?(\w{2,32}):(\d{17,19})?>?/);
-    return (
-      match && {
-        animated: Boolean(match[1]),
-        name: match[2],
-        id: match[3] ?? null,
-      }
-    );
+    return match && { animated: Boolean(match[1]), name: match[2], id: match[3] ?? null };
   }
 
   /**
@@ -466,8 +438,7 @@ class Util extends null {
    */
   static resolvePartialEmoji(emoji) {
     if (!emoji) return null;
-    if (typeof emoji === 'string')
-      return /^\d{17,19}$/.test(emoji) ? { id: emoji } : Util.parseEmoji(emoji);
+    if (typeof emoji === 'string') return /^\d{17,19}$/.test(emoji) ? { id: emoji } : Util.parseEmoji(emoji);
     const { id, name, animated } = emoji;
     if (!id && !name) return null;
     return { id, name, animated: Boolean(animated) };
@@ -613,11 +584,8 @@ class Util extends null {
     const isGuildChannel = collection.first() instanceof GuildChannel;
     return collection.toSorted(
       isGuildChannel
-        ? (a, b) =>
-            a.rawPosition - b.rawPosition || Number(BigInt(a.id) - BigInt(b.id))
-        : (a, b) =>
-            a.rawPosition - b.rawPosition ||
-            Number(BigInt(b.id) - BigInt(a.id)),
+        ? (a, b) => a.rawPosition - b.rawPosition || Number(BigInt(a.id) - BigInt(b.id))
+        : (a, b) => a.rawPosition - b.rawPosition || Number(BigInt(b.id) - BigInt(a.id)),
     );
   }
 
@@ -685,7 +653,7 @@ class Util extends null {
    */
   static cleanContent(str, channel) {
     str = str
-      .replace(/<@!?[0-9]+>/g, (input) => {
+      .replace(/<@!?[0-9]+>/g, input => {
         const id = input.replace(/<|!|>|@/g, '');
         if (channel.type === 'DM') {
           const user = channel.client.users.cache.get(id);
@@ -700,17 +668,13 @@ class Util extends null {
           return user ? Util._removeMentions(`@${user.username}`) : input;
         }
       })
-      .replace(/<#[0-9]+>/g, (input) => {
-        const mentionedChannel = channel.client.channels.cache.get(
-          input.replace(/<|#|>/g, ''),
-        );
+      .replace(/<#[0-9]+>/g, input => {
+        const mentionedChannel = channel.client.channels.cache.get(input.replace(/<|#|>/g, ''));
         return mentionedChannel ? `#${mentionedChannel.name}` : input;
       })
-      .replace(/<@&[0-9]+>/g, (input) => {
+      .replace(/<@&[0-9]+>/g, input => {
         if (channel.type === 'DM') return input;
-        const role = channel.guild.roles.cache.get(
-          input.replace(/<|@|>|&/g, ''),
-        );
+        const role = channel.guild.roles.cache.get(input.replace(/<|@|>|&/g, ''));
         return role ? `@${role.name}` : input;
       });
     return str;
@@ -767,7 +731,7 @@ class Util extends null {
       name: tag.name,
       moderated: tag.moderated,
       emoji:
-        (tag.emoji_id ?? tag.emoji_name)
+        tag.emoji_id ?? tag.emoji_name
           ? {
               id: tag.emoji_id,
               name: tag.emoji_name,
@@ -846,18 +810,10 @@ class Util extends null {
    */
   static transformAPIIncidentsData(data) {
     return {
-      invitesDisabledUntil: data.invites_disabled_until
-        ? new Date(data.invites_disabled_until)
-        : null,
-      dmsDisabledUntil: data.dms_disabled_until
-        ? new Date(data.dms_disabled_until)
-        : null,
-      dmSpamDetectedAt: data.dm_spam_detected_at
-        ? new Date(data.dm_spam_detected_at)
-        : null,
-      raidDetectedAt: data.raid_detected_at
-        ? new Date(data.raid_detected_at)
-        : null,
+      invitesDisabledUntil: data.invites_disabled_until ? new Date(data.invites_disabled_until) : null,
+      dmsDisabledUntil: data.dms_disabled_until ? new Date(data.dms_disabled_until) : null,
+      dmSpamDetectedAt: data.dm_spam_detected_at ? new Date(data.dm_spam_detected_at) : null,
+      raidDetectedAt: data.raid_detected_at ? new Date(data.raid_detected_at) : null,
     };
   }
 
@@ -903,9 +859,7 @@ class Util extends null {
       file_size: Math.floor((26_214_400 / 10) * Math.random()),
       id: `${i}`,
     }));
-    const { attachments } = await client.api.channels[
-      channelId
-    ].attachments.post({
+    const { attachments } = await client.api.channels[channelId].attachments.post({
       data: {
         files,
       },
@@ -920,7 +874,7 @@ class Util extends null {
         body: data,
         duplex: 'half', // Node.js v20
       })
-        .then((res) => {
+        .then(res => {
           if (res.ok) {
             resolve(res);
           } else {
@@ -950,11 +904,7 @@ class Util extends null {
    * @returns {boolean}
    */
   static verifyProxyAgent(object) {
-    return (
-      typeof object == 'object' &&
-      object.httpAgent instanceof Agent &&
-      object.httpsAgent instanceof Agent
-    );
+    return typeof object == 'object' && object.httpAgent instanceof Agent && object.httpsAgent instanceof Agent;
   }
 
   static checkUndiciProxyAgent(data) {
@@ -972,24 +922,14 @@ class Util extends null {
     return false;
   }
 
-  static createPromiseInteraction(
-    client,
-    nonce,
-    timeoutMs = 5_000,
-    isHandlerDeferUpdate = false,
-    parent,
-  ) {
+  static createPromiseInteraction(client, nonce, timeoutMs = 5_000, isHandlerDeferUpdate = false, parent) {
     return new Promise((resolve, reject) => {
       // Waiting for MsgCreate / ModalCreate
       let dataFromInteractionSuccess;
       let dataFromNormalEvent;
-      const handler = (data) => {
+      const handler = data => {
         // UnhandledPacket
-        if (
-          isHandlerDeferUpdate &&
-          data.d?.nonce == nonce &&
-          data.t == 'INTERACTION_SUCCESS'
-        ) {
+        if (isHandlerDeferUpdate && data.d?.nonce == nonce && data.t == 'INTERACTION_SUCCESS') {
           // Interaction#deferUpdate
           client.removeListener(Events.MESSAGE_CREATE, handler);
           client.removeListener(Events.UNHANDLED_PACKET, handler);
@@ -1000,8 +940,7 @@ class Util extends null {
         clearTimeout(timeout);
         client.removeListener(Events.MESSAGE_CREATE, handler);
         client.removeListener(Events.INTERACTION_MODAL_CREATE, handler);
-        if (isHandlerDeferUpdate)
-          client.removeListener(Events.UNHANDLED_PACKET, handler);
+        if (isHandlerDeferUpdate) client.removeListener(Events.UNHANDLED_PACKET, handler);
         client.decrementMaxListeners();
         dataFromNormalEvent = data;
         resolve(data);
@@ -1013,8 +952,7 @@ class Util extends null {
         }
         client.removeListener(Events.MESSAGE_CREATE, handler);
         client.removeListener(Events.INTERACTION_MODAL_CREATE, handler);
-        if (isHandlerDeferUpdate)
-          client.removeListener(Events.UNHANDLED_PACKET, handler);
+        if (isHandlerDeferUpdate) client.removeListener(Events.UNHANDLED_PACKET, handler);
         client.decrementMaxListeners();
         reject(new DiscordError('INTERACTION_FAILED'));
       }, timeoutMs).unref();
@@ -1031,11 +969,7 @@ class Util extends null {
 
     for (const key of keys) {
       const value = object[key];
-      if (
-        value === undefined ||
-        value === null ||
-        (Array.isArray(value) && value.length === 0)
-      ) {
+      if (value === undefined || value === null || (Array.isArray(value) && value.length === 0)) {
         continue;
       } else if (!Array.isArray(value) && typeof value === 'object') {
         const cleanedValue = Util.clearNullOrUndefinedObject(value);
@@ -1060,7 +994,7 @@ class Util extends null {
    * @returns {number}
    */
   static getPayloadType(codecName) {
-    return payloadTypes.find((p) => p.name === codecName).payload_type;
+    return payloadTypes.find(p => p.name === codecName).payload_type;
   }
 
   static getSDPCodecName(portUdpH264, portUdpH265, portUdpOpus) {

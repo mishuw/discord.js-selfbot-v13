@@ -36,5 +36,4 @@ exports.create = (gateway, query = {}, ...args) => {
   return ws;
 };
 
-for (const state of ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'])
-  exports[state] = exports.WebSocket[state];
+for (const state of ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED']) exports[state] = exports.WebSocket[state];

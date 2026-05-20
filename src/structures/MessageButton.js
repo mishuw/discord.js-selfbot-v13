@@ -2,10 +2,7 @@
 
 const BaseMessageComponent = require('./BaseMessageComponent');
 const { RangeError } = require('../errors');
-const {
-  MessageButtonStyles,
-  MessageComponentTypes,
-} = require('../util/Constants');
+const { MessageButtonStyles, MessageComponentTypes } = require('../util/Constants');
 const Util = require('../util/Util');
 
 /**

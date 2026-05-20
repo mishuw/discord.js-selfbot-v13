@@ -2,11 +2,7 @@
 
 const Base = require('./Base');
 const ApplicationCommandPermissionsManager = require('../managers/ApplicationCommandPermissionsManager');
-const {
-  ApplicationCommandOptionTypes,
-  ApplicationCommandTypes,
-  ChannelTypes,
-} = require('../util/Constants');
+const { ApplicationCommandOptionTypes, ApplicationCommandTypes, ChannelTypes } = require('../util/Constants');
 const Permissions = require('../util/Permissions');
 const SnowflakeUtil = require('../util/SnowflakeUtil');
 
@@ -120,9 +116,7 @@ class ApplicationCommand extends Base {
        * The options of this command
        * @type {ApplicationCommandOption[]}
        */
-      this.options = data.options.map((o) =>
-        this.constructor.transformOption(o, true),
-      );
+      this.options = data.options.map(o => this.constructor.transformOption(o, true));
     } else {
       this.options ??= [];
     }
@@ -389,42 +383,29 @@ class ApplicationCommand extends Base {
 
     if ('defaultMemberPermissions' in command) {
       defaultMemberPermissions =
-        command.defaultMemberPermissions !== null
-          ? new Permissions(command.defaultMemberPermissions).bitfield
-          : null;
+        command.defaultMemberPermissions !== null ? new Permissions(command.defaultMemberPermissions).bitfield : null;
     }
 
     // Check top level parameters
-    const commandType =
-      typeof command.type === 'string'
-        ? command.type
-        : ApplicationCommandTypes[command.type];
+    const commandType = typeof command.type === 'string' ? command.type : ApplicationCommandTypes[command.type];
     if (
       command.name !== this.name ||
       ('description' in command && command.description !== this.description) ||
       ('version' in command && command.version !== this.version) ||
-      ('autocomplete' in command &&
-        command.autocomplete !== this.autocomplete) ||
+      ('autocomplete' in command && command.autocomplete !== this.autocomplete) ||
       (commandType && commandType !== this.type) ||
-      defaultMemberPermissions !==
-        (this.defaultMemberPermissions?.bitfield ?? null) ||
-      (typeof dmPermission !== 'undefined' &&
-        dmPermission !== this.dmPermission) ||
+      defaultMemberPermissions !== (this.defaultMemberPermissions?.bitfield ?? null) ||
+      (typeof dmPermission !== 'undefined' && dmPermission !== this.dmPermission) ||
       // Future proof for options being nullable
       // TODO: remove ?? 0 on each when nullable
       (command.options?.length ?? 0) !== (this.options?.length ?? 0) ||
-      (command.defaultPermission ?? command.default_permission ?? true) !==
-        this.defaultPermission
+      (command.defaultPermission ?? command.default_permission ?? true) !== this.defaultPermission
     ) {
       return false;
     }
 
     if (command.options) {
-      return this.constructor.optionsEqual(
-        this.options,
-        command.options,
-        enforceOptionOrder,
-      );
+      return this.constructor.optionsEqual(this.options, command.options, enforceOptionOrder);
     }
     return true;
   }
@@ -442,15 +423,12 @@ class ApplicationCommand extends Base {
   static optionsEqual(existing, options, enforceOptionOrder = false) {
     if (existing.length !== options.length) return false;
     if (enforceOptionOrder) {
-      return existing.every((option, index) =>
-        this._optionEquals(option, options[index], enforceOptionOrder),
-      );
+      return existing.every((option, index) => this._optionEquals(option, options[index], enforceOptionOrder));
     }
-    const newOptions = new Map(options.map((option) => [option.name, option]));
+    const newOptions = new Map(options.map(option => [option.name, option]));
     for (const option of existing) {
       const foundOption = newOptions.get(option.name);
-      if (!foundOption || !this._optionEquals(option, foundOption))
-        return false;
+      if (!foundOption || !this._optionEquals(option, foundOption)) return false;
     }
     return true;
   }
@@ -467,23 +445,17 @@ class ApplicationCommand extends Base {
    * @private
    */
   static _optionEquals(existing, option, enforceOptionOrder = false) {
-    const optionType =
-      typeof option.type === 'string'
-        ? option.type
-        : ApplicationCommandOptionTypes[option.type];
+    const optionType = typeof option.type === 'string' ? option.type : ApplicationCommandOptionTypes[option.type];
     if (
       option.name !== existing.name ||
       optionType !== existing.type ||
       option.description !== existing.description ||
       option.autocomplete !== existing.autocomplete ||
-      (option.required ??
-        (['SUB_COMMAND', 'SUB_COMMAND_GROUP'].includes(optionType)
-          ? undefined
-          : false)) !== existing.required ||
+      (option.required ?? (['SUB_COMMAND', 'SUB_COMMAND_GROUP'].includes(optionType) ? undefined : false)) !==
+        existing.required ||
       option.choices?.length !== existing.choices?.length ||
       option.options?.length !== existing.options?.length ||
-      (option.channelTypes ?? option.channel_types)?.length !==
-        existing.channelTypes?.length ||
+      (option.channelTypes ?? option.channel_types)?.length !== existing.channelTypes?.length ||
       (option.minValue ?? option.min_value) !== existing.minValue ||
       (option.maxValue ?? option.max_value) !== existing.maxValue ||
       (option.minLength ?? option.min_length) !== existing.minLength ||
@@ -496,17 +468,13 @@ class ApplicationCommand extends Base {
       if (
         enforceOptionOrder &&
         !existing.choices.every(
-          (choice, index) =>
-            choice.name === option.choices[index].name &&
-            choice.value === option.choices[index].value,
+          (choice, index) => choice.name === option.choices[index].name && choice.value === option.choices[index].value,
         )
       ) {
         return false;
       }
       if (!enforceOptionOrder) {
-        const newChoices = new Map(
-          option.choices.map((choice) => [choice.name, choice]),
-        );
+        const newChoices = new Map(option.choices.map(choice => [choice.name, choice]));
         for (const choice of existing.choices) {
           const foundChoice = newChoices.get(choice.name);
           if (!foundChoice || foundChoice.value !== choice.value) return false;
@@ -515,8 +483,8 @@ class ApplicationCommand extends Base {
     }
 
     if (existing.channelTypes) {
-      const newTypes = (option.channelTypes ?? option.channel_types).map(
-        (type) => (typeof type === 'number' ? ChannelTypes[type] : type),
+      const newTypes = (option.channelTypes ?? option.channel_types).map(type =>
+        typeof type === 'number' ? ChannelTypes[type] : type,
       );
       for (const type of existing.channelTypes) {
         if (!newTypes.includes(type)) return false;
@@ -524,11 +492,7 @@ class ApplicationCommand extends Base {
     }
 
     if (existing.options) {
-      return this.optionsEqual(
-        existing.options,
-        option.options,
-        enforceOptionOrder,
-      );
+      return this.optionsEqual(existing.options, option.options, enforceOptionOrder);
     }
     return true;
   }
@@ -574,60 +538,39 @@ class ApplicationCommand extends Base {
    * @private
    */
   static transformOption(option, received) {
-    const stringType =
-      typeof option.type === 'string'
-        ? option.type
-        : ApplicationCommandOptionTypes[option.type];
+    const stringType = typeof option.type === 'string' ? option.type : ApplicationCommandOptionTypes[option.type];
     const channelTypesKey = received ? 'channelTypes' : 'channel_types';
     const minValueKey = received ? 'minValue' : 'min_value';
     const maxValueKey = received ? 'maxValue' : 'max_value';
     const minLengthKey = received ? 'minLength' : 'min_length';
     const maxLengthKey = received ? 'maxLength' : 'max_length';
-    const nameLocalizationsKey = received
-      ? 'nameLocalizations'
-      : 'name_localizations';
+    const nameLocalizationsKey = received ? 'nameLocalizations' : 'name_localizations';
     const nameLocalizedKey = received ? 'nameLocalized' : 'name_localized';
-    const descriptionLocalizationsKey = received
-      ? 'descriptionLocalizations'
-      : 'description_localizations';
-    const descriptionLocalizedKey = received
-      ? 'descriptionLocalized'
-      : 'description_localized';
+    const descriptionLocalizationsKey = received ? 'descriptionLocalizations' : 'description_localizations';
+    const descriptionLocalizedKey = received ? 'descriptionLocalized' : 'description_localized';
     return {
-      type:
-        typeof option.type === 'number' && !received
-          ? option.type
-          : ApplicationCommandOptionTypes[option.type],
+      type: typeof option.type === 'number' && !received ? option.type : ApplicationCommandOptionTypes[option.type],
       name: option.name,
-      [nameLocalizationsKey]:
-        option.nameLocalizations ?? option.name_localizations,
+      [nameLocalizationsKey]: option.nameLocalizations ?? option.name_localizations,
       [nameLocalizedKey]: option.nameLocalized ?? option.name_localized,
       description: option.description,
-      [descriptionLocalizationsKey]:
-        option.descriptionLocalizations ?? option.description_localizations,
-      [descriptionLocalizedKey]:
-        option.descriptionLocalized ?? option.description_localized,
+      [descriptionLocalizationsKey]: option.descriptionLocalizations ?? option.description_localizations,
+      [descriptionLocalizedKey]: option.descriptionLocalized ?? option.description_localized,
       required:
-        option.required ??
-        (stringType === 'SUB_COMMAND' || stringType === 'SUB_COMMAND_GROUP'
-          ? undefined
-          : false),
+        option.required ?? (stringType === 'SUB_COMMAND' || stringType === 'SUB_COMMAND_GROUP' ? undefined : false),
       autocomplete: option.autocomplete,
-      choices: option.choices?.map((choice) => ({
+      choices: option.choices?.map(choice => ({
         name: choice.name,
         [nameLocalizedKey]: choice.nameLocalized ?? choice.name_localized,
-        [nameLocalizationsKey]:
-          choice.nameLocalizations ?? choice.name_localizations,
+        [nameLocalizationsKey]: choice.nameLocalizations ?? choice.name_localizations,
         value: choice.value,
       })),
-      options: option.options?.map((o) => this.transformOption(o, received)),
+      options: option.options?.map(o => this.transformOption(o, received)),
       [channelTypesKey]: received
-        ? option.channel_types?.map((type) => ChannelTypes[type])
-        : (option.channelTypes?.map((type) =>
-            typeof type === 'string' ? ChannelTypes[type] : type,
-          ) ??
+        ? option.channel_types?.map(type => ChannelTypes[type])
+        : option.channelTypes?.map(type => (typeof type === 'string' ? ChannelTypes[type] : type)) ??
           // When transforming to API data, accept API data
-          option.channel_types),
+          option.channel_types,
       [minValueKey]: option.minValue ?? option.min_value,
       [maxValueKey]: option.maxValue ?? option.max_value,
       [minLengthKey]: option.minLength ?? option.min_length,

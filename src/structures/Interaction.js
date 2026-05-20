@@ -1,11 +1,7 @@
 'use strict';
 
 const Base = require('./Base');
-const {
-  InteractionTypes,
-  MessageComponentTypes,
-  ApplicationCommandTypes,
-} = require('../util/Constants');
+const { InteractionTypes, MessageComponentTypes, ApplicationCommandTypes } = require('../util/Constants');
 const Permissions = require('../util/Permissions');
 const SnowflakeUtil = require('../util/SnowflakeUtil');
 
@@ -65,9 +61,7 @@ class Interaction extends Base {
      * If this interaction was sent in a guild, the member which sent it
      * @type {?(GuildMember|APIGuildMember)}
      */
-    this.member = data.member
-      ? (this.guild?.members._add(data.member) ?? data.member)
-      : null;
+    this.member = data.member ? this.guild?.members._add(data.member) ?? data.member : null;
 
     /**
      * The version
@@ -79,17 +73,13 @@ class Interaction extends Base {
      * Set of permissions the application or bot has within the channel the interaction was sent from
      * @type {?Readonly<Permissions>}
      */
-    this.appPermissions = data.app_permissions
-      ? new Permissions(data.app_permissions).freeze()
-      : null;
+    this.appPermissions = data.app_permissions ? new Permissions(data.app_permissions).freeze() : null;
 
     /**
      * The permissions of the member, if one exists, in the channel this interaction was executed in
      * @type {?Readonly<Permissions>}
      */
-    this.memberPermissions = data.member?.permissions
-      ? new Permissions(data.member.permissions).freeze()
-      : null;
+    this.memberPermissions = data.member?.permissions ? new Permissions(data.member.permissions).freeze() : null;
 
     /**
      * A Discord locale string, possible values are:
@@ -213,10 +203,7 @@ class Interaction extends Base {
    * @returns {boolean}
    */
   isCommand() {
-    return (
-      InteractionTypes[this.type] === InteractionTypes.APPLICATION_COMMAND &&
-      typeof this.targetId === 'undefined'
-    );
+    return InteractionTypes[this.type] === InteractionTypes.APPLICATION_COMMAND && typeof this.targetId === 'undefined';
   }
 
   /**
@@ -224,10 +211,7 @@ class Interaction extends Base {
    * @returns {boolean}
    */
   isContextMenu() {
-    return (
-      InteractionTypes[this.type] === InteractionTypes.APPLICATION_COMMAND &&
-      typeof this.targetId !== 'undefined'
-    );
+    return InteractionTypes[this.type] === InteractionTypes.APPLICATION_COMMAND && typeof this.targetId !== 'undefined';
   }
 
   /**
@@ -243,10 +227,7 @@ class Interaction extends Base {
    * @returns {boolean}
    */
   isUserContextMenu() {
-    return (
-      this.isContextMenu() &&
-      ApplicationCommandTypes[this.targetType] === ApplicationCommandTypes.USER
-    );
+    return this.isContextMenu() && ApplicationCommandTypes[this.targetType] === ApplicationCommandTypes.USER;
   }
 
   /**
@@ -254,11 +235,7 @@ class Interaction extends Base {
    * @returns {boolean}
    */
   isMessageContextMenu() {
-    return (
-      this.isContextMenu() &&
-      ApplicationCommandTypes[this.targetType] ===
-        ApplicationCommandTypes.MESSAGE
-    );
+    return this.isContextMenu() && ApplicationCommandTypes[this.targetType] === ApplicationCommandTypes.MESSAGE;
   }
 
   /**
@@ -266,10 +243,7 @@ class Interaction extends Base {
    * @returns {boolean}
    */
   isAutocomplete() {
-    return (
-      InteractionTypes[this.type] ===
-      InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE
-    );
+    return InteractionTypes[this.type] === InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE;
   }
 
   /**
@@ -298,8 +272,7 @@ class Interaction extends Base {
   isSelectMenu() {
     return (
       InteractionTypes[this.type] === InteractionTypes.MESSAGE_COMPONENT &&
-      MessageComponentTypes[this.componentType] ===
-        MessageComponentTypes.SELECT_MENU
+      MessageComponentTypes[this.componentType] === MessageComponentTypes.SELECT_MENU
     );
   }
 
@@ -308,10 +281,9 @@ class Interaction extends Base {
    * @returns {boolean}
    */
   isRepliable() {
-    return ![
-      InteractionTypes.PING,
-      InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE,
-    ].includes(InteractionTypes[this.type]);
+    return ![InteractionTypes.PING, InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE].includes(
+      InteractionTypes[this.type],
+    );
   }
 }
 

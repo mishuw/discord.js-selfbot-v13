@@ -60,9 +60,7 @@ class MessagePayload {
   get isWebhook() {
     const Webhook = require('./Webhook');
     const WebhookClient = require('../client/WebhookClient');
-    return (
-      this.target instanceof Webhook || this.target instanceof WebhookClient
-    );
+    return this.target instanceof Webhook || this.target instanceof WebhookClient;
   }
 
   /**
@@ -104,10 +102,7 @@ class MessagePayload {
   get isInteraction() {
     const Interaction = require('./Interaction');
     const InteractionWebhook = require('./InteractionWebhook');
-    return (
-      this.target instanceof Interaction ||
-      this.target instanceof InteractionWebhook
-    );
+    return this.target instanceof Interaction || this.target instanceof InteractionWebhook;
   }
 
   /**
@@ -119,12 +114,7 @@ class MessagePayload {
     if (this.options.content === null) {
       content = '';
     } else if (typeof this.options.content !== 'undefined') {
-      content = Util.verifyString(
-        this.options.content,
-        RangeError,
-        'MESSAGE_CONTENT_TYPE',
-        false,
-      );
+      content = Util.verifyString(this.options.content, RangeError, 'MESSAGE_CONTENT_TYPE', false);
     }
 
     return content;
@@ -146,18 +136,12 @@ class MessagePayload {
     if (typeof this.options.nonce !== 'undefined') {
       nonce = this.options.nonce;
       // eslint-disable-next-line max-len
-      if (
-        typeof nonce === 'number'
-          ? !Number.isInteger(nonce)
-          : typeof nonce !== 'string'
-      ) {
+      if (typeof nonce === 'number' ? !Number.isInteger(nonce) : typeof nonce !== 'string') {
         throw new RangeError('MESSAGE_NONCE_TYPE');
       }
     }
 
-    const components = this.options.components?.map((c) =>
-      BaseMessageComponent.create(c).toJSON(),
-    );
+    const components = this.options.components?.map(c => BaseMessageComponent.create(c).toJSON());
 
     let username;
     let avatarURL;
@@ -193,36 +177,23 @@ class MessagePayload {
     let message_reference;
     if (typeof this.options.reply === 'object') {
       const reference = this.options.reply.messageReference;
-      const message_id = this.isMessage
-        ? (reference.id ?? reference)
-        : this.target.messages.resolveId(reference);
+      const message_id = this.isMessage ? reference.id ?? reference : this.target.messages.resolveId(reference);
       if (message_id) {
         message_reference = {
           message_id,
           type: MessageReferenceTypes.DEFAULT,
-          fail_if_not_exists:
-            this.options.reply.failIfNotExists ??
-            this.target.client.options.failIfNotExists,
+          fail_if_not_exists: this.options.reply.failIfNotExists ?? this.target.client.options.failIfNotExists,
         };
       }
     }
 
     if (typeof this.options.forward === 'object') {
       const reference = this.options.forward.message;
-      const channel_id =
-        reference.channelId ??
-        this.target.client.channels.resolveId(this.options.forward.channel);
-      const guild_id =
-        reference.guildId ??
-        this.target.client.guilds.resolveId(this.options.forward.guild);
+      const channel_id = reference.channelId ?? this.target.client.channels.resolveId(this.options.forward.channel);
+      const guild_id = reference.guildId ?? this.target.client.guilds.resolveId(this.options.forward.guild);
       const message_id = this.target.messages.resolveId(reference);
       if (message_id) {
-        if (!channel_id)
-          throw new DjsError(
-            'INVALID_TYPE',
-            'channelId',
-            'TextBasedChannelResolvable',
-          );
+        if (!channel_id) throw new DjsError('INVALID_TYPE', 'channelId', 'TextBasedChannelResolvable');
         message_reference = {
           type: MessageReferenceTypes.FORWARD,
           message_id,
@@ -265,11 +236,8 @@ class MessagePayload {
         question: {
           text: this.options.poll.question.text,
         },
-        answers: this.options.poll.answers.map((answer) => ({
-          poll_media: {
-            text: answer.text,
-            emoji: Util.resolvePartialEmoji(answer.emoji),
-          },
+        answers: this.options.poll.answers.map(answer => ({
+          poll_media: { text: answer.text, emoji: Util.resolvePartialEmoji(answer.emoji) },
         })),
         duration: this.options.poll.duration,
         allow_multiselect: this.options.poll.allowMultiselect,
@@ -285,24 +253,18 @@ class MessagePayload {
       content,
       tts,
       nonce,
-      embeds: this.options.embeds?.map((embed) =>
-        new MessageEmbed(embed).toJSON(),
-      ),
+      embeds: this.options.embeds?.map(embed => new MessageEmbed(embed).toJSON()),
       components,
       username,
       avatar_url: avatarURL,
       allowed_mentions:
-        this.isMessage &&
-        message_reference === undefined &&
-        this.target?.author?.id !== this.target?.client?.user?.id
+        this.isMessage && message_reference === undefined && this.target?.author?.id !== this.target?.client?.user?.id
           ? undefined
           : allowedMentions,
       flags,
       message_reference,
       attachments: this.options.attachments,
-      sticker_ids: this.options.stickers?.map(
-        (sticker) => sticker.id ?? sticker,
-      ),
+      sticker_ids: this.options.stickers?.map(sticker => sticker.id ?? sticker),
       thread_name: threadName,
       applied_tags: appliedTags,
       poll,
@@ -317,10 +279,7 @@ class MessagePayload {
   async resolveFiles() {
     if (this.files) return this;
 
-    this.files = await Promise.all(
-      this.options.files?.map((file) => this.constructor.resolveFile(file)) ??
-        [],
-    );
+    this.files = await Promise.all(this.options.files?.map(file => this.constructor.resolveFile(file)) ?? []);
     return this;
   }
 
@@ -333,7 +292,7 @@ class MessagePayload {
     let attachment;
     let name;
 
-    const findName = (thing) => {
+    const findName = thing => {
       if (typeof thing === 'string') {
         return Util.basename(thing);
       }
@@ -346,9 +305,7 @@ class MessagePayload {
     };
 
     const ownAttachment =
-      typeof fileLike === 'string' ||
-      fileLike instanceof Buffer ||
-      typeof fileLike.pipe === 'function';
+      typeof fileLike === 'string' || fileLike instanceof Buffer || typeof fileLike.pipe === 'function';
     if (ownAttachment) {
       attachment = fileLike;
       name = findName(attachment);
@@ -378,9 +335,7 @@ class MessagePayload {
   static create(target, options, extra = {}) {
     return new this(
       target,
-      typeof options !== 'object' || options === null
-        ? { content: options, ...extra }
-        : { ...options, ...extra },
+      typeof options !== 'object' || options === null ? { content: options, ...extra } : { ...options, ...extra },
     );
   }
 }

@@ -57,11 +57,7 @@ class BaseCommandInteraction extends Interaction {
      * An associated interaction webhook, can be used to further interact with this interaction
      * @type {InteractionWebhook}
      */
-    this.webhook = new InteractionWebhook(
-      this.client,
-      this.applicationId,
-      this.token,
-    );
+    this.webhook = new InteractionWebhook(this.client, this.applicationId, this.token);
   }
 
   /**
@@ -70,11 +66,7 @@ class BaseCommandInteraction extends Interaction {
    */
   get command() {
     const id = this.commandId;
-    return (
-      this.guild?.commands.cache.get(id) ??
-      this.client.application.commands.cache.get(id) ??
-      null
-    );
+    return this.guild?.commands.cache.get(id) ?? this.client.application.commands.cache.get(id) ?? null;
   }
 
   /**
@@ -94,24 +86,14 @@ class BaseCommandInteraction extends Interaction {
    * @returns {CommandInteractionResolvedData}
    * @private
    */
-  transformResolved({
-    members,
-    users,
-    channels,
-    roles,
-    messages,
-    attachments,
-  }) {
+  transformResolved({ members, users, channels, roles, messages, attachments }) {
     const result = {};
 
     if (members) {
       result.members = new Collection();
       for (const [id, member] of Object.entries(members)) {
         const user = users[id];
-        result.members.set(
-          id,
-          this.guild?.members._add({ user, ...member }) ?? member,
-        );
+        result.members.set(id, this.guild?.members._add({ user, ...member }) ?? member);
       }
     }
 
@@ -132,31 +114,21 @@ class BaseCommandInteraction extends Interaction {
     if (channels) {
       result.channels = new Collection();
       for (const channel of Object.values(channels)) {
-        result.channels.set(
-          channel.id,
-          this.client.channels._add(channel, this.guild) ?? channel,
-        );
+        result.channels.set(channel.id, this.client.channels._add(channel, this.guild) ?? channel);
       }
     }
 
     if (messages) {
       result.messages = new Collection();
       for (const message of Object.values(messages)) {
-        result.messages.set(
-          message.id,
-          this.channel?.messages?._add(message) ?? message,
-        );
+        result.messages.set(message.id, this.channel?.messages?._add(message) ?? message);
       }
     }
 
     if (attachments) {
       result.attachments = new Collection();
       for (const attachment of Object.values(attachments)) {
-        const patched = new MessageAttachment(
-          attachment.url,
-          attachment.filename,
-          attachment,
-        );
+        const patched = new MessageAttachment(attachment.url, attachment.filename, attachment);
         result.attachments.set(attachment.id, patched);
       }
     }
@@ -194,34 +166,23 @@ class BaseCommandInteraction extends Interaction {
     };
 
     if ('value' in option) result.value = option.value;
-    if ('options' in option)
-      result.options = option.options.map((opt) =>
-        this.transformOption(opt, resolved),
-      );
+    if ('options' in option) result.options = option.options.map(opt => this.transformOption(opt, resolved));
 
     if (resolved) {
       const user = resolved.users?.[option.value];
       if (user) result.user = this.client.users._add(user);
 
       const member = resolved.members?.[option.value];
-      if (member)
-        result.member = this.guild?.members._add({ user, ...member }) ?? member;
+      if (member) result.member = this.guild?.members._add({ user, ...member }) ?? member;
 
       const channel = resolved.channels?.[option.value];
-      if (channel)
-        result.channel =
-          this.client.channels._add(channel, this.guild) ?? channel;
+      if (channel) result.channel = this.client.channels._add(channel, this.guild) ?? channel;
 
       const role = resolved.roles?.[option.value];
       if (role) result.role = this.guild?.roles._add(role) ?? role;
 
       const attachment = resolved.attachments?.[option.value];
-      if (attachment)
-        result.attachment = new MessageAttachment(
-          attachment.url,
-          attachment.filename,
-          attachment,
-        );
+      if (attachment) result.attachment = new MessageAttachment(attachment.url, attachment.filename, attachment);
     }
 
     return result;
@@ -239,10 +200,7 @@ class BaseCommandInteraction extends Interaction {
   awaitModalSubmit() {}
 }
 
-InteractionResponses.applyToClass(BaseCommandInteraction, [
-  'deferUpdate',
-  'update',
-]);
+InteractionResponses.applyToClass(BaseCommandInteraction, ['deferUpdate', 'update']);
 
 module.exports = BaseCommandInteraction;
 

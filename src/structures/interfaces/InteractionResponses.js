@@ -1,10 +1,7 @@
 'use strict';
 
 const { Error } = require('../../errors');
-const {
-  InteractionResponseTypes,
-  InteractionTypes,
-} = require('../../util/Constants');
+const { InteractionResponseTypes, InteractionTypes } = require('../../util/Constants');
 const MessageFlags = require('../../util/MessageFlags');
 const InteractionCollector = require('../InteractionCollector');
 const MessagePayload = require('../MessagePayload');
@@ -59,8 +56,7 @@ class InteractionResponses {
    *   .catch(console.error);
    */
   async deferReply(options = {}) {
-    if (this.deferred || this.replied)
-      throw new Error('INTERACTION_ALREADY_REPLIED');
+    if (this.deferred || this.replied) throw new Error('INTERACTION_ALREADY_REPLIED');
     this.ephemeral = options.ephemeral ?? false;
     await this.client.api.interactions(this.id, this.token).callback.post({
       data: {
@@ -95,8 +91,7 @@ class InteractionResponses {
    *   .catch(console.error);
    */
   async reply(options) {
-    if (this.deferred || this.replied)
-      throw new Error('INTERACTION_ALREADY_REPLIED');
+    if (this.deferred || this.replied) throw new Error('INTERACTION_ALREADY_REPLIED');
     this.ephemeral = options.ephemeral ?? false;
 
     let messagePayload;
@@ -151,12 +146,8 @@ class InteractionResponses {
    *   .catch(console.error);
    */
   async editReply(options) {
-    if (!this.deferred && !this.replied)
-      throw new Error('INTERACTION_NOT_REPLIED');
-    const message = await this.webhook.editMessage(
-      options.message ?? '@original',
-      options,
-    );
+    if (!this.deferred && !this.replied) throw new Error('INTERACTION_NOT_REPLIED');
+    const message = await this.webhook.editMessage(options.message ?? '@original', options);
     this.replied = true;
     return message;
   }
@@ -182,8 +173,7 @@ class InteractionResponses {
    * @returns {Promise<Message|APIMessage>}
    */
   async followUp(options) {
-    if (!this.deferred && !this.replied)
-      throw new Error('INTERACTION_NOT_REPLIED');
+    if (!this.deferred && !this.replied) throw new Error('INTERACTION_NOT_REPLIED');
     return this.webhook.send(options);
   }
 
@@ -198,8 +188,7 @@ class InteractionResponses {
    *   .catch(console.error);
    */
   async deferUpdate(options = {}) {
-    if (this.deferred || this.replied)
-      throw new Error('INTERACTION_ALREADY_REPLIED');
+    if (this.deferred || this.replied) throw new Error('INTERACTION_ALREADY_REPLIED');
     await this.client.api.interactions(this.id, this.token).callback.post({
       data: {
         type: InteractionResponseTypes.DEFERRED_MESSAGE_UPDATE,
@@ -225,8 +214,7 @@ class InteractionResponses {
    *   .catch(console.error);
    */
   async update(options) {
-    if (this.deferred || this.replied)
-      throw new Error('INTERACTION_ALREADY_REPLIED');
+    if (this.deferred || this.replied) throw new Error('INTERACTION_ALREADY_REPLIED');
 
     let messagePayload;
     if (options instanceof MessagePayload) messagePayload = options;
@@ -253,8 +241,7 @@ class InteractionResponses {
    * @returns {Promise<void>}
    */
   async showModal(modal) {
-    if (this.deferred || this.replied)
-      throw new Error('INTERACTION_ALREADY_REPLIED');
+    if (this.deferred || this.replied) throw new Error('INTERACTION_ALREADY_REPLIED');
 
     const _modal = modal instanceof Modal ? modal : new Modal(modal);
     await this.client.api.interactions(this.id, this.token).callback.post({
@@ -286,13 +273,8 @@ class InteractionResponses {
    *   .catch(console.error);
    */
   awaitModalSubmit(options) {
-    if (typeof options.time !== 'number')
-      throw new Error('INVALID_TYPE', 'time', 'number');
-    const _options = {
-      ...options,
-      max: 1,
-      interactionType: InteractionTypes.MODAL_SUBMIT,
-    };
+    if (typeof options.time !== 'number') throw new Error('INVALID_TYPE', 'time', 'number');
+    const _options = { ...options, max: 1, interactionType: InteractionTypes.MODAL_SUBMIT };
     return new Promise((resolve, reject) => {
       const collector = new InteractionCollector(this.client, _options);
       collector.once('end', (interactions, reason) => {

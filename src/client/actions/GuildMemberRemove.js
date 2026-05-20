@@ -21,8 +21,7 @@ class GuildMemberRemoveAction extends Action {
          * @param {GuildMember} member The member that has left/been kicked from the guild
          * @deprecated See {@link https://github.com/aiko-chan-ai/discord.js-selfbot-v13/issues/197 this issue} for more information.
          */
-        if (shard.status === Status.READY)
-          client.emit(Events.GUILD_MEMBER_REMOVE, member);
+        if (shard.status === Status.READY) client.emit(Events.GUILD_MEMBER_REMOVE, member);
       }
       guild.presences.cache.delete(data.user.id);
       guild.voiceStates.cache.delete(data.user.id);

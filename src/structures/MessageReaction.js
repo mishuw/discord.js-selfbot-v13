@@ -136,9 +136,7 @@ class MessageReaction {
    */
   async fetch() {
     const message = await this.message.fetch();
-    const existing = message.reactions.cache.get(
-      this.emoji.id ?? this.emoji.name,
-    );
+    const existing = message.reactions.cache.get(this.emoji.id ?? this.emoji.name);
     // The reaction won't get set when it has been completely removed
     this._patch(existing ?? { count: 0 });
     return this;
@@ -151,11 +149,7 @@ class MessageReaction {
   _add(user, burst) {
     if (this.partial) return;
     this.users.cache.set(user.id, user);
-    if (
-      !this.me ||
-      user.id !== this.message.client.user.id ||
-      this.count === 0
-    ) {
+    if (!this.me || user.id !== this.message.client.user.id || this.count === 0) {
       this.count++;
       if (burst) this.countDetails.burst++;
       else this.countDetails.normal++;

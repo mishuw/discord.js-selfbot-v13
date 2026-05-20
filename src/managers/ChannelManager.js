@@ -3,11 +3,7 @@
 const process = require('node:process');
 const CachedManager = require('./CachedManager');
 const { Channel } = require('../structures/Channel');
-const {
-  Events,
-  ThreadChannelTypes,
-  RelationshipTypes,
-} = require('../util/Constants');
+const { Events, ThreadChannelTypes, RelationshipTypes } = require('../util/Constants');
 
 let cacheWarningEmitted = false;
 
@@ -20,10 +16,8 @@ class ChannelManager extends CachedManager {
     super(client, Channel, iterable);
     const defaultCaching =
       this._cache.constructor.name === 'Collection' ||
-      ((this._cache.maxSize === undefined ||
-        this._cache.maxSize === Infinity) &&
-        (this._cache.sweepFilter === undefined ||
-          this._cache.sweepFilter.isDefault));
+      ((this._cache.maxSize === undefined || this._cache.maxSize === Infinity) &&
+        (this._cache.sweepFilter === undefined || this._cache.sweepFilter.isDefault));
     if (!cacheWarningEmitted && !defaultCaching) {
       cacheWarningEmitted = true;
       process.emitWarning(
@@ -50,15 +44,10 @@ class ChannelManager extends CachedManager {
       return existing;
     }
 
-    const channel = Channel.create(this.client, data, guild, {
-      allowUnknownGuild,
-    });
+    const channel = Channel.create(this.client, data, guild, { allowUnknownGuild });
 
     if (!channel) {
-      this.client.emit(
-        Events.DEBUG,
-        `Failed to find guild, or unknown type for channel ${data.id} ${data.type}`,
-      );
+      this.client.emit(Events.DEBUG, `Failed to find guild, or unknown type for channel ${data.id} ${data.type}`);
       return null;
     }
 
@@ -126,10 +115,7 @@ class ChannelManager extends CachedManager {
    *   .then(channel => console.log(channel.name))
    *   .catch(console.error);
    */
-  async fetch(
-    id,
-    { allowUnknownGuild = false, cache = true, force = false } = {},
-  ) {
+  async fetch(id, { allowUnknownGuild = false, cache = true, force = false } = {}) {
     if (!force) {
       const existing = this.cache.get(id);
       if (existing && !existing.partial) return existing;
@@ -147,19 +133,11 @@ class ChannelManager extends CachedManager {
    * client.channels.createGroupDM();
    */
   async createGroupDM(recipients = []) {
-    if (!Array.isArray(recipients))
-      throw new Error(
-        `Expected an array of recipients (got ${typeof recipients})`,
-      );
+    if (!Array.isArray(recipients)) throw new Error(`Expected an array of recipients (got ${typeof recipients})`);
     recipients = recipients
-      .map((r) => this.client.users.resolveId(r))
-      .filter(
-        (r) =>
-          r &&
-          this.client.relationships.cache.get(r) == RelationshipTypes.FRIEND,
-      );
-    if (recipients.length == 1 || recipients.length > 9)
-      throw new Error('Invalid Users length (max=9)');
+      .map(r => this.client.users.resolveId(r))
+      .filter(r => r && this.client.relationships.cache.get(r) == RelationshipTypes.FRIEND);
+    if (recipients.length == 1 || recipients.length > 9) throw new Error('Invalid Users length (max=9)');
     const data = await this.client.api.users['@me'].channels.post({
       data: { recipients },
     });

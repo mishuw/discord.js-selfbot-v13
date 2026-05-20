@@ -15,17 +15,11 @@ const Util = require('../util/Util');
  */
 class ClientUser extends User {
   #packageName = null;
-  #intervalSamsungPresence = setInterval(
-    () => {
-      this.client.emit(
-        'debug',
-        `[UPDATE] Samsung Presence: ${this.#packageName}`,
-      );
-      if (!this.#packageName) return;
-      this.setSamsungActivity(this.#packageName, 'UPDATE');
-    },
-    1000 * 60 * 10,
-  ).unref();
+  #intervalSamsungPresence = setInterval(() => {
+    this.client.emit('debug', `[UPDATE] Samsung Presence: ${this.#packageName}`);
+    if (!this.#packageName) return;
+    this.setSamsungActivity(this.#packageName, 'UPDATE');
+  }, 1000 * 60 * 10).unref();
 
   _patch(data) {
     super._patch(data);
@@ -43,8 +37,7 @@ class ClientUser extends User {
        * If the bot's {@link Application#owner Owner} has MFA enabled on their account
        * @type {?boolean}
        */
-      this.mfaEnabled =
-        typeof data.mfa_enabled === 'boolean' ? data.mfa_enabled : null;
+      this.mfaEnabled = typeof data.mfa_enabled === 'boolean' ? data.mfa_enabled : null;
     } else {
       this.mfaEnabled ??= null;
     }
@@ -56,9 +49,7 @@ class ClientUser extends User {
        * Purchased state of the client user.
        * @type {Readonly<PurchasedFlags>}
        */
-      this.purchasedFlags = new PurchasedFlags(
-        data.purchased_flags || 0,
-      ).freeze();
+      this.purchasedFlags = new PurchasedFlags(data.purchased_flags || 0).freeze();
     } else {
       this.purchasedFlags = new PurchasedFlags().freeze();
     }
@@ -68,9 +59,7 @@ class ClientUser extends User {
        * Premium usage state of the client user.
        * @type {Readonly<PremiumUsageFlags>}
        */
-      this.premiumUsageFlags = new PremiumUsageFlags(
-        data.premium_usage_flags || 0,
-      );
+      this.premiumUsageFlags = new PremiumUsageFlags(data.premium_usage_flags || 0);
     } else {
       this.premiumUsageFlags = new PremiumUsageFlags().freeze();
     }
@@ -261,18 +250,10 @@ class ClientUser extends User {
    * @see {@link https://github.com/aiko-chan-ai/discord.js-selfbot-v13/blob/main/Document/RichPresence.md}
    */
   setActivity(name, options = {}) {
-    if (!name)
-      return this.setPresence({ activities: [], shardId: options.shardId });
+    if (!name) return this.setPresence({ activities: [], shardId: options.shardId });
 
-    const activity = Object.assign(
-      {},
-      options,
-      typeof name === 'object' ? name : { name },
-    );
-    return this.setPresence({
-      activities: [activity],
-      shardId: activity.shardId,
-    });
+    const activity = Object.assign({}, options, typeof name === 'object' ? name : { name });
+    return this.setPresence({ activities: [activity], shardId: activity.shardId });
   }
 
   /**
@@ -414,10 +395,8 @@ class ClientUser extends User {
    */
   async setSamsungActivity(packageName, type = 'START') {
     type = type.toUpperCase();
-    if (!packageName || typeof packageName !== 'string')
-      throw new Error('Package name is required.');
-    if (!['START', 'UPDATE', 'STOP'].includes(type))
-      throw new Error('Invalid type (Must be START, UPDATE, or STOP)');
+    if (!packageName || typeof packageName !== 'string') throw new Error('Package name is required.');
+    if (!['START', 'UPDATE', 'STOP'].includes(type)) throw new Error('Invalid type (Must be START, UPDATE, or STOP)');
     await this.client.api.presences.post({
       data: {
         package_name: packageName,
@@ -435,11 +414,9 @@ class ClientUser extends User {
    * @returns {Promise<void>}
    */
   stopRinging(channel) {
-    return this.client.api
-      .channels(this.client.channels.resolveId(channel))
-      .call['stop-ringing'].post({
-        data: {},
-      });
+    return this.client.api.channels(this.client.channels.resolveId(channel)).call['stop-ringing'].post({
+      data: {},
+    });
   }
 
   /**
@@ -447,9 +424,7 @@ class ClientUser extends User {
    * @returns {Promise<number>}
    */
   fetchBurstCredit() {
-    return this.client.api.users['@me']['burst-credits']
-      .get()
-      .then((d) => d.amount);
+    return this.client.api.users['@me']['burst-credits'].get().then(d => d.amount);
   }
 
   /**

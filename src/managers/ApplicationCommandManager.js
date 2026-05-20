@@ -93,10 +93,7 @@ class ApplicationCommandManager extends CachedManager {
    *   .then(commands => console.log(`Fetched ${commands.size} commands`))
    *   .catch(console.error);
    */
-  async fetch(
-    id,
-    { guildId, cache = true, force = false, locale, withLocalizations } = {},
-  ) {
+  async fetch(id, { guildId, cache = true, force = false, locale, withLocalizations } = {}) {
     if (typeof id === 'object') {
       ({ guildId, cache = true, locale, withLocalizations } = id);
     } else if (id) {
@@ -112,16 +109,9 @@ class ApplicationCommandManager extends CachedManager {
       headers: {
         'X-Discord-Locale': locale,
       },
-      query:
-        typeof withLocalizations === 'boolean'
-          ? { with_localizations: withLocalizations }
-          : undefined,
+      query: typeof withLocalizations === 'boolean' ? { with_localizations: withLocalizations } : undefined,
     });
-    return data.reduce(
-      (coll, command) =>
-        coll.set(command.id, this._add(command, cache, guildId)),
-      new Collection(),
-    );
+    return data.reduce((coll, command) => coll.set(command.id, this._add(command, cache, guildId)), new Collection());
   }
 
   /**
@@ -170,13 +160,9 @@ class ApplicationCommandManager extends CachedManager {
    */
   async set(commands, guildId) {
     const data = await this.commandPath({ guildId }).put({
-      data: commands.map((c) => this.constructor.transformCommand(c)),
+      data: commands.map(c => this.constructor.transformCommand(c)),
     });
-    return data.reduce(
-      (coll, command) =>
-        coll.set(command.id, this._add(command, true, guildId)),
-      new Collection(),
-    );
+    return data.reduce((coll, command) => coll.set(command.id, this._add(command, true, guildId)), new Collection());
   }
 
   /**
@@ -196,12 +182,7 @@ class ApplicationCommandManager extends CachedManager {
    */
   async edit(command, data, guildId) {
     const id = this.resolveId(command);
-    if (!id)
-      throw new TypeError(
-        'INVALID_TYPE',
-        'command',
-        'ApplicationCommandResolvable',
-      );
+    if (!id) throw new TypeError('INVALID_TYPE', 'command', 'ApplicationCommandResolvable');
 
     const patched = await this.commandPath({ id, guildId }).patch({
       data: this.constructor.transformCommand(data),
@@ -223,12 +204,7 @@ class ApplicationCommandManager extends CachedManager {
    */
   async delete(command, guildId) {
     const id = this.resolveId(command);
-    if (!id)
-      throw new TypeError(
-        'INVALID_TYPE',
-        'command',
-        'ApplicationCommandResolvable',
-      );
+    if (!id) throw new TypeError('INVALID_TYPE', 'command', 'ApplicationCommandResolvable');
 
     await this.commandPath({ id, guildId }).delete();
 
@@ -250,37 +226,25 @@ class ApplicationCommandManager extends CachedManager {
 
     if ('default_member_permissions' in command) {
       default_member_permissions = command.default_member_permissions
-        ? new Permissions(
-            BigInt(command.default_member_permissions),
-          ).bitfield.toString()
+        ? new Permissions(BigInt(command.default_member_permissions)).bitfield.toString()
         : command.default_member_permissions;
     }
 
     if ('defaultMemberPermissions' in command) {
       default_member_permissions =
         command.defaultMemberPermissions !== null
-          ? new Permissions(
-              command.defaultMemberPermissions,
-            ).bitfield.toString()
+          ? new Permissions(command.defaultMemberPermissions).bitfield.toString()
           : command.defaultMemberPermissions;
     }
 
     return {
       name: command.name,
-      name_localizations:
-        command.nameLocalizations ?? command.name_localizations,
+      name_localizations: command.nameLocalizations ?? command.name_localizations,
       description: command.description,
-      description_localizations:
-        command.descriptionLocalizations ?? command.description_localizations,
-      type:
-        typeof command.type === 'number'
-          ? command.type
-          : ApplicationCommandTypes[command.type],
-      options: command.options?.map((o) =>
-        ApplicationCommand.transformOption(o),
-      ),
-      default_permission:
-        command.defaultPermission ?? command.default_permission,
+      description_localizations: command.descriptionLocalizations ?? command.description_localizations,
+      type: typeof command.type === 'number' ? command.type : ApplicationCommandTypes[command.type],
+      options: command.options?.map(o => ApplicationCommand.transformOption(o)),
+      default_permission: command.defaultPermission ?? command.default_permission,
       default_member_permissions,
       dm_permission: command.dmPermission ?? command.dm_permission,
     };

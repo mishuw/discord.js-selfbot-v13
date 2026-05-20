@@ -37,8 +37,7 @@ class PermissionOverwrites extends Base {
        * The type of this overwrite
        * @type {OverwriteType}
        */
-      this.type =
-        typeof data.type === 'number' ? OverwriteTypes[data.type] : data.type;
+      this.type = typeof data.type === 'number' ? OverwriteTypes[data.type] : data.type;
     }
 
     if ('deny' in data) {
@@ -72,12 +71,7 @@ class PermissionOverwrites extends Base {
    *   .catch(console.error);
    */
   async edit(options, reason) {
-    await this.channel.permissionOverwrites.upsert(
-      this.id,
-      options,
-      { type: OverwriteTypes[this.type], reason },
-      this,
-    );
+    await this.channel.permissionOverwrites.upsert(this.id, options, { type: OverwriteTypes[this.type], reason }, this);
     return this;
   }
 
@@ -181,33 +175,22 @@ class PermissionOverwrites extends Base {
       return {
         id: overwrite.id,
         type: OverwriteTypes[overwrite.type],
-        allow: Permissions.resolve(
-          overwrite.allow ?? Permissions.defaultBit,
-        ).toString(),
-        deny: Permissions.resolve(
-          overwrite.deny ?? Permissions.defaultBit,
-        ).toString(),
+        allow: Permissions.resolve(overwrite.allow ?? Permissions.defaultBit).toString(),
+        deny: Permissions.resolve(overwrite.deny ?? Permissions.defaultBit).toString(),
       };
     }
 
-    const userOrRole =
-      guild.roles.resolve(overwrite.id) ??
-      guild.client.users.resolve(overwrite.id);
+    const userOrRole = guild.roles.resolve(overwrite.id) ?? guild.client.users.resolve(overwrite.id);
     if (!userOrRole) {
       throw new TypeError('INVALID_TYPE', 'parameter', 'cached User or Role');
     }
-    const type =
-      userOrRole instanceof Role ? OverwriteTypes.role : OverwriteTypes.member;
+    const type = userOrRole instanceof Role ? OverwriteTypes.role : OverwriteTypes.member;
 
     return {
       id: userOrRole.id,
       type,
-      allow: Permissions.resolve(
-        overwrite.allow ?? Permissions.defaultBit,
-      ).toString(),
-      deny: Permissions.resolve(
-        overwrite.deny ?? Permissions.defaultBit,
-      ).toString(),
+      allow: Permissions.resolve(overwrite.allow ?? Permissions.defaultBit).toString(),
+      deny: Permissions.resolve(overwrite.deny ?? Permissions.defaultBit).toString(),
     };
   }
 }

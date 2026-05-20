@@ -83,8 +83,7 @@ class DataResolver extends null {
    * @returns {?string}
    */
   static resolveBase64(data) {
-    if (Buffer.isBuffer(data))
-      return `data:image/jpg;base64,${data.toString('base64')}`;
+    if (Buffer.isBuffer(data)) return `data:image/jpg;base64,${data.toString('base64')}`;
     return data;
   }
 
@@ -108,8 +107,7 @@ class DataResolver extends null {
    * @returns {Promise<Buffer|Stream>}
    */
   static async resolveFile(resource) {
-    if (Buffer.isBuffer(resource) || resource instanceof stream.Readable)
-      return resource;
+    if (Buffer.isBuffer(resource) || resource instanceof stream.Readable) return resource;
     if (typeof resource === 'string') {
       if (/^https?:\/\//.test(resource)) {
         const res = await fetch(resource);
@@ -121,8 +119,7 @@ class DataResolver extends null {
         const file = path.resolve(resource);
         fs.stat(file, (err, stats) => {
           if (err) return reject(err);
-          if (!stats.isFile())
-            return reject(new DiscordError('FILE_NOT_FOUND', file));
+          if (!stats.isFile()) return reject(new DiscordError('FILE_NOT_FOUND', file));
           return resolve(fs.createReadStream(file));
         });
       });

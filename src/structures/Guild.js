@@ -323,8 +323,7 @@ class Guild extends AnonymousGuild {
        * The explicit content filter level of the guild
        * @type {ExplicitContentFilterLevel}
        */
-      this.explicitContentFilter =
-        ExplicitContentFilterLevels[data.explicit_content_filter];
+      this.explicitContentFilter = ExplicitContentFilterLevels[data.explicit_content_filter];
     }
 
     if ('mfa_level' in data) {
@@ -348,8 +347,7 @@ class Guild extends AnonymousGuild {
        * The default message notification level of the guild
        * @type {DefaultMessageNotificationLevel}
        */
-      this.defaultMessageNotifications =
-        DefaultMessageNotificationLevels[data.default_message_notifications];
+      this.defaultMessageNotifications = DefaultMessageNotificationLevels[data.default_message_notifications];
     }
 
     if ('system_channel_flags' in data) {
@@ -357,9 +355,7 @@ class Guild extends AnonymousGuild {
        * The value set for the guild's system channel flags
        * @type {Readonly<SystemChannelFlags>}
        */
-      this.systemChannelFlags = new SystemChannelFlags(
-        data.system_channel_flags,
-      ).freeze();
+      this.systemChannelFlags = new SystemChannelFlags(data.system_channel_flags).freeze();
     }
 
     if ('max_members' in data) {
@@ -545,8 +541,7 @@ class Guild extends AnonymousGuild {
        * @type {GuildStickerManager}
        */
       this.stickers = new GuildStickerManager(this);
-      if (data.stickers)
-        for (const sticker of data.stickers) this.stickers._add(sticker);
+      if (data.stickers) for (const sticker of data.stickers) this.stickers._add(sticker);
     } else if (data.stickers) {
       this.client.actions.GuildStickersUpdate.handle({
         guild_id: this.id,
@@ -570,9 +565,7 @@ class Guild extends AnonymousGuild {
        * this property.</info>
        * @type {?IncidentActions}
        */
-      this.incidentsData =
-        data.incidents_data &&
-        Util.transformAPIIncidentsData(data.incidents_data);
+      this.incidentsData = data.incidents_data && Util.transformAPIIncidentsData(data.incidents_data);
     } else {
       this.incidentsData ??= null;
     }
@@ -593,15 +586,7 @@ class Guild extends AnonymousGuild {
    * @returns {?string}
    */
   discoverySplashURL({ format, size } = {}) {
-    return (
-      this.discoverySplash &&
-      this.client.rest.cdn.DiscoverySplash(
-        this.id,
-        this.discoverySplash,
-        format,
-        size,
-      )
-    );
+    return this.discoverySplash && this.client.rest.cdn.DiscoverySplash(this.id, this.discoverySplash, format, size);
   }
 
   /**
@@ -676,10 +661,7 @@ class Guild extends AnonymousGuild {
    */
   get me() {
     if (!deprecationEmittedForMe) {
-      process.emitWarning(
-        'Guild#me is deprecated. Use Guild#members#me instead.',
-        'DeprecationWarning',
-      );
+      process.emitWarning('Guild#me is deprecated. Use Guild#members#me instead.', 'DeprecationWarning');
       deprecationEmittedForMe = true;
     }
 
@@ -721,11 +703,7 @@ class Guild extends AnonymousGuild {
   async fetchIntegrations() {
     const data = await this.client.api.guilds(this.id).integrations.get();
     return data.reduce(
-      (collection, integration) =>
-        collection.set(
-          integration.id,
-          new Integration(this.client, integration, this),
-        ),
+      (collection, integration) => collection.set(integration.id, new Integration(this.client, integration, this)),
       new Collection(),
     );
   }
@@ -737,10 +715,7 @@ class Guild extends AnonymousGuild {
    */
   async fetchTemplates() {
     const templates = await this.client.api.guilds(this.id).templates.get();
-    return templates.reduce(
-      (col, data) => col.set(data.code, new GuildTemplate(this.client, data)),
-      new Collection(),
-    );
+    return templates.reduce((col, data) => col.set(data.code, new GuildTemplate(this.client, data)), new Collection());
   }
 
   /**
@@ -759,9 +734,7 @@ class Guild extends AnonymousGuild {
    * @returns {Promise<GuildTemplate>}
    */
   async createTemplate(name, description) {
-    const data = await this.client.api
-      .guilds(this.id)
-      .templates.post({ data: { name, description } });
+    const data = await this.client.api.guilds(this.id).templates.post({ data: { name, description } });
     return new GuildTemplate(this.client, data);
   }
 
@@ -813,8 +786,7 @@ class Guild extends AnonymousGuild {
   async fetchWebhooks() {
     const apiHooks = await this.client.api.guilds(this.id).webhooks.get();
     const hooks = new Collection();
-    for (const hook of apiHooks)
-      hooks.set(hook.id, new Webhook(this.client, hook));
+    for (const hook of apiHooks) hooks.set(hook.id, new Webhook(this.client, hook));
     return hooks;
   }
 
@@ -860,9 +832,7 @@ class Guild extends AnonymousGuild {
     this.widgetChannelId = data.channel_id;
     return {
       enabled: data.enabled,
-      channel: data.channel_id
-        ? this.channels.cache.get(data.channel_id)
-        : null,
+      channel: data.channel_id ? this.channels.cache.get(data.channel_id) : null,
     };
   }
 
@@ -893,8 +863,7 @@ class Guild extends AnonymousGuild {
         after: after?.id ?? after,
         limit,
         user_id: this.client.users.resolveId(user),
-        action_type:
-          typeof type === 'string' ? GuildAuditLogs.Actions[type] : type,
+        action_type: typeof type === 'string' ? GuildAuditLogs.Actions[type] : type,
       },
     });
 
@@ -967,23 +936,16 @@ class Guild extends AnonymousGuild {
       _data.afk_channel_id = this.client.channels.resolveId(data.afkChannel);
     }
     if (typeof data.systemChannel !== 'undefined') {
-      _data.system_channel_id = this.client.channels.resolveId(
-        data.systemChannel,
-      );
+      _data.system_channel_id = this.client.channels.resolveId(data.systemChannel);
     }
     if (data.afkTimeout) _data.afk_timeout = Number(data.afkTimeout);
-    if (typeof data.icon !== 'undefined')
-      _data.icon = await DataResolver.resolveImage(data.icon);
+    if (typeof data.icon !== 'undefined') _data.icon = await DataResolver.resolveImage(data.icon);
     if (data.owner) _data.owner_id = this.client.users.resolveId(data.owner);
-    if (typeof data.splash !== 'undefined')
-      _data.splash = await DataResolver.resolveImage(data.splash);
+    if (typeof data.splash !== 'undefined') _data.splash = await DataResolver.resolveImage(data.splash);
     if (typeof data.discoverySplash !== 'undefined') {
-      _data.discovery_splash = await DataResolver.resolveImage(
-        data.discoverySplash,
-      );
+      _data.discovery_splash = await DataResolver.resolveImage(data.discoverySplash);
     }
-    if (typeof data.banner !== 'undefined')
-      _data.banner = await DataResolver.resolveImage(data.banner);
+    if (typeof data.banner !== 'undefined') _data.banner = await DataResolver.resolveImage(data.banner);
     if (typeof data.explicitContentFilter !== 'undefined') {
       _data.explicit_content_filter =
         typeof data.explicitContentFilter === 'number'
@@ -997,19 +959,13 @@ class Guild extends AnonymousGuild {
           : DefaultMessageNotificationLevels[data.defaultMessageNotifications];
     }
     if (typeof data.systemChannelFlags !== 'undefined') {
-      _data.system_channel_flags = SystemChannelFlags.resolve(
-        data.systemChannelFlags,
-      );
+      _data.system_channel_flags = SystemChannelFlags.resolve(data.systemChannelFlags);
     }
     if (typeof data.rulesChannel !== 'undefined') {
-      _data.rules_channel_id = this.client.channels.resolveId(
-        data.rulesChannel,
-      );
+      _data.rules_channel_id = this.client.channels.resolveId(data.rulesChannel);
     }
     if (typeof data.publicUpdatesChannel !== 'undefined') {
-      _data.public_updates_channel_id = this.client.channels.resolveId(
-        data.publicUpdatesChannel,
-      );
+      _data.public_updates_channel_id = this.client.channels.resolveId(data.publicUpdatesChannel);
     }
     if (typeof data.features !== 'undefined') {
       _data.features = data.features;
@@ -1017,18 +973,12 @@ class Guild extends AnonymousGuild {
     if (typeof data.description !== 'undefined') {
       _data.description = data.description;
     }
-    if (typeof data.preferredLocale !== 'undefined')
-      _data.preferred_locale = data.preferredLocale;
+    if (typeof data.preferredLocale !== 'undefined') _data.preferred_locale = data.preferredLocale;
     if (typeof data.safetyAlertsChannel !== 'undefined') {
-      _data.safety_alerts_channel_id = this.client.channels.resolveId(
-        data.safetyAlertsChannel,
-      );
+      _data.safety_alerts_channel_id = this.client.channels.resolveId(data.safetyAlertsChannel);
     }
-    if ('premiumProgressBarEnabled' in data)
-      _data.premium_progress_bar_enabled = data.premiumProgressBarEnabled;
-    const newData = await this.client.api
-      .guilds(this.id)
-      .patch({ data: _data, reason });
+    if ('premiumProgressBarEnabled' in data) _data.premium_progress_bar_enabled = data.premiumProgressBarEnabled;
+    const newData = await this.client.api.guilds(this.id).patch({ data: _data, reason });
     return this.client.actions.GuildUpdate.handle(newData).updated;
   }
 
@@ -1082,7 +1032,7 @@ class Guild extends AnonymousGuild {
    */
   async editWelcomeScreen(data) {
     const { enabled, description, welcomeChannels } = data;
-    const welcome_channels = welcomeChannels?.map((welcomeChannelData) => {
+    const welcome_channels = welcomeChannels?.map(welcomeChannelData => {
       const emoji = this.emojis.resolve(welcomeChannelData.emoji);
       return {
         emoji_id: emoji?.id,
@@ -1092,15 +1042,13 @@ class Guild extends AnonymousGuild {
       };
     });
 
-    const patchData = await this.client.api
-      .guilds(this.id, 'welcome-screen')
-      .patch({
-        data: {
-          welcome_channels,
-          description,
-          enabled,
-        },
-      });
+    const patchData = await this.client.api.guilds(this.id, 'welcome-screen').patch({
+      data: {
+        welcome_channels,
+        description,
+        enabled,
+      },
+    });
     return new WelcomeScreen(this, patchData);
   }
 
@@ -1449,9 +1397,7 @@ class Guild extends AnonymousGuild {
    * @returns {Promise<Guild>}
    */
   disableInvites(disabled = true) {
-    const features = this.features.filter(
-      (feature) => feature !== 'INVITES_DISABLED',
-    );
+    const features = this.features.filter(feature => feature !== 'INVITES_DISABLED');
     if (disabled) features.push('INVITES_DISABLED');
     return this.edit({ features });
   }
@@ -1568,13 +1514,9 @@ class Guild extends AnonymousGuild {
           defaultMessageNotifications: 'ONLY_MENTIONS',
           explicitContentFilter: 'ALL_MEMBERS',
           features: [...this.features, 'COMMUNITY'],
-          publicUpdatesChannel:
-            this.channels.resolveId(publicUpdatesChannel) || '1',
+          publicUpdatesChannel: this.channels.resolveId(publicUpdatesChannel) || '1',
           rulesChannel: this.channels.resolveId(rulesChannel) || '1',
-          verificationLevel:
-            VerificationLevels[this.verificationLevel] < 1
-              ? 'LOW'
-              : this.verificationLevel, // Email
+          verificationLevel: VerificationLevels[this.verificationLevel] < 1 ? 'LOW' : this.verificationLevel, // Email
         },
         reason,
       );
@@ -1583,7 +1525,7 @@ class Guild extends AnonymousGuild {
         {
           publicUpdatesChannel: null,
           rulesChannel: null,
-          features: this.features.filter((f) => f !== 'COMMUNITY'),
+          features: this.features.filter(f => f !== 'COMMUNITY'),
           preferredLocale: this.preferredLocale,
           description: this.description,
         },
@@ -1601,7 +1543,7 @@ class Guild extends AnonymousGuild {
       this.client.api
         .guilds(this.id)
         ['top-emojis'].get()
-        .then((data) => {
+        .then(data => {
           const emojis = new Collection();
           for (const emoji of data.items) {
             emojis.set(emoji.emoji_rank, this.emojis.cache.get(emoji.emoji_id));
@@ -1626,8 +1568,7 @@ class Guild extends AnonymousGuild {
    *   .catch(console.error);
    */
   async setVanityCode(code = '') {
-    if (typeof code !== 'string')
-      throw new TypeError('INVALID_VANITY_URL_CODE');
+    if (typeof code !== 'string') throw new TypeError('INVALID_VANITY_URL_CODE');
     const data = await this.client.api.guilds(this.id, 'vanity-url').patch({
       data: { code },
     });
@@ -1644,10 +1585,10 @@ class Guild extends AnonymousGuild {
    * @readonly
    */
   get voiceAdapterCreator() {
-    return (methods) => {
+    return methods => {
       this.client.voice.adapters.set(this.id, methods);
       return {
-        sendPayload: (data) => {
+        sendPayload: data => {
           if (this.shard.status !== Status.READY) return false;
           this.shard.send(data);
           return true;
@@ -1678,7 +1619,7 @@ class Guild extends AnonymousGuild {
     const category = channel.type === ChannelTypes.GUILD_CATEGORY;
     return Util.discordSort(
       this.channels.cache.filter(
-        (c) =>
+        c =>
           (['GUILD_TEXT', 'GUILD_NEWS', 'GUILD_STORE'].includes(channel.type)
             ? ['GUILD_TEXT', 'GUILD_NEWS', 'GUILD_STORE'].includes(c.type)
             : c.type === channel.type) &&

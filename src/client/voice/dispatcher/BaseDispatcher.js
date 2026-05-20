@@ -20,13 +20,7 @@ const extensions = [{ id: 5, length: 2, value: 0 }];
  * @extends {Writable}
  */
 class BaseDispatcher extends Writable {
-  constructor(
-    player,
-    highWaterMark = 12,
-    payloadType,
-    extensionEnabled,
-    streams = {},
-  ) {
+  constructor(player, highWaterMark = 12, payloadType, extensionEnabled, streams = {}) {
     super({
       highWaterMark,
     });
@@ -69,14 +63,10 @@ class BaseDispatcher extends Writable {
     };
 
     this.on('error', () => streamError());
-    if (this.streams.input)
-      this.streams.input.on('error', (err) => streamError('input', err));
-    if (this.streams.ffmpeg)
-      this.streams.ffmpeg.on('error', (err) => streamError('ffmpeg', err));
-    if (this.streams.opus)
-      this.streams.opus.on('error', (err) => streamError('opus', err));
-    if (this.streams.volume)
-      this.streams.volume.on('error', (err) => streamError('volume', err));
+    if (this.streams.input) this.streams.input.on('error', err => streamError('input', err));
+    if (this.streams.ffmpeg) this.streams.ffmpeg.on('error', err => streamError('ffmpeg', err));
+    if (this.streams.opus) this.streams.opus.on('error', err => streamError('opus', err));
+    if (this.streams.volume) this.streams.volume.on('error', err => streamError('volume', err));
 
     this.on('finish', () => {
       this._cleanup();
@@ -92,8 +82,7 @@ class BaseDispatcher extends Writable {
 
   resetNonceBuffer() {
     this._nonceBuffer =
-      this.player.voiceConnection.authentication.mode ===
-      'aead_aes256_gcm_rtpsize'
+      this.player.voiceConnection.authentication.mode === 'aead_aes256_gcm_rtpsize'
         ? Buffer.alloc(12)
         : Buffer.alloc(24);
   }
@@ -190,11 +179,7 @@ class BaseDispatcher extends Writable {
    * @readonly
    */
   get pausedTime() {
-    return (
-      this._silentPausedTime +
-      this._pausedTime +
-      (this.paused ? performance.now() - this.pausedSince : 0)
-    );
+    return this._silentPausedTime + this._pausedTime + (this.paused ? performance.now() - this.pausedSince : 0);
   }
 
   /**
@@ -232,12 +217,9 @@ class BaseDispatcher extends Writable {
       this._writeCallback = null;
       done();
     };
-    const next =
-      (this.count + 1) * this.FRAME_LENGTH -
-      (performance.now() - this.startTime - this._pausedTime);
+    const next = (this.count + 1) * this.FRAME_LENGTH - (performance.now() - this.startTime - this._pausedTime);
     setTimeout(() => {
-      if ((!this.pausedSince || this._silence) && this._writeCallback)
-        this._writeCallback();
+      if ((!this.pausedSince || this._silence) && this._writeCallback) this._writeCallback();
     }, next).unref();
     this.timestamp += this.TIMESTAMP_INC;
     if (this.timestamp > MAX_UINT_32) this.timestamp = 0;
@@ -252,8 +234,7 @@ class BaseDispatcher extends Writable {
 
   _playChunk(chunk, isLastPacket = false) {
     if (
-      (this.player.dispatcher !== this &&
-        this.player.videoDispatcher !== this) ||
+      (this.player.dispatcher !== this && this.player.videoDispatcher !== this) ||
       !this.player.voiceConnection.authentication.secret_key
     ) {
       return;
@@ -340,29 +321,20 @@ class BaseDispatcher extends Writable {
 
     switch (mode) {
       case 'aead_aes256_gcm_rtpsize': {
-        const cipher = crypto.createCipheriv(
-          'aes-256-gcm',
-          secret_key,
-          this._nonceBuffer,
-        );
+        const cipher = crypto.createCipheriv('aes-256-gcm', secret_key, this._nonceBuffer);
         cipher.setAAD(additionalData);
 
-        encrypted = Buffer.concat([
-          cipher.update(buffer),
-          cipher.final(),
-          cipher.getAuthTag(),
-        ]);
+        encrypted = Buffer.concat([cipher.update(buffer), cipher.final(), cipher.getAuthTag()]);
 
         return [encrypted, noncePadding];
       }
       case 'aead_xchacha20_poly1305_rtpsize': {
-        encrypted =
-          secretbox.methods.crypto_aead_xchacha20poly1305_ietf_encrypt(
-            buffer,
-            additionalData,
-            this._nonceBuffer,
-            secret_key,
-          );
+        encrypted = secretbox.methods.crypto_aead_xchacha20poly1305_ietf_encrypt(
+          buffer,
+          additionalData,
+          this._nonceBuffer,
+          secret_key,
+        );
 
         return [encrypted, noncePadding];
       }
@@ -413,8 +385,7 @@ class BaseDispatcher extends Writable {
     rtpHeader.writeUIntBE(this.getNewSequence(), 2, 2);
     rtpHeader.writeUIntBE(this.timestamp, 4, 4);
     rtpHeader.writeUIntBE(
-      this.player.voiceConnection.authentication.ssrc +
-        Number(this.getTypeDispatcher() === 'video'),
+      this.player.voiceConnection.authentication.ssrc + Number(this.getTypeDispatcher() === 'video'),
       8,
       4,
     );
@@ -437,7 +408,7 @@ class BaseDispatcher extends Writable {
       this.emit('debug', 'Failed to send a packet - no UDP socket');
       return;
     }
-    this.player.voiceConnection.sockets.udp.send(packet).catch((e) => {
+    this.player.voiceConnection.sockets.udp.send(packet).catch(e => {
       if (this.getTypeDispatcher() === 'audio') {
         this._setSpeaking(this._setSpeaking(0));
       } else if (this.getTypeDispatcher() === 'video') {
@@ -473,9 +444,7 @@ class BaseDispatcher extends Writable {
   }
 
   _setStreamStatus(value) {
-    if (
-      typeof this.player.voiceConnection?.sendScreenshareState !== 'undefined'
-    ) {
+    if (typeof this.player.voiceConnection?.sendScreenshareState !== 'undefined') {
       this.player.voiceConnection.sendScreenshareState(value);
     }
     /**

@@ -248,11 +248,7 @@ class WebEmbed {
    * @returns {WebEmbed}
    */
   setDescription(description) {
-    this.description = Util.verifyString(
-      description,
-      RangeError,
-      'EMBED_DESCRIPTION',
-    );
+    this.description = Util.verifyString(description, RangeError, 'EMBED_DESCRIPTION');
     return this;
   }
 

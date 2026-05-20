@@ -20,17 +20,10 @@ class Poll extends Base {
      * @type {Message}
      * @readonly
      */
-
     Object.defineProperty(this, 'message', { value: message });
 
     /**
      * The media for a poll's question
-     * @typedef {Object} PollQuestionMedia
-     * @property {string} text The text of this question
-     */
-
-    /**
-     * The media for this poll's question
      * @type {PollQuestionMedia}
      */
     this.question = {
@@ -42,8 +35,7 @@ class Poll extends Base {
      * @type {Collection<number, PollAnswer>}
      */
     this.answers = data.answers.reduce(
-      (acc, answer) =>
-        acc.set(answer.answer_id, new PollAnswer(this.client, answer, this)),
+      (acc, answer) => acc.set(answer.answer_id, new PollAnswer(this.client, answer, this)),
       new Collection(),
     );
 
@@ -63,7 +55,7 @@ class Poll extends Base {
      * The layout type of this poll
      * @type {PollLayoutType}
      */
-    this.layoutType = PollLayoutTypes[data.layout_type];
+    this.layoutType = PollLayoutTypes[data.layout_type] ?? 'DEFAULT';
 
     this._patch(data);
   }
@@ -86,6 +78,15 @@ class Poll extends Base {
   }
 
   /**
+   * Whether the poll is currently active.
+   * @type {boolean}
+   * @readonly
+   */
+  get active() {
+    return Date.now() < this.expiresTimestamp;
+  }
+
+  /**
    * The date when this poll expires
    * @type {Date}
    * @readonly
@@ -95,7 +96,7 @@ class Poll extends Base {
   }
 
   /**
-   * Ends this poll.
+   * Ends this poll immediately.
    * @returns {Promise<Message>}
    */
   async end() {
@@ -103,6 +104,20 @@ class Poll extends Base {
       throw new Error('POLL_ALREADY_EXPIRED');
     }
     return this.message.channel.messages.endPoll(this.message.id);
+  }
+
+  /**
+   * Fetches the users that voted for a specific answer.
+   * @param {number} answerId The ID of the answer
+   * @param {BaseFetchPollAnswerVotersOptions} [options] Options for fetching voters
+   * @returns {Promise<Collection<Snowflake, User>>}
+   */
+  fetchVoters(answerId, options) {
+    return this.message.channel.messages.fetchPollAnswerVoters({
+      messageId: this.message.id,
+      answerId,
+      ...options,
+    });
   }
 }
 

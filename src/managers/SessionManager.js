@@ -28,7 +28,7 @@ class SessionManager extends CachedManager {
    * @returns {Promise<Collection<string, Session>>}
    */
   fetch() {
-    return this.client.api.auth.sessions.get().then((data) => {
+    return this.client.api.auth.sessions.get().then(data => {
       const allData = data.user_sessions;
       this.cache.clear();
       for (const session of allData) {
@@ -45,7 +45,7 @@ class SessionManager extends CachedManager {
   logoutAllDevices() {
     return this.client.api.auth.sessions.logout({
       data: {
-        session_id_hashes: this.cache.map((session) => session.id),
+        session_id_hashes: this.cache.map(session => session.id),
       },
     });
   }

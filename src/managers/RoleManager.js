@@ -72,7 +72,7 @@ class RoleManager extends CachedManager {
     const data = await this.client.api.guilds(this.guild.id).roles.get();
     const roles = new Collection();
     for (const role of data) roles.set(role.id, this._add(role, cache));
-    return id ? (roles.get(id) ?? null) : roles;
+    return id ? roles.get(id) ?? null : roles;
   }
 
   /**
@@ -80,10 +80,7 @@ class RoleManager extends CachedManager {
    * @returns {Promise<Record<Snowflake, number>>}
    */
   async fetchMemberCounts() {
-    const data = await this.client.api
-      .guilds(this.guild.id)
-      .roles('member-counts')
-      .get();
+    const data = await this.client.api.guilds(this.guild.id).roles('member-counts').get();
 
     return data;
   }
@@ -98,10 +95,7 @@ class RoleManager extends CachedManager {
     const id = this.resolveId(role);
     if (!id) throw new TypeError('INVALID_TYPE', 'role', 'RoleResolvable');
 
-    const data = await this.client.api
-      .guilds(this.guild.id)
-      .roles(id, 'member-ids')
-      .get();
+    const data = await this.client.api.guilds(this.guild.id).roles(id, 'member-ids').get();
 
     return data;
   }
@@ -197,34 +191,24 @@ class RoleManager extends CachedManager {
    */
   async create(options = {}) {
     let { permissions, icon } = options;
-    const { name, color, hoist, position, mentionable, reason, unicodeEmoji } =
-      options;
+    const { name, color, hoist, position, mentionable, reason, unicodeEmoji } = options;
 
-    if (typeof permissions !== 'undefined')
-      permissions = new Permissions(permissions);
+    if (typeof permissions !== 'undefined') permissions = new Permissions(permissions);
     if (icon) {
       const guildEmojiURL = this.guild.emojis.resolve(icon)?.url;
-      icon = guildEmojiURL
-        ? await DataResolver.resolveImage(guildEmojiURL)
-        : await DataResolver.resolveImage(icon);
+      icon = guildEmojiURL ? await DataResolver.resolveImage(guildEmojiURL) : await DataResolver.resolveImage(icon);
       if (typeof icon !== 'string') icon = undefined;
     }
 
     let colors = options.colors && {
       primary_color: resolveColor(options.colors.primaryColor),
-      secondary_color:
-        options.colors.secondaryColor &&
-        resolveColor(options.colors.secondaryColor),
-      tertiary_color:
-        options.colors.tertiaryColor &&
-        resolveColor(options.colors.tertiaryColor),
+      secondary_color: options.colors.secondaryColor && resolveColor(options.colors.secondaryColor),
+      tertiary_color: options.colors.tertiaryColor && resolveColor(options.colors.tertiaryColor),
     };
 
     if (color !== undefined) {
       if (!deprecationEmittedForCreate) {
-        process.emitWarning(
-          `Passing "color" to RoleManager#create() is deprecated. Use "colors" instead.`,
-        );
+        process.emitWarning(`Passing "color" to RoleManager#create() is deprecated. Use "colors" instead.`);
       }
 
       deprecationEmittedForCreate = true;
@@ -272,31 +256,24 @@ class RoleManager extends CachedManager {
     role = this.resolve(role);
     if (!role) throw new TypeError('INVALID_TYPE', 'role', 'RoleResolvable');
 
-    if (typeof data.position === 'number')
-      await this.setPosition(role, data.position, { reason });
+    if (typeof data.position === 'number') await this.setPosition(role, data.position, { reason });
 
     let icon = data.icon;
     if (icon) {
       const guildEmojiURL = this.guild.emojis.resolve(icon)?.url;
-      icon = guildEmojiURL
-        ? await DataResolver.resolveImage(guildEmojiURL)
-        : await DataResolver.resolveImage(icon);
+      icon = guildEmojiURL ? await DataResolver.resolveImage(guildEmojiURL) : await DataResolver.resolveImage(icon);
       if (typeof icon !== 'string') icon = undefined;
     }
 
     let colors = data.colors && {
       primary_color: resolveColor(data.colors.primaryColor),
-      secondary_color:
-        data.colors.secondaryColor && resolveColor(data.colors.secondaryColor),
-      tertiary_color:
-        data.colors.tertiaryColor && resolveColor(data.colors.tertiaryColor),
+      secondary_color: data.colors.secondaryColor && resolveColor(data.colors.secondaryColor),
+      tertiary_color: data.colors.tertiaryColor && resolveColor(data.colors.tertiaryColor),
     };
 
     if (data.color !== undefined) {
       if (!deprecationEmittedForEdit) {
-        process.emitWarning(
-          `Passing "color" to RoleManager#edit() is deprecated. Use "colors" instead.`,
-        );
+        process.emitWarning(`Passing "color" to RoleManager#edit() is deprecated. Use "colors" instead.`);
       }
 
       deprecationEmittedForEdit = true;
@@ -312,19 +289,13 @@ class RoleManager extends CachedManager {
       name: data.name,
       colors,
       hoist: data.hoist,
-      permissions:
-        typeof data.permissions === 'undefined'
-          ? undefined
-          : new Permissions(data.permissions),
+      permissions: typeof data.permissions === 'undefined' ? undefined : new Permissions(data.permissions),
       mentionable: data.mentionable,
       icon,
       unicode_emoji: data.unicodeEmoji,
     };
 
-    const d = await this.client.api
-      .guilds(this.guild.id)
-      .roles(role.id)
-      .patch({ data: _data, reason });
+    const d = await this.client.api.guilds(this.guild.id).roles(role.id).patch({ data: _data, reason });
 
     const clone = role._clone();
     clone._patch(d);
@@ -345,10 +316,7 @@ class RoleManager extends CachedManager {
   async delete(role, reason) {
     const id = this.resolveId(role);
     await this.client.api.guilds[this.guild.id].roles[id].delete({ reason });
-    this.client.actions.GuildRoleDelete.handle({
-      guild_id: this.guild.id,
-      role_id: id,
-    });
+    this.client.actions.GuildRoleDelete.handle({ guild_id: this.guild.id, role_id: id });
   }
 
   /**
@@ -400,7 +368,7 @@ class RoleManager extends CachedManager {
    */
   async setPositions(rolePositions) {
     // Make sure rolePositions are prepared for API
-    rolePositions = rolePositions.map((o) => ({
+    rolePositions = rolePositions.map(o => ({
       id: this.resolveId(o.role),
       position: o.position,
     }));
@@ -425,8 +393,7 @@ class RoleManager extends CachedManager {
   comparePositions(role1, role2) {
     const resolvedRole1 = this.resolve(role1);
     const resolvedRole2 = this.resolve(role2);
-    if (!resolvedRole1 || !resolvedRole2)
-      throw new TypeError('INVALID_TYPE', 'role', 'Role nor a Snowflake');
+    if (!resolvedRole1 || !resolvedRole2) throw new TypeError('INVALID_TYPE', 'role', 'Role nor a Snowflake');
 
     const role1Position = resolvedRole1.position;
     const role2Position = resolvedRole2.position;
@@ -447,7 +414,7 @@ class RoleManager extends CachedManager {
   botRoleFor(user) {
     const userId = this.client.users.resolveId(user);
     if (!userId) return null;
-    return this.cache.find((role) => role.tags?.botId === userId) ?? null;
+    return this.cache.find(role => role.tags?.botId === userId) ?? null;
   }
 
   /**
@@ -465,7 +432,7 @@ class RoleManager extends CachedManager {
    * @readonly
    */
   get premiumSubscriberRole() {
-    return this.cache.find((role) => role.tags?.premiumSubscriberRole) ?? null;
+    return this.cache.find(role => role.tags?.premiumSubscriberRole) ?? null;
   }
 
   /**
@@ -474,10 +441,7 @@ class RoleManager extends CachedManager {
    * @readonly
    */
   get highest() {
-    return this.cache.reduce(
-      (prev, role) => (role.comparePositionTo(prev) > 0 ? role : prev),
-      this.cache.first(),
-    );
+    return this.cache.reduce((prev, role) => (role.comparePositionTo(prev) > 0 ? role : prev), this.cache.first());
   }
 }
 

@@ -37,9 +37,7 @@ class PollAnswer extends Base {
      * @type {?APIPartialEmoji}
      * @private
      */
-    Object.defineProperty(this, '_emoji', {
-      value: data.poll_media.emoji ?? null,
-    });
+    Object.defineProperty(this, '_emoji', { value: data.poll_media.emoji ?? null });
 
     this._patch(data);
   }
@@ -63,10 +61,7 @@ class PollAnswer extends Base {
    */
   get emoji() {
     if (!this._emoji || (!this._emoji.id && !this._emoji.name)) return null;
-    return (
-      this.client.emojis.cache.get(this._emoji.id) ??
-      new Emoji(this.client, this._emoji)
-    );
+    return this.client.emojis.cache.get(this._emoji.id) ?? new Emoji(this.client, this._emoji);
   }
 
   /**

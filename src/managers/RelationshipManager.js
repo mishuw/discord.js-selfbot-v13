@@ -37,7 +37,7 @@ class RelationshipManager extends BaseManager {
    */
   get friendCache() {
     const users = this.cache
-      .filter((value) => value === RelationshipTypes.FRIEND)
+      .filter(value => value === RelationshipTypes.FRIEND)
       .map((_, key) => [key, this.client.users.cache.get(key)]);
     return new Collection(users);
   }
@@ -49,7 +49,7 @@ class RelationshipManager extends BaseManager {
    */
   get blockedCache() {
     const users = this.cache
-      .filter((value) => value === RelationshipTypes.BLOCKED)
+      .filter(value => value === RelationshipTypes.BLOCKED)
       .map((_, key) => [key, this.client.users.cache.get(key)]);
     return new Collection(users);
   }
@@ -61,7 +61,7 @@ class RelationshipManager extends BaseManager {
    */
   get incomingCache() {
     const users = this.cache
-      .filter((value) => value === RelationshipTypes.PENDING_INCOMING)
+      .filter(value => value === RelationshipTypes.PENDING_INCOMING)
       .map((_, key) => [key, this.client.users.cache.get(key)]);
     return new Collection(users);
   }
@@ -73,7 +73,7 @@ class RelationshipManager extends BaseManager {
    */
   get outgoingCache() {
     const users = this.cache
-      .filter((value) => value === RelationshipTypes.PENDING_OUTGOING)
+      .filter(value => value === RelationshipTypes.PENDING_OUTGOING)
       .map((_, key) => [key, this.client.users.cache.get(key)]);
     return new Collection(users);
   }
@@ -172,11 +172,9 @@ class RelationshipManager extends BaseManager {
     // eslint-disable-next-line no-unreachable
     const id = this.resolveId(user);
     if (
-      ![
-        RelationshipTypes.FRIEND,
-        RelationshipTypes.BLOCKED,
-        RelationshipTypes.PENDING_OUTGOING,
-      ].includes(this.cache.get(id))
+      ![RelationshipTypes.FRIEND, RelationshipTypes.BLOCKED, RelationshipTypes.PENDING_OUTGOING].includes(
+        this.cache.get(id),
+      )
     ) {
       return Promise.resolve(false);
     }
@@ -224,11 +222,9 @@ class RelationshipManager extends BaseManager {
     // eslint-disable-next-line no-unreachable
     const id = this.resolveId(user);
     // Check if already friends
-    if (this.cache.get(id) === RelationshipTypes.FRIEND)
-      return Promise.resolve(false);
+    if (this.cache.get(id) === RelationshipTypes.FRIEND) return Promise.resolve(false);
     // Check if outgoing request
-    if (this.cache.get(id) === RelationshipTypes.PENDING_OUTGOING)
-      return Promise.resolve(false);
+    if (this.cache.get(id) === RelationshipTypes.PENDING_OUTGOING) return Promise.resolve(false);
     await this.client.api.users['@me'].relationships[id].put({
       data: { confirm_stranger_request: true },
       DiscordContext: { location: 'Friends' },
@@ -244,8 +240,7 @@ class RelationshipManager extends BaseManager {
    */
   async setNickname(user, nickname = null) {
     const id = this.resolveId(user);
-    if (this.cache.get(id) !== RelationshipTypes.FRIEND)
-      return Promise.resolve(false);
+    if (this.cache.get(id) !== RelationshipTypes.FRIEND) return Promise.resolve(false);
     await this.client.api.users['@me'].relationships[id].patch({
       data: {
         nickname: typeof nickname === 'string' ? nickname : null,
@@ -269,8 +264,7 @@ class RelationshipManager extends BaseManager {
     // eslint-disable-next-line no-unreachable
     const id = this.resolveId(user);
     // Check
-    if (this.cache.get(id) === RelationshipTypes.BLOCKED)
-      return Promise.resolve(false);
+    if (this.cache.get(id) === RelationshipTypes.BLOCKED) return Promise.resolve(false);
     await this.client.api.users['@me'].relationships[id].put({
       data: {
         type: RelationshipTypes.BLOCKED,

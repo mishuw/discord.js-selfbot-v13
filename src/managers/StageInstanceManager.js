@@ -60,17 +60,11 @@ class StageInstanceManager extends CachedManager {
   async create(channel, options) {
     const channelId = this.guild.channels.resolveId(channel);
     if (!channelId) throw new Error('STAGE_CHANNEL_RESOLVE');
-    if (typeof options !== 'object')
-      throw new TypeError('INVALID_TYPE', 'options', 'object', true);
-    let { guildScheduledEvent, topic, privacyLevel, sendStartNotification } =
-      options;
+    if (typeof options !== 'object') throw new TypeError('INVALID_TYPE', 'options', 'object', true);
+    let { guildScheduledEvent, topic, privacyLevel, sendStartNotification } = options;
 
-    privacyLevel &&=
-      typeof privacyLevel === 'number'
-        ? privacyLevel
-        : PrivacyLevels[privacyLevel];
-    const guildScheduledEventId =
-      guildScheduledEvent && this.resolveId(guildScheduledEvent);
+    privacyLevel &&= typeof privacyLevel === 'number' ? privacyLevel : PrivacyLevels[privacyLevel];
+    const guildScheduledEventId = guildScheduledEvent && this.resolveId(guildScheduledEvent);
 
     const data = await this.client.api['stage-instances'].post({
       data: {
@@ -101,9 +95,7 @@ class StageInstanceManager extends CachedManager {
     if (!channelId) throw new Error('STAGE_CHANNEL_RESOLVE');
 
     if (!force) {
-      const existing = this.cache.find(
-        (stageInstance) => stageInstance.channelId === channelId,
-      );
+      const existing = this.cache.find(stageInstance => stageInstance.channelId === channelId);
       if (existing) return existing;
     }
 
@@ -130,17 +122,13 @@ class StageInstanceManager extends CachedManager {
    *  .catch(console.error);
    */
   async edit(channel, options) {
-    if (typeof options !== 'object')
-      throw new TypeError('INVALID_TYPE', 'options', 'object', true);
+    if (typeof options !== 'object') throw new TypeError('INVALID_TYPE', 'options', 'object', true);
     const channelId = this.guild.channels.resolveId(channel);
     if (!channelId) throw new Error('STAGE_CHANNEL_RESOLVE');
 
     let { topic, privacyLevel } = options;
 
-    privacyLevel &&=
-      typeof privacyLevel === 'number'
-        ? privacyLevel
-        : PrivacyLevels[privacyLevel];
+    privacyLevel &&= typeof privacyLevel === 'number' ? privacyLevel : PrivacyLevels[privacyLevel];
 
     const data = await this.client.api('stage-instances', channelId).patch({
       data: {

@@ -2,7 +2,11 @@
 
 const Buffer = require('node:buffer').Buffer;
 const { setTimeout } = require('node:timers');
-const { FormData } = require('undici');
+const { FormData, buildConnector, Client, ProxyAgent } = require('undici');
+const { ciphers } = require('../util/Constants');
+const Util = require('../util/Util');
+
+let agent = null;
 
 class APIRequest {
   constructor(rest, method, path, options) {
@@ -21,15 +25,27 @@ class APIRequest {
     if (options.query) {
       const query = Object.entries(options.query)
         .filter(([, value]) => value !== null && typeof value !== 'undefined')
-        .flatMap(([key, value]) =>
-          Array.isArray(value) ? value.map((v) => [key, v]) : [[key, value]],
-        );
+        .flatMap(([key, value]) => (Array.isArray(value) ? value.map(v => [key, v]) : [[key, value]]));
       queryString = new URLSearchParams(query).toString();
     }
     this.path = `${path}${queryString && `?${queryString}`}`;
   }
 
   make(captchaKey, captchaRqToken) {
+    if (!agent) {
+      const r_ = Util.checkUndiciProxyAgent(this.client.options.http.agent);
+      if (!r_) {
+        agent = new Client('https://discord.com', {
+          connect: buildConnector({ ciphers: ciphers.join(':') }),
+        });
+      } else {
+        agent = new ProxyAgent({
+          ...r_,
+          ciphers: ciphers.join(':'),
+        });
+      }
+    }
+
     const API =
       this.options.versioned === false
         ? this.client.options.http.api
@@ -49,19 +65,18 @@ class APIRequest {
       'sec-fetch-site': 'same-origin',
       'x-discord-locale': 'en-US',
       'x-discord-timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
-      'x-super-properties': this.rest.getSuperPropertiesHeader(),
+      'x-super-properties': `${Buffer.from(JSON.stringify(this.client.options.ws.properties), 'ascii').toString(
+        'base64',
+      )}`,
       origin: 'https://discord.com',
       'x-debug-options': 'bugReporterEnabled',
       ...this.client.options.http.headers,
       'User-Agent': this.fullUserAgent,
     };
 
-    if (this.options.auth !== false)
-      headers.Authorization = this.rest.getAuth();
-    if (this.options.reason)
-      headers['X-Audit-Log-Reason'] = encodeURIComponent(this.options.reason);
-    if (this.options.headers)
-      headers = Object.assign(headers, this.options.headers);
+    if (this.options.auth !== false) headers.Authorization = this.rest.getAuth();
+    if (this.options.reason) headers['X-Audit-Log-Reason'] = encodeURIComponent(this.options.reason);
+    if (this.options.headers) headers = Object.assign(headers, this.options.headers);
 
     // Delete all headers if undefined
     for (const [key, value] of Object.entries(headers)) {
@@ -75,10 +90,9 @@ class APIRequest {
 
     // Some options
     if (this.options.DiscordContext) {
-      headers['X-Context-Properties'] = Buffer.from(
-        JSON.stringify(this.options.DiscordContext),
-        'utf8',
-      ).toString('base64');
+      headers['X-Context-Properties'] = Buffer.from(JSON.stringify(this.options.DiscordContext), 'utf8').toString(
+        'base64',
+      );
     }
 
     if (this.options.mfaToken) {
@@ -86,10 +100,8 @@ class APIRequest {
     }
 
     // Captcha
-    if (captchaKey && typeof captchaKey == 'string')
-      headers['X-Captcha-Key'] = captchaKey;
-    if (captchaRqToken && typeof captchaRqToken == 'string')
-      headers['X-Captcha-Rqtoken'] = captchaRqToken;
+    if (captchaKey && typeof captchaKey == 'string') headers['X-Captcha-Key'] = captchaKey;
+    if (captchaRqToken && typeof captchaRqToken == 'string') headers['X-Captcha-Rqtoken'] = captchaRqToken;
 
     let body;
     if (this.options.files?.length) {
@@ -107,8 +119,7 @@ class APIRequest {
       }
       if (typeof this.options.data !== 'undefined') {
         if (this.options.dontUsePayloadJSON) {
-          for (const [key, value] of Object.entries(this.options.data))
-            body.append(key, value);
+          for (const [key, value] of Object.entries(this.options.data)) body.append(key, value);
         } else {
           body.append('payload_json', JSON.stringify(this.options.data));
         }
@@ -125,10 +136,7 @@ class APIRequest {
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(
-      () => controller.abort(),
-      this.client.options.restRequestTimeout,
-    ).unref();
+    const timeout = setTimeout(() => controller.abort(), this.client.options.restRequestTimeout).unref();
     return this.rest
       .fetch(url, {
         method: this.method.toUpperCase(), // Undici doesn't normalize "patch" into "PATCH" (which surprisingly follows the spec).
@@ -136,7 +144,7 @@ class APIRequest {
         body,
         signal: controller.signal,
         redirect: 'follow',
-        dispatcher: this.rest.getDispatcher(),
+        dispatcher: agent,
         credentials: 'include',
       })
       .finally(() => clearTimeout(timeout));

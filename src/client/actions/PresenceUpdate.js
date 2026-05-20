@@ -8,18 +8,13 @@ class PresenceUpdateAction extends Action {
   handle(data) {
     let user = this.client.users.cache.get(data.user.id);
     if (!user && data.user?.username) user = this.client.users._add(data.user);
-    if (
-      !user &&
-      ('username' in data.user ||
-        this.client.options.partials.includes(PartialTypes.USER))
-    ) {
+    if (!user && ('username' in data.user || this.client.options.partials.includes(PartialTypes.USER))) {
       user = this.client.users._add(data.user);
     }
     if (!user) return;
 
     if (data.user?.username) {
-      if (!user._equals(data.user))
-        this.client.actions.UserUpdate.handle(data.user);
+      if (!user._equals(data.user)) this.client.actions.UserUpdate.handle(data.user);
     }
 
     const guild = this.client.guilds.cache.get(data.guild_id);
@@ -36,17 +31,11 @@ class PresenceUpdateAction extends Action {
       }
     }
 
-    const oldPresence =
-      (guild || this.client).presences.cache.get(user.id)?._clone() ?? null;
+    const oldPresence = (guild || this.client).presences.cache.get(user.id)?._clone() ?? null;
 
-    const newPresence = (guild || this.client).presences._add(
-      Object.assign(data, { guild }),
-    );
+    const newPresence = (guild || this.client).presences._add(Object.assign(data, { guild }));
 
-    if (
-      this.client.listenerCount(Events.PRESENCE_UPDATE) &&
-      !newPresence.equals(oldPresence)
-    ) {
+    if (this.client.listenerCount(Events.PRESENCE_UPDATE) && !newPresence.equals(oldPresence)) {
       /**
        * Emitted whenever a guild member's presence (e.g. status, activity) is changed.
        * @event Client#presenceUpdate

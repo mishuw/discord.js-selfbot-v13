@@ -19,10 +19,7 @@ class ReactionManager extends CachedManager {
   }
 
   _add(data, cache) {
-    return super._add(data, cache, {
-      id: data.emoji.id ?? data.emoji.name,
-      extras: [this.message],
-    });
+    return super._add(data, cache, { id: data.emoji.id ?? data.emoji.name, extras: [this.message] });
   }
 
   /**
@@ -62,10 +59,7 @@ class ReactionManager extends CachedManager {
    * @returns {Promise<Message>}
    */
   async removeAll() {
-    await this.client.api
-      .channels(this.message.channelId)
-      .messages(this.message.id)
-      .reactions.delete();
+    await this.client.api.channels(this.message.channelId).messages(this.message.id).reactions.delete();
     return this.message;
   }
 }

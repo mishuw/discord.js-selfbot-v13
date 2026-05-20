@@ -39,11 +39,7 @@ class UserManager extends CachedManager {
    * @private
    */
   dmChannel(userId) {
-    return (
-      this.client.channels.cache.find(
-        (c) => c.type === 'DM' && c.recipient.id === userId,
-      ) ?? null
-    );
+    return this.client.channels.cache.find(c => c.type === 'DM' && c.recipient.id === userId) ?? null;
   }
 
   /**
@@ -119,8 +115,7 @@ class UserManager extends CachedManager {
    * @returns {?User}
    */
   resolve(user) {
-    if (user instanceof GuildMember || user instanceof ThreadMember)
-      return user.user;
+    if (user instanceof GuildMember || user instanceof ThreadMember) return user.user;
     if (user instanceof Message) return user.author;
     return super.resolve(user);
   }

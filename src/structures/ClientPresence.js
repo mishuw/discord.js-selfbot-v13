@@ -4,10 +4,7 @@ const { Presence } = require('./Presence');
 const { TypeError } = require('../errors');
 const { ActivityTypes, Opcodes } = require('../util/Constants');
 
-const CustomStatusActivityTypes = [
-  ActivityTypes.CUSTOM,
-  ActivityTypes[ActivityTypes.CUSTOM],
-];
+const CustomStatusActivityTypes = [ActivityTypes.CUSTOM, ActivityTypes[ActivityTypes.CUSTOM]];
 
 /**
  * Represents the client's presence.
@@ -15,13 +12,7 @@ const CustomStatusActivityTypes = [
  */
 class ClientPresence extends Presence {
   constructor(client, data = {}) {
-    super(
-      client,
-      Object.assign(data, {
-        status: data.status ?? 'online',
-        user: { id: null },
-      }),
-    );
+    super(client, Object.assign(data, { status: data.status ?? 'online', user: { id: null } }));
   }
 
   /**
@@ -32,7 +23,7 @@ class ClientPresence extends Presence {
   set(presence) {
     const packet = this._parse(presence);
     this._patch(packet);
-    packet.activities = this.activities.map((a) => a.toJSON());
+    packet.activities = this.activities.map(a => a.toJSON());
     this.client.ws.broadcast({ op: Opcodes.STATUS_UPDATE, d: packet });
     return this;
   }
@@ -52,34 +43,21 @@ class ClientPresence extends Presence {
     };
     if (activities?.length) {
       for (const [i, activity] of activities.entries()) {
-        if (typeof activity.name !== 'string')
-          throw new TypeError(
-            'INVALID_TYPE',
-            `activities[${i}].name`,
-            'string',
-          );
+        if (typeof activity.name !== 'string') throw new TypeError('INVALID_TYPE', `activities[${i}].name`, 'string');
 
         activity.type ??= ActivityTypes.PLAYING;
-        if (typeof activity.type === 'string')
-          activity.type = ActivityTypes[activity.type];
+        if (typeof activity.type === 'string') activity.type = ActivityTypes[activity.type];
 
-        if (
-          CustomStatusActivityTypes.includes(activity.type) &&
-          !activity.state
-        ) {
+        if (CustomStatusActivityTypes.includes(activity.type) && !activity.state) {
           activity.state = activity.name;
           activity.name = 'Custom Status';
         }
 
         data.activities.push(activity);
       }
-    } else if (
-      !activities &&
-      (status || afk || since) &&
-      this.activities.length
-    ) {
+    } else if (!activities && (status || afk || since) && this.activities.length) {
       data.activities.push(
-        ...this.activities.map((a) => {
+        ...this.activities.map(a => {
           if (typeof a.type === 'string') a.type = ActivityTypes[a.type];
           return a;
         }),

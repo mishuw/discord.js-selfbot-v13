@@ -27,10 +27,7 @@ class GuildBoost extends Base {
        */
       this.subscriptionId = data.subscription_id;
     }
-    if (
-      typeof data.premium_guild_subscription === 'object' &&
-      data.premium_guild_subscription !== null
-    ) {
+    if (typeof data.premium_guild_subscription === 'object' && data.premium_guild_subscription !== null) {
       /**
        * The premium guild subscription id
        * @type {?Snowflake}
@@ -79,10 +76,7 @@ class GuildBoost extends Base {
     // https://discord.com/api/v9/guilds/:id/premium/subscriptions/:id
     if (!this.guildId) throw new Error('BOOST_UNUSED');
     if (!this.premiumGuildSubscriptionId) throw new Error('BOOST_UNCACHED');
-    await this.client.api
-      .guilds(this.guildId)
-      .premium.subscriptions(this.premiumGuildSubscriptionId)
-      .delete();
+    await this.client.api.guilds(this.guildId).premium.subscriptions(this.premiumGuildSubscriptionId).delete();
     this.guildId = null;
     this.premiumGuildSubscriptionId = null;
     this.ended = null;
@@ -96,8 +90,7 @@ class GuildBoost extends Base {
    */
   async subscribe(guild) {
     // https://discord.com/api/v9/guilds/:id/premium/subscriptions
-    if (this.guildId || this.premiumGuildSubscriptionId)
-      throw new Error('BOOST_USED');
+    if (this.guildId || this.premiumGuildSubscriptionId) throw new Error('BOOST_USED');
     const id = this.client.guilds.resolveId(guild);
     if (!id) throw new Error('UNKNOWN_GUILD');
     const d = await this.client.api.guilds(id).premium.subscriptions.put({

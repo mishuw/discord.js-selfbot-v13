@@ -131,7 +131,7 @@ class Integration extends Base {
    */
   get roles() {
     const roles = this.guild.roles.cache;
-    return roles.filter((role) => role.tags?.integrationId === this.id);
+    return roles.filter(role => role.tags?.integrationId === this.id);
   }
 
   _patch(data) {
@@ -159,10 +159,7 @@ class Integration extends Base {
          * The application for this integration
          * @type {?IntegrationApplication}
          */
-        this.application = new IntegrationApplication(
-          this.client,
-          data.application,
-        );
+        this.application = new IntegrationApplication(this.client, data.application);
       }
     } else {
       this.application ??= null;
@@ -175,10 +172,7 @@ class Integration extends Base {
    * @param {string} [reason] Reason for deleting this integration
    */
   async delete(reason) {
-    await this.client.api
-      .guilds(this.guild.id)
-      .integrations(this.id)
-      .delete({ reason });
+    await this.client.api.guilds(this.guild.id).integrations(this.id).delete({ reason });
     return this;
   }
 

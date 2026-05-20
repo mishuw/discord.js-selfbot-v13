@@ -56,10 +56,7 @@ class VolumeInterface extends EventEmitter {
     const out = Buffer.alloc(buffer.length);
     for (let i = 0; i < buffer.length; i += 2) {
       if (i >= buffer.length - 1) break;
-      const uint = Math.min(
-        32767,
-        Math.max(-32767, Math.floor(volume * buffer.readInt16LE(i))),
-      );
+      const uint = Math.min(32767, Math.max(-32767, Math.floor(volume * buffer.readInt16LE(i))));
       out.writeInt16LE(uint, i);
     }
 
@@ -98,19 +95,10 @@ class VolumeInterface extends EventEmitter {
   }
 }
 
-const props = [
-  'volumeDecibels',
-  'volumeLogarithmic',
-  'setVolumeDecibels',
-  'setVolumeLogarithmic',
-];
+const props = ['volumeDecibels', 'volumeLogarithmic', 'setVolumeDecibels', 'setVolumeLogarithmic'];
 
 exports.applyToClass = function applyToClass(structure) {
   for (const prop of props) {
-    Object.defineProperty(
-      structure.prototype,
-      prop,
-      Object.getOwnPropertyDescriptor(VolumeInterface.prototype, prop),
-    );
+    Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(VolumeInterface.prototype, prop));
   }
 };

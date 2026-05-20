@@ -38,8 +38,7 @@ class DataManager extends BaseManager {
    */
   resolve(idOrInstance) {
     if (idOrInstance instanceof this.holds) return idOrInstance;
-    if (typeof idOrInstance === 'string')
-      return this.cache.get(idOrInstance) ?? null;
+    if (typeof idOrInstance === 'string') return this.cache.get(idOrInstance) ?? null;
     return null;
   }
 

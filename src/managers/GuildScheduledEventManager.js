@@ -4,11 +4,7 @@ const { Collection } = require('@discordjs/collection');
 const CachedManager = require('./CachedManager');
 const { TypeError, Error } = require('../errors');
 const { GuildScheduledEvent } = require('../structures/GuildScheduledEvent');
-const {
-  PrivacyLevels,
-  GuildScheduledEventEntityTypes,
-  GuildScheduledEventStatuses,
-} = require('../util/Constants');
+const { PrivacyLevels, GuildScheduledEventEntityTypes, GuildScheduledEventStatuses } = require('../util/Constants');
 const DataResolver = require('../util/DataResolver');
 const Util = require('../util/Util');
 
@@ -86,8 +82,7 @@ class GuildScheduledEventManager extends CachedManager {
    * @returns {Promise<GuildScheduledEvent>}
    */
   async create(options) {
-    if (typeof options !== 'object')
-      throw new TypeError('INVALID_TYPE', 'options', 'object', true);
+    if (typeof options !== 'object') throw new TypeError('INVALID_TYPE', 'options', 'object', true);
     let {
       privacyLevel,
       entityType,
@@ -102,10 +97,8 @@ class GuildScheduledEventManager extends CachedManager {
       recurrenceRule,
     } = options;
 
-    if (typeof privacyLevel === 'string')
-      privacyLevel = PrivacyLevels[privacyLevel];
-    if (typeof entityType === 'string')
-      entityType = GuildScheduledEventEntityTypes[entityType];
+    if (typeof privacyLevel === 'string') privacyLevel = PrivacyLevels[privacyLevel];
+    if (typeof entityType === 'string') entityType = GuildScheduledEventEntityTypes[entityType];
 
     let entity_metadata, channel_id;
     if (entityType === GuildScheduledEventEntityTypes.EXTERNAL) {
@@ -114,31 +107,24 @@ class GuildScheduledEventManager extends CachedManager {
     } else {
       channel_id = this.guild.channels.resolveId(channel);
       if (!channel_id) throw new Error('GUILD_VOICE_CHANNEL_RESOLVE');
-      entity_metadata =
-        typeof entityMetadata === 'undefined' ? entityMetadata : null;
+      entity_metadata = typeof entityMetadata === 'undefined' ? entityMetadata : null;
     }
 
-    const data = await this.client.api
-      .guilds(this.guild.id, 'scheduled-events')
-      .post({
-        data: {
-          channel_id,
-          name,
-          privacy_level: privacyLevel,
-          scheduled_start_time: new Date(scheduledStartTime).toISOString(),
-          scheduled_end_time: scheduledEndTime
-            ? new Date(scheduledEndTime).toISOString()
-            : scheduledEndTime,
-          description,
-          image: image && (await DataResolver.resolveImage(image)),
-          entity_type: entityType,
-          entity_metadata,
-          recurrence_rule:
-            recurrenceRule &&
-            Util.transformGuildScheduledEventRecurrenceRule(recurrenceRule),
-        },
-        reason,
-      });
+    const data = await this.client.api.guilds(this.guild.id, 'scheduled-events').post({
+      data: {
+        channel_id,
+        name,
+        privacy_level: privacyLevel,
+        scheduled_start_time: new Date(scheduledStartTime).toISOString(),
+        scheduled_end_time: scheduledEndTime ? new Date(scheduledEndTime).toISOString() : scheduledEndTime,
+        description,
+        image: image && (await DataResolver.resolveImage(image)),
+        entity_type: entityType,
+        entity_metadata,
+        recurrence_rule: recurrenceRule && Util.transformGuildScheduledEventRecurrenceRule(recurrenceRule),
+      },
+      reason,
+    });
 
     return this._add(data);
   }
@@ -185,10 +171,7 @@ class GuildScheduledEventManager extends CachedManager {
 
     return data.reduce(
       (coll, rawGuildScheduledEventData) =>
-        coll.set(
-          rawGuildScheduledEventData.id,
-          this._add(rawGuildScheduledEventData, options.cache),
-        ),
+        coll.set(rawGuildScheduledEventData.id, this._add(rawGuildScheduledEventData, options.cache)),
       new Collection(),
     );
   }
@@ -221,11 +204,9 @@ class GuildScheduledEventManager extends CachedManager {
    */
   async edit(guildScheduledEvent, options) {
     const guildScheduledEventId = this.resolveId(guildScheduledEvent);
-    if (!guildScheduledEventId)
-      throw new Error('GUILD_SCHEDULED_EVENT_RESOLVE');
+    if (!guildScheduledEventId) throw new Error('GUILD_SCHEDULED_EVENT_RESOLVE');
 
-    if (typeof options !== 'object')
-      throw new TypeError('INVALID_TYPE', 'options', 'object', true);
+    if (typeof options !== 'object') throw new TypeError('INVALID_TYPE', 'options', 'object', true);
     let {
       privacyLevel,
       entityType,
@@ -241,12 +222,9 @@ class GuildScheduledEventManager extends CachedManager {
       recurrenceRule,
     } = options;
 
-    if (typeof privacyLevel === 'string')
-      privacyLevel = PrivacyLevels[privacyLevel];
-    if (typeof entityType === 'string')
-      entityType = GuildScheduledEventEntityTypes[entityType];
-    if (typeof status === 'string')
-      status = GuildScheduledEventStatuses[status];
+    if (typeof privacyLevel === 'string') privacyLevel = PrivacyLevels[privacyLevel];
+    if (typeof entityType === 'string') entityType = GuildScheduledEventEntityTypes[entityType];
+    if (typeof status === 'string') status = GuildScheduledEventStatuses[status];
 
     let entity_metadata;
     if (entityMetadata) {
@@ -255,33 +233,22 @@ class GuildScheduledEventManager extends CachedManager {
       };
     }
 
-    const data = await this.client.api
-      .guilds(this.guild.id, 'scheduled-events', guildScheduledEventId)
-      .patch({
-        data: {
-          channel_id:
-            typeof channel === 'undefined'
-              ? channel
-              : this.guild.channels.resolveId(channel),
-          name,
-          privacy_level: privacyLevel,
-          scheduled_start_time: scheduledStartTime
-            ? new Date(scheduledStartTime).toISOString()
-            : undefined,
-          scheduled_end_time: scheduledEndTime
-            ? new Date(scheduledEndTime).toISOString()
-            : scheduledEndTime,
-          description,
-          entity_type: entityType,
-          status,
-          image: image && (await DataResolver.resolveImage(image)),
-          entity_metadata,
-          recurrence_rule:
-            recurrenceRule &&
-            Util.transformGuildScheduledEventRecurrenceRule(recurrenceRule),
-        },
-        reason,
-      });
+    const data = await this.client.api.guilds(this.guild.id, 'scheduled-events', guildScheduledEventId).patch({
+      data: {
+        channel_id: typeof channel === 'undefined' ? channel : this.guild.channels.resolveId(channel),
+        name,
+        privacy_level: privacyLevel,
+        scheduled_start_time: scheduledStartTime ? new Date(scheduledStartTime).toISOString() : undefined,
+        scheduled_end_time: scheduledEndTime ? new Date(scheduledEndTime).toISOString() : scheduledEndTime,
+        description,
+        entity_type: entityType,
+        status,
+        image: image && (await DataResolver.resolveImage(image)),
+        entity_metadata,
+        recurrence_rule: recurrenceRule && Util.transformGuildScheduledEventRecurrenceRule(recurrenceRule),
+      },
+      reason,
+    });
 
     return this._add(data);
   }
@@ -293,12 +260,9 @@ class GuildScheduledEventManager extends CachedManager {
    */
   async delete(guildScheduledEvent) {
     const guildScheduledEventId = this.resolveId(guildScheduledEvent);
-    if (!guildScheduledEventId)
-      throw new Error('GUILD_SCHEDULED_EVENT_RESOLVE');
+    if (!guildScheduledEventId) throw new Error('GUILD_SCHEDULED_EVENT_RESOLVE');
 
-    await this.client.api
-      .guilds(this.guild.id, 'scheduled-events', guildScheduledEventId)
-      .delete();
+    await this.client.api.guilds(this.guild.id, 'scheduled-events', guildScheduledEventId).delete();
   }
 
   /**
@@ -327,25 +291,20 @@ class GuildScheduledEventManager extends CachedManager {
    */
   async fetchSubscribers(guildScheduledEvent, options = {}) {
     const guildScheduledEventId = this.resolveId(guildScheduledEvent);
-    if (!guildScheduledEventId)
-      throw new Error('GUILD_SCHEDULED_EVENT_RESOLVE');
+    if (!guildScheduledEventId) throw new Error('GUILD_SCHEDULED_EVENT_RESOLVE');
 
     let { limit, withMember, before, after } = options;
 
-    const data = await this.client.api
-      .guilds(this.guild.id, 'scheduled-events', guildScheduledEventId)
-      .users.get({
-        query: { limit, with_member: withMember, before, after },
-      });
+    const data = await this.client.api.guilds(this.guild.id, 'scheduled-events', guildScheduledEventId).users.get({
+      query: { limit, with_member: withMember, before, after },
+    });
 
     return data.reduce(
       (coll, rawData) =>
         coll.set(rawData.user.id, {
           guildScheduledEventId: rawData.guild_scheduled_event_id,
           user: this.client.users._add(rawData.user),
-          member: rawData.member
-            ? this.guild.members._add({ ...rawData.member, user: rawData.user })
-            : null,
+          member: rawData.member ? this.guild.members._add({ ...rawData.member, user: rawData.user }) : null,
         }),
       new Collection(),
     );

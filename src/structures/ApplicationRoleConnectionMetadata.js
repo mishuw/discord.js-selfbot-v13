@@ -41,10 +41,7 @@ class ApplicationRoleConnectionMetadata {
      * The type of this metadata field
      * @type {ApplicationRoleConnectionMetadataType}
      */
-    this.type =
-      typeof data.type === 'number'
-        ? ApplicationRoleConnectionMetadataTypes[data.type]
-        : data.type;
+    this.type = typeof data.type === 'number' ? ApplicationRoleConnectionMetadataTypes[data.type] : data.type;
   }
 }
 

@@ -39,11 +39,7 @@ class WebhookClient extends BaseClient {
     }
 
     this.id = id;
-    Object.defineProperty(this, 'token', {
-      value: token,
-      writable: true,
-      configurable: true,
-    });
+    Object.defineProperty(this, 'token', { value: token, writable: true, configurable: true });
   }
 
   // These are here only for documentation purposes - they are implemented by Webhook

@@ -3,11 +3,7 @@
 const ThreadManager = require('./ThreadManager');
 const { TypeError } = require('../errors');
 const MessagePayload = require('../structures/MessagePayload');
-const {
-  resolveAutoArchiveMaxLimit,
-  getUploadURL,
-  uploadFile,
-} = require('../util/Util');
+const { resolveAutoArchiveMaxLimit, getUploadURL, uploadFile } = require('../util/Util');
 
 /**
  * Manages API methods for threads in forum channels and stores their cache.
@@ -76,7 +72,7 @@ class GuildForumThreadManager extends ThreadManager {
 
     // New API
     const attachments = await getUploadURL(this.client, this.channel.id, files);
-    const requestPromises = attachments.map(async (attachment) => {
+    const requestPromises = attachments.map(async attachment => {
       await uploadFile(files[attachment.id].file, attachment.upload_url);
       return {
         id: attachment.id,
@@ -90,23 +86,20 @@ class GuildForumThreadManager extends ThreadManager {
     const attachmentsData = await Promise.all(requestPromises);
     attachmentsData.sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    if (autoArchiveDuration === 'MAX')
-      autoArchiveDuration = resolveAutoArchiveMaxLimit(this.channel.guild);
+    if (autoArchiveDuration === 'MAX') autoArchiveDuration = resolveAutoArchiveMaxLimit(this.channel.guild);
 
-    const post_data = await this.client.api
-      .channels(this.channel.id)
-      .threads.post({
-        data: {
-          name,
-          auto_archive_duration: autoArchiveDuration,
-          rate_limit_per_user: rateLimitPerUser,
-          applied_tags: appliedTags,
-          message: body,
-          attachments: attachmentsData,
-        },
-        files: [],
-        reason,
-      });
+    const post_data = await this.client.api.channels(this.channel.id).threads.post({
+      data: {
+        name,
+        auto_archive_duration: autoArchiveDuration,
+        rate_limit_per_user: rateLimitPerUser,
+        applied_tags: appliedTags,
+        message: body,
+        attachments: attachmentsData,
+      },
+      files: [],
+      reason,
+    });
 
     return this.client.actions.ThreadCreate.handle(post_data).thread;
   }

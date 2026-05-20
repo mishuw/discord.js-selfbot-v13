@@ -274,13 +274,7 @@ class User extends Base {
    */
   avatarURL({ format, size, dynamic } = {}) {
     if (!this.avatar) return null;
-    return this.client.rest.cdn.Avatar(
-      this.id,
-      this.avatar,
-      format,
-      size,
-      dynamic,
-    );
+    return this.client.rest.cdn.Avatar(this.id, this.avatar, format, size, dynamic);
   }
 
   /**
@@ -289,9 +283,7 @@ class User extends Base {
    */
   avatarDecorationURL() {
     if (!this.avatarDecorationData) return null;
-    return this.client.rest.cdn.AvatarDecoration(
-      this.avatarDecorationData.asset,
-    );
+    return this.client.rest.cdn.AvatarDecoration(this.avatarDecorationData.asset);
   }
 
   /**
@@ -308,16 +300,8 @@ class User extends Base {
    * @returns {?string}
    */
   guildTagBadgeURL() {
-    if (
-      !this.primaryGuild ||
-      !this.primaryGuild.identityGuildId ||
-      !this.primaryGuild.badge
-    )
-      return null;
-    return this.client.rest.cdn.GuildTagBadge(
-      this.primaryGuild.identityGuildId,
-      this.primaryGuild.badge,
-    );
+    if (!this.primaryGuild || !this.primaryGuild.identityGuildId || !this.primaryGuild.badge) return null;
+    return this.client.rest.cdn.GuildTagBadge(this.primaryGuild.identityGuildId, this.primaryGuild.badge);
   }
 
   /**
@@ -362,16 +346,9 @@ class User extends Base {
    * @returns {?string}
    */
   bannerURL({ format, size, dynamic } = {}) {
-    if (typeof this.banner === 'undefined')
-      throw new Error('USER_BANNER_NOT_FETCHED');
+    if (typeof this.banner === 'undefined') throw new Error('USER_BANNER_NOT_FETCHED');
     if (!this.banner) return null;
-    return this.client.rest.cdn.Banner(
-      this.id,
-      this.banner,
-      format,
-      size,
-      dynamic,
-    );
+    return this.client.rest.cdn.Banner(this.id, this.banner, format, size, dynamic);
   }
 
   /**
@@ -444,18 +421,12 @@ class User extends Base {
       this.accentColor === user.accentColor &&
       this.avatarDecorationData?.asset === user.avatarDecorationData?.asset &&
       this.avatarDecorationData?.skuId === user.avatarDecorationData?.skuId &&
-      this.collectibles?.nameplate?.skuId ===
-        user.collectibles?.nameplate?.skuId &&
-      this.collectibles?.nameplate?.asset ===
-        user.collectibles?.nameplate?.asset &&
-      this.collectibles?.nameplate?.label ===
-        user.collectibles?.nameplate?.label &&
-      this.collectibles?.nameplate?.palette ===
-        user.collectibles?.nameplate?.palette &&
-      this.primaryGuild?.identityGuildId ===
-        user.primaryGuild?.identityGuildId &&
-      this.primaryGuild?.identityEnabled ===
-        user.primaryGuild?.identityEnabled &&
+      this.collectibles?.nameplate?.skuId === user.collectibles?.nameplate?.skuId &&
+      this.collectibles?.nameplate?.asset === user.collectibles?.nameplate?.asset &&
+      this.collectibles?.nameplate?.label === user.collectibles?.nameplate?.label &&
+      this.collectibles?.nameplate?.palette === user.collectibles?.nameplate?.palette &&
+      this.primaryGuild?.identityGuildId === user.primaryGuild?.identityGuildId &&
+      this.primaryGuild?.identityEnabled === user.primaryGuild?.identityEnabled &&
       this.primaryGuild?.tag === user.primaryGuild?.tag &&
       this.primaryGuild?.badge === user.primaryGuild?.badge
     );
@@ -477,30 +448,20 @@ class User extends Base {
       this.avatar === user.avatar &&
       this.flags?.bitfield === user.public_flags &&
       ('banner' in user ? this.banner === user.banner : true) &&
-      ('accent_color' in user
-        ? this.accentColor === user.accent_color
-        : true) &&
+      ('accent_color' in user ? this.accentColor === user.accent_color : true) &&
       ('avatar_decoration_data' in user
-        ? this.avatarDecorationData?.asset ===
-            user.avatar_decoration_data?.asset &&
-          this.avatarDecorationData?.skuId ===
-            user.avatar_decoration_data?.sku_id
+        ? this.avatarDecorationData?.asset === user.avatar_decoration_data?.asset &&
+          this.avatarDecorationData?.skuId === user.avatar_decoration_data?.sku_id
         : true) &&
       ('collectibles' in user
-        ? this.collectibles?.nameplate?.skuId ===
-            user.collectibles?.nameplate?.sku_id &&
-          this.collectibles?.nameplate?.asset ===
-            user.collectibles?.nameplate?.asset &&
-          this.collectibles?.nameplate?.label ===
-            user.collectibles?.nameplate?.label &&
-          this.collectibles?.nameplate?.palette ===
-            user.collectibles?.nameplate?.palette
+        ? this.collectibles?.nameplate?.skuId === user.collectibles?.nameplate?.sku_id &&
+          this.collectibles?.nameplate?.asset === user.collectibles?.nameplate?.asset &&
+          this.collectibles?.nameplate?.label === user.collectibles?.nameplate?.label &&
+          this.collectibles?.nameplate?.palette === user.collectibles?.nameplate?.palette
         : true) &&
       ('primary_guild' in user
-        ? this.primaryGuild?.identityGuildId ===
-            user.primary_guild?.identity_guild_id &&
-          this.primaryGuild?.identityEnabled ===
-            user.primary_guild?.identity_enabled &&
+        ? this.primaryGuild?.identityGuildId === user.primary_guild?.identity_guild_id &&
+          this.primaryGuild?.identityEnabled === user.primary_guild?.identity_enabled &&
           this.primaryGuild?.tag === user.primary_guild?.tag &&
           this.primaryGuild?.badge === user.primary_guild?.badge
         : true)
@@ -594,9 +555,7 @@ class User extends Base {
   get voice() {
     return (
       this.client.voiceStates.cache.get(this.id) ??
-      this.client.guilds.cache
-        .find((g) => g?.voiceStates?.cache?.get(this.id))
-        ?.voiceStates?.cache?.get(this.id) ??
+      this.client.guilds.cache.find(g => g?.voiceStates?.cache?.get(this.id))?.voiceStates?.cache?.get(this.id) ??
       new VoiceState({ client: this.client }, { user_id: this.id })
     );
   }

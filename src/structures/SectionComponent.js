@@ -24,8 +24,7 @@ class SectionComponent extends BaseMessageComponent {
      * One to three text components
      * @type {TextDisplayComponent[]}
      */
-    this.components =
-      data.components?.map((c) => BaseMessageComponent.create(c)) ?? [];
+    this.components = data.components?.map(c => BaseMessageComponent.create(c)) ?? [];
 
     /**
      * A thumbnail or a button component, with a future possibility of adding more compatible components
@@ -40,7 +39,7 @@ class SectionComponent extends BaseMessageComponent {
   toJSON() {
     return {
       type: MessageComponentTypes[this.type],
-      components: this.components.map((c) => c.toJSON()),
+      components: this.components.map(c => c.toJSON()),
       accessory: this.accessory.toJSON(),
     };
   }

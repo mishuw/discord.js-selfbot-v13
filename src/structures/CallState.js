@@ -48,9 +48,7 @@ class CallState extends Base {
    * @returns {Promise<void>}
    */
   setRTCRegion(region) {
-    return this.client.api
-      .channels(this.channelId)
-      .call.patch({ data: { region } });
+    return this.client.api.channels(this.channelId).call.patch({ data: { region } });
   }
 
   /**
@@ -58,9 +56,7 @@ class CallState extends Base {
    * @type {Collection<Snowflake, User>}
    */
   get ringing() {
-    return new Collection(
-      this._ringing.map((id) => [id, this.client.users.cache.get(id)]),
-    );
+    return new Collection(this._ringing.map(id => [id, this.client.users.cache.get(id)]));
   }
 }
 

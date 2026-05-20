@@ -4,10 +4,7 @@ const GuildChannel = require('./GuildChannel');
 const TextBasedChannel = require('./interfaces/TextBasedChannel');
 const GuildForumThreadManager = require('../managers/GuildForumThreadManager');
 const { SortOrderTypes } = require('../util/Constants');
-const {
-  transformAPIGuildForumTag,
-  transformAPIGuildDefaultReaction,
-} = require('../util/Util');
+const { transformAPIGuildForumTag, transformAPIGuildDefaultReaction } = require('../util/Util');
 
 /**
  * @typedef {Object} GuildForumTagEmoji
@@ -65,9 +62,7 @@ class ThreadOnlyChannel extends GuildChannel {
        * The set of tags that can be used in this channel.
        * @type {GuildForumTag[]}
        */
-      this.availableTags = data.available_tags.map((tag) =>
-        transformAPIGuildForumTag(tag),
-      );
+      this.availableTags = data.available_tags.map(tag => transformAPIGuildForumTag(tag));
     } else {
       this.availableTags ??= [];
     }
@@ -78,8 +73,7 @@ class ThreadOnlyChannel extends GuildChannel {
        * @type {?DefaultReactionEmoji}
        */
       this.defaultReactionEmoji =
-        data.default_reaction_emoji &&
-        transformAPIGuildDefaultReaction(data.default_reaction_emoji);
+        data.default_reaction_emoji && transformAPIGuildDefaultReaction(data.default_reaction_emoji);
     } else {
       this.defaultReactionEmoji ??= null;
     }
@@ -89,8 +83,7 @@ class ThreadOnlyChannel extends GuildChannel {
        * The initial rate limit per user (slowmode) to set on newly created threads in a channel.
        * @type {?number}
        */
-      this.defaultThreadRateLimitPerUser =
-        data.default_thread_rate_limit_per_user;
+      this.defaultThreadRateLimitPerUser = data.default_thread_rate_limit_per_user;
     } else {
       this.defaultThreadRateLimitPerUser ??= null;
     }

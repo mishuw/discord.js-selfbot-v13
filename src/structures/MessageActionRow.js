@@ -48,8 +48,7 @@ class MessageActionRow extends BaseMessageComponent {
      * The components in this action row
      * @type {MessageActionRowComponent[]}
      */
-    this.components =
-      data.components?.map((c) => BaseMessageComponent.create(c, client)) ?? [];
+    this.components = data.components?.map(c => BaseMessageComponent.create(c, client)) ?? [];
 
     super.setup(data);
   }
@@ -60,9 +59,7 @@ class MessageActionRow extends BaseMessageComponent {
    * @returns {MessageActionRow}
    */
   addComponents(...components) {
-    this.components.push(
-      ...components.flat(Infinity).map((c) => BaseMessageComponent.create(c)),
-    );
+    this.components.push(...components.flat(Infinity).map(c => BaseMessageComponent.create(c)));
     return this;
   }
 
@@ -84,11 +81,7 @@ class MessageActionRow extends BaseMessageComponent {
    * @returns {MessageActionRow}
    */
   spliceComponents(index, deleteCount, ...components) {
-    this.components.splice(
-      index,
-      deleteCount,
-      ...components.flat(Infinity).map((c) => BaseMessageComponent.create(c)),
-    );
+    this.components.splice(index, deleteCount, ...components.flat(Infinity).map(c => BaseMessageComponent.create(c)));
     return this;
   }
 
@@ -98,7 +91,7 @@ class MessageActionRow extends BaseMessageComponent {
    */
   toJSON() {
     return {
-      components: this.components.map((c) => c.toJSON()),
+      components: this.components.map(c => c.toJSON()),
       type: MessageComponentTypes[this.type],
     };
   }

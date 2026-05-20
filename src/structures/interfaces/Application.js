@@ -2,15 +2,10 @@
 
 const process = require('node:process');
 const ApplicationFlags = require('../../util/ApplicationFlags');
-const {
-  ClientApplicationAssetTypes,
-  Endpoints,
-} = require('../../util/Constants');
+const { ClientApplicationAssetTypes, Endpoints } = require('../../util/Constants');
 const Permissions = require('../../util/Permissions');
 const SnowflakeUtil = require('../../util/SnowflakeUtil');
-const {
-  ApplicationRoleConnectionMetadata,
-} = require('../ApplicationRoleConnectionMetadata');
+const { ApplicationRoleConnectionMetadata } = require('../ApplicationRoleConnectionMetadata');
 const Base = require('../Base');
 const Team = require('../Team');
 
@@ -101,8 +96,7 @@ class Application extends Base {
        * This application's role connection verification entry point URL
        * @type {?string}
        */
-      this.roleConnectionsVerificationURL =
-        data.role_connections_verification_url;
+      this.roleConnectionsVerificationURL = data.role_connections_verification_url;
     } else {
       this.roleConnectionsVerificationURL ??= null;
     }
@@ -213,8 +207,8 @@ class Application extends Base {
     this.owner = data.team
       ? new Team(this.client, data.team)
       : data.owner
-        ? this.client.users._add(data.owner)
-        : (this.owner ?? null);
+      ? this.client.users._add(data.owner)
+      : this.owner ?? null;
 
     if ('splash' in data) {
       /**
@@ -472,8 +466,7 @@ class Application extends Base {
        * Approximate count of users that have OAuth2 authorizations for the application
        * @type {?number}
        */
-      this.approximateUserAuthorizationCount =
-        data.approximate_user_authorization_count;
+      this.approximateUserAuthorizationCount = data.approximate_user_authorization_count;
     } else {
       this.approximateUserAuthorizationCount ??= null;
     }
@@ -757,10 +750,8 @@ class Application extends Base {
    * @returns {Promise<ApplicationRoleConnectionMetadata[]>}
    */
   async fetchRoleConnectionMetadataRecords() {
-    const metadata = await this.client.api
-      .applications(this.id)('role-connections')
-      .metadata.get();
-    return metadata.map((data) => new ApplicationRoleConnectionMetadata(data));
+    const metadata = await this.client.api.applications(this.id)('role-connections').metadata.get();
+    return metadata.map(data => new ApplicationRoleConnectionMetadata(data));
   }
 
   /**
@@ -780,11 +771,7 @@ class Application extends Base {
    */
   coverURL({ format, size } = {}) {
     if (!this.cover) return null;
-    return Endpoints.CDN(this.client.options.http.cdn).AppIcon(
-      this.id,
-      this.cover,
-      { format, size },
-    );
+    return Endpoints.CDN(this.client.options.http.cdn).AppIcon(this.id, this.cover, { format, size });
   }
 
   /**
@@ -810,10 +797,8 @@ class Application extends Base {
       deprecationEmittedForFetchAssets = true;
     }
 
-    const assets = await this.client.api.oauth2
-      .applications(this.id)
-      .assets.get();
-    return assets.map((a) => ({
+    const assets = await this.client.api.oauth2.applications(this.id).assets.get();
+    return assets.map(a => ({
       id: a.id,
       name: a.name,
       type: AssetTypes[a.type - 1],

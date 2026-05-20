@@ -39,7 +39,7 @@ class ModalSubmitInteraction extends Interaction {
      * @type {PartialModalActionRow[]}
      */
     this.components =
-      data.data.components?.map((c) => ({
+      data.data.components?.map(c => ({
         type: MessageComponentTypes[c.type],
         components: ModalSubmitInteraction.transformComponent(c),
       })) ?? [];
@@ -48,9 +48,7 @@ class ModalSubmitInteraction extends Interaction {
      * The message associated with this interaction
      * @type {Message|APIMessage|null}
      */
-    this.message = data.message
-      ? (this.channel?.messages._add(data.message) ?? data.message)
-      : null;
+    this.message = data.message ? this.channel?.messages._add(data.message) ?? data.message : null;
 
     /**
      * The fields within the modal
@@ -80,11 +78,7 @@ class ModalSubmitInteraction extends Interaction {
      * An associated interaction webhook, can be used to further interact with this interaction
      * @type {InteractionWebhook}
      */
-    this.webhook = new InteractionWebhook(
-      this.client,
-      this.applicationId,
-      this.token,
-    );
+    this.webhook = new InteractionWebhook(this.client, this.applicationId, this.token);
   }
 
   /**
@@ -93,7 +87,7 @@ class ModalSubmitInteraction extends Interaction {
    * @returns {PartialTextInputData[]}
    */
   static transformComponent(rawComponent) {
-    return rawComponent.components.map((c) => ({
+    return rawComponent.components.map(c => ({
       value: c.value,
       type: MessageComponentTypes[c.type],
       customId: c.custom_id,
@@ -120,9 +114,6 @@ class ModalSubmitInteraction extends Interaction {
   deferUpdate() {}
 }
 
-InteractionResponses.applyToClass(ModalSubmitInteraction, [
-  'showModal',
-  'awaitModalSubmit',
-]);
+InteractionResponses.applyToClass(ModalSubmitInteraction, ['showModal', 'awaitModalSubmit']);
 
 module.exports = ModalSubmitInteraction;

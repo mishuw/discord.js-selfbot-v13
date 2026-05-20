@@ -31,7 +31,7 @@ class GroupDMChannel extends Channel {
 
     if ('recipients' in data && Array.isArray(data.recipients)) {
       this._recipients = data.recipients;
-      data.recipients.forEach((u) => this.client.users._add(u));
+      data.recipients.forEach(u => this.client.users._add(u));
     } else {
       this._recipients = [];
     }
@@ -61,9 +61,7 @@ class GroupDMChannel extends Channel {
        * The timestamp when the last pinned message was pinned, if there was one
        * @type {?number}
        */
-      this.lastPinTimestamp = data.last_pin_timestamp
-        ? Date.parse(data.last_pin_timestamp)
-        : null;
+      this.lastPinTimestamp = data.last_pin_timestamp ? Date.parse(data.last_pin_timestamp) : null;
     } else {
       this.lastPinTimestamp ??= null;
     }
@@ -91,10 +89,7 @@ class GroupDMChannel extends Channel {
    * @returns {?string}
    */
   iconURL({ format, size } = {}) {
-    return (
-      this.icon &&
-      this.client.rest.cdn.GDMIcon(this.id, this.icon, format, size)
-    );
+    return this.icon && this.client.rest.cdn.GDMIcon(this.id, this.icon, format, size);
   }
 
   /**
@@ -104,9 +99,7 @@ class GroupDMChannel extends Channel {
    */
   get recipients() {
     const collect = new Collection();
-    this._recipients.map((recipient) =>
-      collect.set(recipient.id, this.client.users.cache.get(recipient.id)),
-    );
+    this._recipients.map(recipient => collect.set(recipient.id, this.client.users.cache.get(recipient.id)));
     collect.set(this.client.user.id, this.client.user);
     return collect;
   }
@@ -164,8 +157,8 @@ class GroupDMChannel extends Channel {
     return (
       this.name ??
       this._recipients
-        .filter((user) => user.id !== this.client.user.id)
-        .map((user) => user.username)
+        .filter(user => user.id !== this.client.user.id)
+        .map(user => user.username)
         .join(', ')
     );
   }
@@ -286,9 +279,7 @@ class GroupDMChannel extends Channel {
    */
   async fetchAllInvite() {
     const invites = await this.client.api.channels(this.id).invites.get();
-    return new Collection(
-      invites.map((invite) => [invite.code, new Invite(this.client, invite)]),
-    );
+    return new Collection(invites.map(invite => [invite.code, new Invite(this.client, invite)]));
   }
 
   /**
@@ -314,9 +305,7 @@ class GroupDMChannel extends Channel {
     if (!recipients || !Array.isArray(recipients) || recipients.length == 0) {
       recipients = null;
     } else {
-      recipients = recipients
-        .map((r) => this.client.users.resolveId(r))
-        .filter((r) => r && this.recipients.get(r));
+      recipients = recipients.map(r => this.client.users.resolveId(r)).filter(r => r && this.recipients.get(r));
     }
     return this.client.api.channels(this.id).call.ring.post({
       data: {
@@ -368,10 +357,10 @@ class GroupDMChannel extends Channel {
    * @readonly
    */
   get voiceAdapterCreator() {
-    return (methods) => {
+    return methods => {
       this.client.voice.adapters.set(this.id, methods);
       return {
-        sendPayload: (data) => {
+        sendPayload: data => {
           if (this.shard.status !== Status.READY) return false;
           this.shard.send(data);
           return true;

@@ -29,9 +29,7 @@ class Invite extends Base {
      */
     this.guild ??= null;
     if (data.guild) {
-      this.guild =
-        this.client.guilds.cache.get(data.guild.id) ??
-        new InviteGuild(this.client, data.guild);
+      this.guild = this.client.guilds.cache.get(data.guild.id) ?? new InviteGuild(this.client, data.guild);
     }
 
     if ('code' in data) {
@@ -149,10 +147,7 @@ class Invite extends Base {
        * The embedded application to open for this voice channel embedded application invite
        * @type {?IntegrationApplication}
        */
-      this.targetApplication = new IntegrationApplication(
-        this.client,
-        data.target_application,
-      );
+      this.targetApplication = new IntegrationApplication(this.client, data.target_application);
     } else {
       this.targetApplication ??= null;
     }
@@ -209,9 +204,7 @@ class Invite extends Base {
        * The channel this invite is for
        * @type {?Channel}
        */
-      this.channel ??= this.client.channels._add(data.channel, this.guild, {
-        cache: false,
-      });
+      this.channel ??= this.client.channels._add(data.channel, this.guild, { cache: false });
       this.channelId ??= data.channel.id;
     }
 
@@ -236,12 +229,7 @@ class Invite extends Base {
        * The stage instance data if there is a public {@link StageInstance} in the stage channel this invite is for
        * @type {?InviteStageInstance}
        */
-      this.stageInstance = new InviteStageInstance(
-        this.client,
-        data.stage_instance,
-        this.channel.id,
-        this.guild.id,
-      );
+      this.stageInstance = new InviteStageInstance(this.client, data.stage_instance, this.channel.id, this.guild.id);
     } else {
       this.stageInstance ??= null;
     }
@@ -251,10 +239,7 @@ class Invite extends Base {
        * The guild scheduled event data if there is a {@link GuildScheduledEvent} in the channel this invite is for
        * @type {?GuildScheduledEvent}
        */
-      this.guildScheduledEvent = new GuildScheduledEvent(
-        this.client,
-        data.guild_scheduled_event,
-      );
+      this.guildScheduledEvent = new GuildScheduledEvent(this.client, data.guild_scheduled_event);
     } else {
       this.guildScheduledEvent ??= null;
     }
@@ -289,9 +274,7 @@ class Invite extends Base {
     if (!guild || !this.client.guilds.cache.has(guild.id)) return false;
     if (!guild.members.me) throw new Error('GUILD_UNCACHED_ME');
     return (
-      this.channel
-        .permissionsFor(this.client.user)
-        .has(Permissions.FLAGS.MANAGE_CHANNELS, false) ||
+      this.channel.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_CHANNELS, false) ||
       guild.members.me.permissions.has(Permissions.FLAGS.MANAGE_GUILD)
     );
   }
@@ -304,9 +287,7 @@ class Invite extends Base {
   get expiresTimestamp() {
     return (
       this._expiresTimestamp ??
-      (this.createdTimestamp && this.maxAge
-        ? this.createdTimestamp + this.maxAge * 1_000
-        : null)
+      (this.createdTimestamp && this.maxAge ? this.createdTimestamp + this.maxAge * 1_000 : null)
     );
   }
 
@@ -372,7 +353,6 @@ class Invite extends Base {
  * Regular expression that globally matches Discord invite links
  * @type {RegExp}
  */
-Invite.INVITES_PATTERN =
-  /discord(?:(?:app)?\.com\/invite|\.gg(?:\/invite)?)\/([\w-]{2,255})/gi;
+Invite.INVITES_PATTERN = /discord(?:(?:app)?\.com\/invite|\.gg(?:\/invite)?)\/([\w-]{2,255})/gi;
 
 module.exports = Invite;

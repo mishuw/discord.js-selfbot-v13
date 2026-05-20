@@ -25,7 +25,7 @@ module.exports = (client, { d: data }) => {
             '[USER_REQUIRED_ACTION] Successfully accepted the new Terms of Service and Privacy Policy.',
           );
         })
-        .catch((e) => {
+        .catch(e => {
           client.emit(
             'debug',
             `[USER_REQUIRED_ACTION] Failed to accept the new Terms of Service and Privacy Policy: ${e}`,

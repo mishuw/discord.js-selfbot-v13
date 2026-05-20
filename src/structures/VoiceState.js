@@ -119,9 +119,7 @@ class VoiceState extends Base {
        * The time at which the member requested to speak. This property is specific to stage channels only.
        * @type {?number}
        */
-      this.requestToSpeakTimestamp =
-        data.request_to_speak_timestamp &&
-        Date.parse(data.request_to_speak_timestamp);
+      this.requestToSpeakTimestamp = data.request_to_speak_timestamp && Date.parse(data.request_to_speak_timestamp);
     } else {
       this.requestToSpeakTimestamp ??= null;
     }
@@ -154,11 +152,7 @@ class VoiceState extends Base {
    * @readonly
    */
   get channel() {
-    return (
-      (this.guild?.id ? this.guild : this.client)?.channels?.cache.get(
-        this.channelId,
-      ) ?? null
-    );
+    return (this.guild?.id ? this.guild : this.client)?.channels?.cache.get(this.channelId) ?? null;
   }
 
   /**
@@ -235,8 +229,7 @@ class VoiceState extends Base {
    * @returns {Promise<void>}
    */
   async setRequestToSpeak(request = true) {
-    if (this.channel?.type !== 'GUILD_STAGE_VOICE')
-      throw new Error('VOICE_NOT_STAGE_CHANNEL');
+    if (this.channel?.type !== 'GUILD_STAGE_VOICE') throw new Error('VOICE_NOT_STAGE_CHANNEL');
 
     if (this.client.user.id !== this.id) throw new Error('VOICE_STATE_NOT_OWN');
 
@@ -266,11 +259,9 @@ class VoiceState extends Base {
    * @returns {Promise<void>}
    */
   async setSuppressed(suppressed = true) {
-    if (typeof suppressed !== 'boolean')
-      throw new TypeError('VOICE_STATE_INVALID_TYPE', 'suppressed');
+    if (typeof suppressed !== 'boolean') throw new TypeError('VOICE_STATE_INVALID_TYPE', 'suppressed');
 
-    if (this.channel?.type !== 'GUILD_STAGE_VOICE')
-      throw new Error('VOICE_NOT_STAGE_CHANNEL');
+    if (this.channel?.type !== 'GUILD_STAGE_VOICE') throw new Error('VOICE_NOT_STAGE_CHANNEL');
 
     const target = this.client.user.id === this.id ? '@me' : this.id;
 
@@ -314,10 +305,7 @@ class VoiceState extends Base {
     const streamKey = this.guild?.id
       ? `guild:${this.guild.id}:${this.channelId}:${this.id}`
       : `call:${this.channelId}:${this.id}`;
-    const data =
-      await this.client.api.streams[
-        encodeURIComponent(streamKey)
-      ].preview.get();
+    const data = await this.client.api.streams[encodeURIComponent(streamKey)].preview.get();
     return data.url;
   }
 
@@ -327,8 +315,7 @@ class VoiceState extends Base {
    * @returns {Promise<void>}
    */
   postPreview(base64Image) {
-    if (!this.client.user.id === this.id || !this.streaming)
-      throw new Error('USER_NOT_STREAMING');
+    if (!this.client.user.id === this.id || !this.streaming) throw new Error('USER_NOT_STREAMING');
     // URL: https://discord.com/api/v9/streams/guild:guildid:voicechannelid:userid/preview
     // URL: https://discord.com/api/v9/streams/call:channelId:userId/preview
     const streamKey = this.guild?.id

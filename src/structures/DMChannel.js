@@ -49,9 +49,7 @@ class DMChannel extends Channel {
        * The timestamp when the last pinned message was pinned, if there was one
        * @type {?number}
        */
-      this.lastPinTimestamp = data.last_pin_timestamp
-        ? Date.parse(data.last_pin_timestamp)
-        : null;
+      this.lastPinTimestamp = data.last_pin_timestamp ? Date.parse(data.last_pin_timestamp) : null;
     } else {
       this.lastPinTimestamp ??= null;
     }
@@ -81,10 +79,7 @@ class DMChannel extends Channel {
    */
   async acceptMessageRequest() {
     if (!this.messageRequest) {
-      throw new Error(
-        'NOT_MESSAGE_REQUEST',
-        'This channel is not a message request',
-      );
+      throw new Error('NOT_MESSAGE_REQUEST', 'This channel is not a message request');
     }
     const c = await this.client.api.channels[this.id].recipients['@me'].put({
       data: {
@@ -101,10 +96,7 @@ class DMChannel extends Channel {
    */
   async cancelMessageRequest() {
     if (!this.messageRequest) {
-      throw new Error(
-        'NOT_MESSAGE_REQUEST',
-        'This channel is not a message request',
-      );
+      throw new Error('NOT_MESSAGE_REQUEST', 'This channel is not a message request');
     }
     await this.client.api.channels[this.id].recipients['@me'].delete();
     return this;
@@ -195,10 +187,10 @@ class DMChannel extends Channel {
    * @readonly
    */
   get voiceAdapterCreator() {
-    return (methods) => {
+    return methods => {
       this.client.voice.adapters.set(this.id, methods);
       return {
-        sendPayload: (data) => {
+        sendPayload: data => {
           if (this.shard.status !== Status.READY) return false;
           this.shard.send(data);
           return true;
@@ -222,11 +214,6 @@ class DMChannel extends Channel {
   // Doesn't work on DM channels; setNSFW() {}
 }
 
-TextBasedChannel.applyToClass(DMChannel, true, [
-  'fetchWebhooks',
-  'createWebhook',
-  'setRateLimitPerUser',
-  'setNSFW',
-]);
+TextBasedChannel.applyToClass(DMChannel, true, ['fetchWebhooks', 'createWebhook', 'setRateLimitPerUser', 'setNSFW']);
 
 module.exports = DMChannel;

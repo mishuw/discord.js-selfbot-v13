@@ -2,8 +2,6 @@
 // To prevent them from showing up in an editor, they are imported from here instead of exporting them there directly.
 
 import {
-  APIActionRowComponent,
-  APIActionRowComponentTypes,
   APIApplication,
   APIApplicationCommand,
   APIApplicationCommandInteraction,
@@ -17,7 +15,6 @@ import {
   APIGuildIntegrationApplication,
   APIGuildMember,
   APIGuildPreview,
-  APIGuildScheduledEvent,
   APIGuildWelcomeScreen,
   APIGuildWelcomeScreenChannel,
   APIGuildWidget,
@@ -31,7 +28,6 @@ import {
   APIMessageButtonInteractionData,
   APIMessageComponentInteraction,
   APIMessageSelectMenuInteractionData,
-  APIModalSubmitInteraction,
   APIOverwrite,
   APIPartialChannel,
   APIPartialEmoji,
@@ -45,7 +41,6 @@ import {
   APITeam,
   APITeamMember,
   APITemplate,
-  APITextInputComponent,
   APIThreadMember,
   APIUnavailableGuild,
   APIUser,
@@ -66,17 +61,6 @@ import {
   GatewayReadyDispatchData,
   GatewayTypingStartDispatchData,
   GatewayVoiceState,
-  GuildDefaultMessageNotifications,
-  GuildExplicitContentFilter,
-  GuildFeature,
-  GuildHubType,
-  GuildMFALevel,
-  GuildNSFWLevel,
-  GuildPremiumTier,
-  GuildSystemChannelFlags,
-  GuildVerificationLevel,
-  LocalizationMap,
-  Permissions,
   RESTAPIPartialCurrentUserGuild,
   RESTGetAPIWebhookWithTokenResult,
   RESTPatchAPIChannelMessageJSONBody,
@@ -89,29 +73,39 @@ import {
   RESTPostAPIInteractionFollowupJSONBody,
   RESTPostAPIWebhookWithTokenJSONBody,
   Snowflake,
+  APIGuildScheduledEvent,
+  APITextInputComponent,
+  APIModalSubmitInteraction,
+  Permissions,
+  GuildDefaultMessageNotifications,
+  GuildExplicitContentFilter,
+  GuildMFALevel,
+  GuildSystemChannelFlags,
+  GuildPremiumTier,
+  GuildNSFWLevel,
+  GuildHubType,
+  GuildVerificationLevel,
+  GuildFeature,
+  LocalizationMap,
+  APIActionRowComponent,
+  APIActionRowComponentTypes,
 } from 'discord-api-types/v10';
-import { Guild, GuildChannel, PermissionOverwrites } from '.';
+import { GuildChannel, Guild, PermissionOverwrites } from '.';
 import type {
-  ApplicationRoleConnectionMetadataTypes,
   AutoModerationActionTypes,
   AutoModerationRuleEventTypes,
   AutoModerationRuleKeywordPresetTypes,
   AutoModerationRuleTriggerTypes,
+  ApplicationRoleConnectionMetadataTypes,
   MessageComponentTypes,
   SeparatorSpacingSizes,
 } from './enums';
 
 export type RawActivityData = GatewayActivity;
 
-export type RawApplicationData =
-  | RawClientApplicationData
-  | RawIntegrationApplicationData;
-export type RawClientApplicationData =
-  | GatewayReadyDispatchData['application']
-  | APIMessage['application'];
-export type RawIntegrationApplicationData =
-  | APIGuildIntegrationApplication
-  | Partial<APIApplication>;
+export type RawApplicationData = RawClientApplicationData | RawIntegrationApplicationData;
+export type RawClientApplicationData = GatewayReadyDispatchData['application'] | APIMessage['application'];
+export type RawIntegrationApplicationData = APIGuildIntegrationApplication | Partial<APIApplication>;
 
 export type RawApplicationCommandData = APIApplicationCommand;
 
@@ -121,16 +115,9 @@ export type RawChannelData =
   | RawDMChannelData
   | RawPartialGroupDMChannelData;
 export type RawDMChannelData = APIChannel | APIInteractionDataResolvedChannel;
-export type RawGuildChannelData =
-  | APIChannel
-  | APIInteractionDataResolvedChannel
-  | Required<APIPartialChannel>;
-export type RawPartialGroupDMChannelData =
-  | APIChannel
-  | Required<APIPartialChannel>;
-export type RawThreadChannelData =
-  | APIChannel
-  | APIInteractionDataResolvedChannel;
+export type RawGuildChannelData = APIChannel | APIInteractionDataResolvedChannel | Required<APIPartialChannel>;
+export type RawPartialGroupDMChannelData = APIChannel | Required<APIPartialChannel>;
+export type RawThreadChannelData = APIChannel | APIInteractionDataResolvedChannel;
 
 export type RawEmojiData =
   | RawGuildEmojiData
@@ -174,8 +161,7 @@ export type RawInteractionData = GatewayInteractionCreateDispatchData;
 export type RawCommandInteractionData = APIApplicationCommandInteraction;
 export type RawMessageComponentInteractionData = APIMessageComponentInteraction;
 export type RawMessageButtonInteractionData = APIMessageButtonInteractionData;
-export type RawMessageSelectMenuInteractionData =
-  APIMessageSelectMenuInteractionData;
+export type RawMessageSelectMenuInteractionData = APIMessageSelectMenuInteractionData;
 
 export type RawTextInputComponentData = APITextInputComponent;
 export type RawModalSubmitInteractionData = APIModalSubmitInteraction;
@@ -216,9 +202,7 @@ export type RawMessagePayloadData =
   | RESTPostAPIInteractionFollowupJSONBody
   | RESTPatchAPIInteractionFollowupJSONBody;
 
-export type RawMessageReactionData =
-  | APIReaction
-  | GatewayMessageReactionAddDispatchData;
+export type RawMessageReactionData = APIReaction | GatewayMessageReactionAddDispatchData;
 
 export type RawPermissionOverwriteData = APIOverwrite | PermissionOverwrites;
 
@@ -230,8 +214,7 @@ export type RawRichPresenceAssets = GatewayActivityAssets;
 
 export type RawStageInstanceData =
   | APIStageInstance
-  | (Partial<APIStageInstance> &
-      Pick<APIStageInstance, 'id' | 'channel_id' | 'guild_id'>);
+  | (Partial<APIStageInstance> & Pick<APIStageInstance, 'id' | 'channel_id' | 'guild_id'>);
 
 export type RawStickerData = APISticker | APIStickerItem;
 
@@ -249,9 +232,7 @@ export type RawUserData =
 
 export type RawVoiceRegionData = APIVoiceRegion;
 
-export type RawVoiceStateData =
-  | GatewayVoiceState
-  | Omit<GatewayVoiceState, 'guild_id'>;
+export type RawVoiceStateData = GatewayVoiceState | Omit<GatewayVoiceState, 'guild_id'>;
 
 export type RawWebhookData =
   | APIWebhook
@@ -379,37 +360,31 @@ export interface APIMediaGalleryItem {
   spoiler: boolean;
 }
 
-export interface APISeparatorComponent
-  extends APIBaseComponent<MessageComponentTypes.SEPARATOR> {
+export interface APISeparatorComponent extends APIBaseComponent<MessageComponentTypes.SEPARATOR> {
   spacing: SeparatorSpacingSizes;
   divider: boolean;
 }
 
-export interface APITextDisplayComponent
-  extends APIBaseComponent<MessageComponentTypes.TEXT_DISPLAY> {
+export interface APITextDisplayComponent extends APIBaseComponent<MessageComponentTypes.TEXT_DISPLAY> {
   content: string;
 }
 
-export interface APIThumbnailComponent
-  extends APIBaseComponent<MessageComponentTypes.THUMBNAIL> {
+export interface APIThumbnailComponent extends APIBaseComponent<MessageComponentTypes.THUMBNAIL> {
   media: APIUnfurledMediaItem;
   description: string;
   spoiler: boolean;
 }
 
-export interface APIFileComponent
-  extends APIBaseComponent<MessageComponentTypes.FILE> {
+export interface APIFileComponent extends APIBaseComponent<MessageComponentTypes.FILE> {
   file: APIUnfurledMediaItem;
   spoiler: boolean;
 }
 
-export interface APIMediaGalleryComponent
-  extends APIBaseComponent<MessageComponentTypes.MEDIA_GALLERY> {
+export interface APIMediaGalleryComponent extends APIBaseComponent<MessageComponentTypes.MEDIA_GALLERY> {
   items: APIMediaGalleryItem;
 }
 
-export interface APISectionComponent
-  extends APIBaseComponent<MessageComponentTypes.SECTION> {
+export interface APISectionComponent extends APIBaseComponent<MessageComponentTypes.SECTION> {
   components: APITextDisplayComponent[];
   accessory: APIThumbnailComponent | APIMessageButtonInteractionData;
 }
@@ -421,8 +396,7 @@ export type APIContainerComponents =
   | APIMediaGalleryComponent
   | APISeparatorComponent
   | APIFileComponent;
-export interface APIContainerComponent
-  extends APIBaseComponent<MessageComponentTypes.CONTAINER> {
+export interface APIContainerComponent extends APIBaseComponent<MessageComponentTypes.CONTAINER> {
   components: APIContainerComponents[];
   accent_color: number;
   spoiler: boolean;

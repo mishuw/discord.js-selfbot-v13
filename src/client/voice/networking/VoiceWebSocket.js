@@ -67,10 +67,7 @@ class VoiceWebSocket extends EventEmitter {
     if (this.dead) return;
     if (this.ws) this.reset();
     if (this.attempts >= 5) {
-      this.emit(
-        'debug',
-        new Error('VOICE_CONNECTION_ATTEMPTS_EXCEEDED', this.attempts),
-      );
+      this.emit('debug', new Error('VOICE_CONNECTION_ATTEMPTS_EXCEEDED', this.attempts));
       return;
     }
 
@@ -80,14 +77,8 @@ class VoiceWebSocket extends EventEmitter {
      * The actual WebSocket used to connect to the Voice WebSocket Server.
      * @type {WebSocket}
      */
-    this.ws = WebSocket.create(
-      `wss://${this.connection.authentication.endpoint}/`,
-      { v: 8 },
-    );
-    this.emit(
-      'debug',
-      `[WS] connecting, ${this.attempts} attempts, ${this.ws.url}`,
-    );
+    this.ws = WebSocket.create(`wss://${this.connection.authentication.endpoint}/`, { v: 8 });
+    this.emit('debug', `[WS] connecting, ${this.attempts} attempts, ${this.ws.url}`);
     this.ws.onopen = this.onOpen.bind(this);
     this.ws.onmessage = this.onMessage.bind(this);
     this.ws.onclose = this.onClose.bind(this);
@@ -102,9 +93,8 @@ class VoiceWebSocket extends EventEmitter {
   send(data) {
     this.emit('debug', `[WS] >> ${data}`);
     return new Promise((resolve, reject) => {
-      if (!this.ws || this.ws.readyState !== WebSocket.OPEN)
-        throw new Error('WS_NOT_OPEN', data);
-      this.ws.send(data, null, (error) => {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) throw new Error('WS_NOT_OPEN', data);
+      this.ws.send(data, null, error => {
         if (error) reject(error);
         else resolve(data);
       });
@@ -125,17 +115,11 @@ class VoiceWebSocket extends EventEmitter {
    * Called whenever the WebSocket opens.
    */
   onOpen() {
-    this.emit(
-      'debug',
-      `[WS] opened at gateway ${this.connection.authentication.endpoint}`,
-    );
+    this.emit('debug', `[WS] opened at gateway ${this.connection.authentication.endpoint}`);
     this.sendPacket({
       op: Opcodes.DISPATCH,
       d: {
-        server_id:
-          this.connection.serverId ||
-          this.connection.channel.guild?.id ||
-          this.connection.channel.id,
+        server_id: this.connection.serverId || this.connection.channel.guild?.id || this.connection.channel.id,
         user_id: this.client.user.id,
         token: this.connection.authentication.token,
         session_id: this.connection.authentication.sessionId,
@@ -165,12 +149,8 @@ class VoiceWebSocket extends EventEmitter {
    * @param {CloseEvent} event The WebSocket close event
    */
   onClose(event) {
-    this.emit(
-      'debug',
-      `[WS] closed with code ${event.code} and reason: ${event.reason}`,
-    );
-    if (!this.dead)
-      setTimeout(this.connect.bind(this), this.attempts * 1000).unref();
+    this.emit('debug', `[WS] closed with code ${event.code} and reason: ${event.reason}`);
+    if (!this.dead) setTimeout(this.connect.bind(this), this.attempts * 1000).unref();
   }
 
   /**
@@ -220,9 +200,7 @@ class VoiceWebSocket extends EventEmitter {
         });
         break;
       case VoiceOpcodes.CLIENT_DISCONNECT:
-        const streamInfo =
-          this.connection.receiver &&
-          this.connection.receiver.packets.streams.get(packet.d.user_id);
+        const streamInfo = this.connection.receiver && this.connection.receiver.packets.streams.get(packet.d.user_id);
         if (streamInfo) {
           this.connection.receiver.packets.streams.delete(packet.d.user_id);
           streamInfo.stream.push(null);
@@ -273,10 +251,7 @@ class VoiceWebSocket extends EventEmitter {
       this.emit('warn', 'A voice heartbeat interval is being overwritten');
       clearInterval(this.heartbeatInterval);
     }
-    this.heartbeatInterval = setInterval(
-      this.sendHeartbeat.bind(this),
-      interval,
-    ).unref();
+    this.heartbeatInterval = setInterval(this.sendHeartbeat.bind(this), interval).unref();
   }
 
   /**
@@ -284,10 +259,7 @@ class VoiceWebSocket extends EventEmitter {
    */
   clearHeartbeat() {
     if (!this.heartbeatInterval) {
-      this.emit(
-        'warn',
-        'Tried to clear a heartbeat interval that does not exist',
-      );
+      this.emit('warn', 'Tried to clear a heartbeat interval that does not exist');
       return;
     }
     clearInterval(this.heartbeatInterval);

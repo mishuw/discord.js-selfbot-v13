@@ -18,8 +18,7 @@ class Modal {
      * A list of MessageActionRows in the modal
      * @type {MessageActionRow[]}
      */
-    this.components =
-      data.components?.map((c) => BaseMessageComponent.create(c, client)) ?? [];
+    this.components = data.components?.map(c => BaseMessageComponent.create(c, client)) ?? [];
 
     /**
      * A unique string to be sent in the interaction when submitted
@@ -93,14 +92,12 @@ class Modal {
    * @readonly
    */
   get guild() {
-    return (
-      this.client.guilds.resolve(this.guildId) ?? this.channel?.guild ?? null
-    );
+    return this.client.guilds.resolve(this.guildId) ?? this.channel?.guild ?? null;
   }
 
   toJSON() {
     return {
-      components: this.components.map((c) => c.toJSON()),
+      components: this.components.map(c => c.toJSON()),
       custom_id: this.customId,
       title: this.title,
       id: this.id,
@@ -119,12 +116,11 @@ class Modal {
    * })
    */
   reply() {
-    if (!this.applicationId || !this.client || !this.channelId || this.replied)
-      throw new Error('Modal cannot reply');
+    if (!this.applicationId || !this.client || !this.channelId || this.replied) throw new Error('Modal cannot reply');
     // Get Object
     const dataFinal = this.toJSON();
     dataFinal.components = dataFinal.components
-      .map((c) => {
+      .map(c => {
         c.components[0] = {
           type: c.components[0].type,
           value: c.components[0].value,
@@ -132,7 +128,7 @@ class Modal {
         };
         return c;
       })
-      .filter((c) => typeof c.components[0].value == 'string');
+      .filter(c => typeof c.components[0].value == 'string');
     delete dataFinal.title;
     const nonce = SnowflakeUtil.generate();
     const postData = {

@@ -1,10 +1,7 @@
 'use strict';
 
 const BaseMessageComponent = require('./BaseMessageComponent');
-const {
-  MessageComponentTypes,
-  SeparatorSpacingSizes,
-} = require('../util/Constants');
+const { MessageComponentTypes, SeparatorSpacingSizes } = require('../util/Constants');
 
 class SeparatorComponent extends BaseMessageComponent {
   /**

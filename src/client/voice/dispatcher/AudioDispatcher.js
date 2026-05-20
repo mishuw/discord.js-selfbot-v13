@@ -25,11 +25,7 @@ const CHANNELS = 2;
  * @extends {BaseDispatcher}
  */
 class AudioDispatcher extends BaseDispatcher {
-  constructor(
-    player,
-    { seek = 0, volume = 1, fec, plp, bitrate = 96, highWaterMark = 12 } = {},
-    streams,
-  ) {
+  constructor(player, { seek = 0, volume = 1, fec, plp, bitrate = 96, highWaterMark = 12 } = {}, streams) {
     const streamOptions = { seek, volume, fec, plp, bitrate, highWaterMark };
     super(player, highWaterMark, Util.getPayloadType('opus'), false, streams);
 
@@ -67,8 +63,7 @@ class AudioDispatcher extends BaseDispatcher {
    */
   setBitrate(value) {
     if (!value || !this.bitrateEditable) return false;
-    const bitrate =
-      value === 'auto' ? this.player.voiceConnection.channel.bitrate : value;
+    const bitrate = value === 'auto' ? this.player.voiceConnection.channel.bitrate : value;
     this.streams.opus.setBitrate(bitrate * 1000);
     return true;
   }

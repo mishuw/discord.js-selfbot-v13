@@ -102,10 +102,7 @@ class GuildPreview extends Base {
       this.emojis.clear();
     }
     for (const emoji of data.emojis) {
-      this.emojis.set(
-        emoji.id,
-        new GuildPreviewEmoji(this.client, emoji, this),
-      );
+      this.emojis.set(emoji.id, new GuildPreviewEmoji(this.client, emoji, this));
     }
 
     /**
@@ -113,8 +110,7 @@ class GuildPreview extends Base {
      * @type {Collection<Snowflake, Sticker>}
      */
     this.stickers = data.stickers.reduce(
-      (stickers, sticker) =>
-        stickers.set(sticker.id, new Sticker(this.client, sticker)),
+      (stickers, sticker) => stickers.set(sticker.id, new Sticker(this.client, sticker)),
       new Collection(),
     );
   }
@@ -142,10 +138,7 @@ class GuildPreview extends Base {
    * @returns {?string}
    */
   splashURL({ format, size } = {}) {
-    return (
-      this.splash &&
-      this.client.rest.cdn.Splash(this.id, this.splash, format, size)
-    );
+    return this.splash && this.client.rest.cdn.Splash(this.id, this.splash, format, size);
   }
 
   /**
@@ -154,15 +147,7 @@ class GuildPreview extends Base {
    * @returns {?string}
    */
   discoverySplashURL({ format, size } = {}) {
-    return (
-      this.discoverySplash &&
-      this.client.rest.cdn.DiscoverySplash(
-        this.id,
-        this.discoverySplash,
-        format,
-        size,
-      )
-    );
+    return this.discoverySplash && this.client.rest.cdn.DiscoverySplash(this.id, this.discoverySplash, format, size);
   }
 
   /**
@@ -171,10 +156,7 @@ class GuildPreview extends Base {
    * @returns {?string}
    */
   iconURL({ format, size, dynamic } = {}) {
-    return (
-      this.icon &&
-      this.client.rest.cdn.Icon(this.id, this.icon, format, size, dynamic)
-    );
+    return this.icon && this.client.rest.cdn.Icon(this.id, this.icon, format, size, dynamic);
   }
 
   /**

@@ -219,11 +219,7 @@ class Sticker extends Base {
    * @returns {Promise<?StickerPack>}
    */
   async fetchPack() {
-    return (
-      (this.packId &&
-        (await this.client.fetchPremiumStickerPacks()).get(this.packId)) ??
-      null
-    );
+    return (this.packId && (await this.client.fetchPremiumStickerPacks()).get(this.packId)) ?? null;
   }
 
   /**
@@ -289,7 +285,7 @@ class Sticker extends Base {
         other.name === this.name &&
         other.packId === this.packId &&
         other.tags.length === this.tags.length &&
-        other.tags.every((tag) => this.tags.includes(tag)) &&
+        other.tags.every(tag => this.tags.includes(tag)) &&
         other.available === this.available &&
         other.guildId === this.guildId &&
         other.sortValue === this.sortValue

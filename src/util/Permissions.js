@@ -31,9 +31,7 @@ class Permissions extends BitField {
    * @returns {string[]}
    */
   missing(bits, checkAdmin = true) {
-    return checkAdmin && this.has(this.constructor.FLAGS.ADMINISTRATOR)
-      ? []
-      : super.missing(bits);
+    return checkAdmin && this.has(this.constructor.FLAGS.ADMINISTRATOR) ? [] : super.missing(bits);
   }
 
   /**
@@ -43,10 +41,7 @@ class Permissions extends BitField {
    * @returns {boolean}
    */
   any(permission, checkAdmin = true) {
-    return (
-      (checkAdmin && super.has(this.constructor.FLAGS.ADMINISTRATOR)) ||
-      super.any(permission)
-    );
+    return (checkAdmin && super.has(this.constructor.FLAGS.ADMINISTRATOR)) || super.any(permission);
   }
 
   /**
@@ -56,10 +51,7 @@ class Permissions extends BitField {
    * @returns {boolean}
    */
   has(permission, checkAdmin = true) {
-    return (
-      (checkAdmin && super.has(this.constructor.FLAGS.ADMINISTRATOR)) ||
-      super.has(permission)
-    );
+    return (checkAdmin && super.has(this.constructor.FLAGS.ADMINISTRATOR)) || super.has(permission);
   }
 
   /**
@@ -190,10 +182,7 @@ Permissions.FLAGS = {
  * Bitfield representing every permission combined
  * @type {bigint}
  */
-Permissions.ALL = Object.values(Permissions.FLAGS).reduce(
-  (all, p) => all | p,
-  0n,
-);
+Permissions.ALL = Object.values(Permissions.FLAGS).reduce((all, p) => all | p, 0n);
 
 /**
  * Bitfield representing the default permissions for users
@@ -206,9 +195,7 @@ Permissions.DEFAULT = BigInt(104324673);
  * @type {bigint}
  */
 Permissions.STAGE_MODERATOR =
-  Permissions.FLAGS.MANAGE_CHANNELS |
-  Permissions.FLAGS.MUTE_MEMBERS |
-  Permissions.FLAGS.MOVE_MEMBERS;
+  Permissions.FLAGS.MANAGE_CHANNELS | Permissions.FLAGS.MUTE_MEMBERS | Permissions.FLAGS.MOVE_MEMBERS;
 
 Permissions.defaultBit = BigInt(0);
 

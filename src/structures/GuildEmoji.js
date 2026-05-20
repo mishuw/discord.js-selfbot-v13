@@ -56,12 +56,7 @@ class GuildEmoji extends BaseGuildEmoji {
    */
   get deletable() {
     if (!this.guild.members.me) throw new Error('GUILD_UNCACHED_ME');
-    return (
-      !this.managed &&
-      this.guild.members.me.permissions.has(
-        Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS,
-      )
-    );
+    return !this.managed && this.guild.members.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS);
   }
 
   /**
@@ -100,7 +95,7 @@ class GuildEmoji extends BaseGuildEmoji {
    *   .catch(console.error);
    */
   async edit(data, reason) {
-    const roles = data.roles?.map((r) => r.id ?? r);
+    const roles = data.roles?.map(r => r.id ?? r);
     const newData = await this.client.api
       .guilds(this.guild.id)
       .emojis(this.id)
@@ -150,14 +145,14 @@ class GuildEmoji extends BaseGuildEmoji {
         other.available === this.available &&
         other.requiresColons === this.requiresColons &&
         other.roles.cache.size === this.roles.cache.size &&
-        other.roles.cache.every((role) => this.roles.cache.has(role.id))
+        other.roles.cache.every(role => this.roles.cache.has(role.id))
       );
     } else {
       return (
         other.id === this.id &&
         other.name === this.name &&
         other.roles.length === this.roles.cache.size &&
-        other.roles.every((role) => this.roles.cache.has(role))
+        other.roles.every(role => this.roles.cache.has(role))
       );
     }
   }

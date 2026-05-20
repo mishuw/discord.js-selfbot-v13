@@ -63,7 +63,7 @@ class BaseGuild extends Base {
   get nameAcronym() {
     return this.name
       .replace(/'s /g, ' ')
-      .replace(/\w+/g, (e) => e[0])
+      .replace(/\w+/g, e => e[0])
       .replace(/\s/g, '');
   }
 
@@ -100,9 +100,7 @@ class BaseGuild extends Base {
    * @returns {Promise<Guild>}
    */
   async fetch() {
-    const data = await this.client.api
-      .guilds(this.id)
-      .get({ query: { with_counts: true } });
+    const data = await this.client.api.guilds(this.id).get({ query: { with_counts: true } });
     return this.client.guilds._add(data);
   }
 

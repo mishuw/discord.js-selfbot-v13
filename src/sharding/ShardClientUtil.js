@@ -83,7 +83,7 @@ class ShardClientUtil {
   send(message) {
     return new Promise((resolve, reject) => {
       if (this.mode === 'process') {
-        process.send(message, (err) => {
+        process.send(message, err => {
           if (err) reject(err);
           else resolve();
         });
@@ -109,9 +109,8 @@ class ShardClientUtil {
     return new Promise((resolve, reject) => {
       const parent = this.parentPort ?? process;
 
-      const listener = (message) => {
-        if (message?._sFetchProp !== prop || message._sFetchPropShard !== shard)
-          return;
+      const listener = message => {
+        if (message?._sFetchProp !== prop || message._sFetchPropShard !== shard) return;
         parent.removeListener('message', listener);
         this.decrementMaxListeners(parent);
         if (!message._error) resolve(message._result);
@@ -120,7 +119,7 @@ class ShardClientUtil {
       this.incrementMaxListeners(parent);
       parent.on('message', listener);
 
-      this.send({ _sFetchProp: prop, _sFetchPropShard: shard }).catch((err) => {
+      this.send({ _sFetchProp: prop, _sFetchPropShard: shard }).catch(err => {
         parent.removeListener('message', listener);
         this.decrementMaxListeners(parent);
         reject(err);
@@ -148,9 +147,8 @@ class ShardClientUtil {
       }
       script = `(${script})(this, ${JSON.stringify(options.context)})`;
 
-      const listener = (message) => {
-        if (message?._sEval !== script || message._sEvalShard !== options.shard)
-          return;
+      const listener = message => {
+        if (message?._sEval !== script || message._sEvalShard !== options.shard) return;
         parent.removeListener('message', listener);
         this.decrementMaxListeners(parent);
         if (!message._error) resolve(message._result);
@@ -158,7 +156,7 @@ class ShardClientUtil {
       };
       this.incrementMaxListeners(parent);
       parent.on('message', listener);
-      this.send({ _sEval: script, _sEvalShard: options.shard }).catch((err) => {
+      this.send({ _sEval: script, _sEvalShard: options.shard }).catch(err => {
         parent.removeListener('message', listener);
         this.decrementMaxListeners(parent);
         reject(err);
@@ -172,11 +170,7 @@ class ShardClientUtil {
    * @returns {Promise<void>} Resolves upon the message being sent
    * @see {@link ShardingManager#respawnAll}
    */
-  respawnAll({
-    shardDelay = 5_000,
-    respawnDelay = 500,
-    timeout = 30_000,
-  } = {}) {
+  respawnAll({ shardDelay = 5_000, respawnDelay = 500, timeout = 30_000 } = {}) {
     return this.send({ _sRespawnAll: { shardDelay, respawnDelay, timeout } });
   }
 
@@ -192,27 +186,15 @@ class ShardClientUtil {
         const props = message._fetchProp.split('.');
         let value = this.client;
         for (const prop of props) value = value[prop];
-        this._respond('fetchProp', {
-          _fetchProp: message._fetchProp,
-          _result: value,
-        });
+        this._respond('fetchProp', { _fetchProp: message._fetchProp, _result: value });
       } catch (err) {
-        this._respond('fetchProp', {
-          _fetchProp: message._fetchProp,
-          _error: Util.makePlainError(err),
-        });
+        this._respond('fetchProp', { _fetchProp: message._fetchProp, _error: Util.makePlainError(err) });
       }
     } else if (message._eval) {
       try {
-        this._respond('eval', {
-          _eval: message._eval,
-          _result: await this.client._eval(message._eval),
-        });
+        this._respond('eval', { _eval: message._eval, _result: await this.client._eval(message._eval) });
       } catch (err) {
-        this._respond('eval', {
-          _eval: message._eval,
-          _error: Util.makePlainError(err),
-        });
+        this._respond('eval', { _eval: message._eval, _error: Util.makePlainError(err) });
       }
     }
   }
@@ -224,10 +206,8 @@ class ShardClientUtil {
    * @private
    */
   _respond(type, message) {
-    this.send(message).catch((err) => {
-      const error = new Error(
-        `Error when sending ${type} response to master process: ${err.message}`,
-      );
+    this.send(message).catch(err => {
+      const error = new Error(`Error when sending ${type} response to master process: ${err.message}`);
       error.stack = err.stack;
       /**
        * Emitted when the client encounters an error.
@@ -267,13 +247,7 @@ class ShardClientUtil {
    */
   static shardIdForGuildId(guildId, shardCount) {
     const shard = Number(BigInt(guildId) >> 22n) % shardCount;
-    if (shard < 0)
-      throw new Error(
-        'SHARDING_SHARD_MISCALCULATION',
-        shard,
-        guildId,
-        shardCount,
-      );
+    if (shard < 0) throw new Error('SHARDING_SHARD_MISCALCULATION', shard, guildId, shardCount);
     return shard;
   }
 

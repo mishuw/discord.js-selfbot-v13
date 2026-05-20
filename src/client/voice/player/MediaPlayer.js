@@ -20,22 +20,13 @@ Please use the @dank074/discord-video-stream library for the best support.
 const EventEmitter = require('events');
 const { Readable: ReadableStream } = require('stream');
 const prism = require('prism-media');
-const {
-  H264NalSplitter,
-  H265NalSplitter,
-} = require('./processing/AnnexBNalSplitter');
+const { H264NalSplitter, H265NalSplitter } = require('./processing/AnnexBNalSplitter');
 const { IvfTransformer } = require('./processing/IvfSplitter');
 const { H264Dispatcher } = require('../dispatcher/AnnexBDispatcher');
 const AudioDispatcher = require('../dispatcher/AudioDispatcher');
 const { VP8Dispatcher } = require('../dispatcher/VPxDispatcher');
 
-const FFMPEG_OUTPUT_PREFIX = [
-  '-use_wallclock_as_timestamps',
-  '1',
-  '-copyts',
-  '-analyzeduration',
-  '0',
-];
+const FFMPEG_OUTPUT_PREFIX = ['-use_wallclock_as_timestamps', '1', '-copyts', '-analyzeduration', '0'];
 const FFMPEG_INPUT_PREFIX = [
   '-reconnect',
   '1',
@@ -47,15 +38,8 @@ const FFMPEG_INPUT_PREFIX = [
   '4294',
 ];
 const FFMPEG_PCM_ARGUMENTS = ['-f', 's16le', '-ar', '48000', '-ac', '2'];
-const FFMPEG_VP8_ARGUMENTS = [
-  '-f',
-  'ivf',
-  '-deadline',
-  'realtime',
-  '-c:v',
-  'libvpx',
-];
-const FFMPEG_H264_ARGUMENTS = (options) => [
+const FFMPEG_VP8_ARGUMENTS = ['-f', 'ivf', '-deadline', 'realtime', '-c:v', 'libvpx'];
+const FFMPEG_H264_ARGUMENTS = options => [
   '-c:v',
   'libx264',
   '-f',
@@ -78,7 +62,7 @@ const FFMPEG_H264_ARGUMENTS = (options) => [
   'h264_metadata=aud=insert',
 ];
 
-const FFMPEG_H265_ARGUMENTS = (options) => [
+const FFMPEG_H265_ARGUMENTS = options => [
   '-c:v',
   'libx265',
   '-f',
@@ -141,17 +125,11 @@ class MediaPlayer extends EventEmitter {
     if (typeof input == 'string' && input.startsWith('http')) {
       args.unshift(...FFMPEG_INPUT_PREFIX);
     }
-    if (options?.inputFFmpegArgs) {
-      args.unshift(...options.inputFFmpegArgs);
-    }
 
     const ffmpeg = new prism.FFmpeg({ args });
-    this.emit(
-      'debug',
-      `[ffmpeg-audio_process] Spawn process with args:\n${args.join(' ')}`,
-    );
+    this.emit('debug', `[ffmpeg-audio_process] Spawn process with args:\n${args.join(' ')}`);
 
-    ffmpeg.process.stderr.on('data', (data) => {
+    ffmpeg.process.stderr.on('data', data => {
       this.emit('debug', `[ffmpeg-audio_process]: ${data.toString()}`);
     });
 
@@ -165,19 +143,12 @@ class MediaPlayer extends EventEmitter {
 
   playPCMStream(stream, options, streams = {}) {
     this.destroyDispatcher();
-    const opus = (streams.opus = new prism.opus.Encoder({
-      channels: 2,
-      rate: 48000,
-      frameSize: 960,
-    }));
+    const opus = (streams.opus = new prism.opus.Encoder({ channels: 2, rate: 48000, frameSize: 960 }));
     if (options && options.volume === false) {
       stream.pipe(opus);
       return this.playOpusStream(opus, options, streams);
     }
-    streams.volume = new prism.VolumeTransformer({
-      type: 's16le',
-      volume: options ? options.volume : 1,
-    });
+    streams.volume = new prism.VolumeTransformer({ type: 's16le', volume: options ? options.volume : 1 });
     stream.pipe(streams.volume).pipe(opus);
     return this.playOpusStream(opus, options, streams);
   }
@@ -187,21 +158,12 @@ class MediaPlayer extends EventEmitter {
     streams.opus = stream;
     if (options.volume !== false && !streams.input) {
       streams.input = stream;
-      const decoder = new prism.opus.Decoder({
-        channels: 2,
-        rate: 48000,
-        frameSize: 960,
-      });
-      streams.volume = new prism.VolumeTransformer({
-        type: 's16le',
-        volume: options ? options.volume : 1,
-      });
+      const decoder = new prism.opus.Decoder({ channels: 2, rate: 48000, frameSize: 960 });
+      streams.volume = new prism.VolumeTransformer({ type: 's16le', volume: options ? options.volume : 1 });
       streams.opus = stream
         .pipe(decoder)
         .pipe(streams.volume)
-        .pipe(
-          new prism.opus.Encoder({ channels: 2, rate: 48000, frameSize: 960 }),
-        );
+        .pipe(new prism.opus.Encoder({ channels: 2, rate: 48000, frameSize: 960 }));
     }
     const dispatcher = this.createDispatcher(options, streams);
     streams.opus.pipe(dispatcher);
@@ -270,12 +232,9 @@ class MediaPlayer extends EventEmitter {
       input.pipe(ffmpeg);
     }
 
-    this.emit(
-      'debug',
-      `[ffmpeg-video_process] Spawn process with args:\n${args.join(' ')}`,
-    );
+    this.emit('debug', `[ffmpeg-video_process] Spawn process with args:\n${args.join(' ')}`);
 
-    ffmpeg.process.stderr.on('data', (data) => {
+    ffmpeg.process.stderr.on('data', data => {
       this.emit('debug', `[ffmpeg-video_process]: ${data.toString()}`);
     });
 
@@ -320,11 +279,7 @@ class MediaPlayer extends EventEmitter {
 
   createDispatcher(options, streams) {
     this.destroyDispatcher();
-    const dispatcher = (this.dispatcher = new AudioDispatcher(
-      this,
-      options,
-      streams,
-    ));
+    const dispatcher = (this.dispatcher = new AudioDispatcher(this, options, streams));
     return dispatcher;
   }
 

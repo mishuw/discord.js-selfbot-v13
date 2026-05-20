@@ -79,9 +79,7 @@ class Message extends Base {
      * The timestamp the message was sent at
      * @type {number}
      */
-    this.createdTimestamp = this.id
-      ? SnowflakeUtil.timestampFrom(this.id)
-      : new Date(data.timestamp).getTime();
+    this.createdTimestamp = this.id ? SnowflakeUtil.timestampFrom(this.id) : new Date(data.timestamp).getTime();
 
     if ('type' in data) {
       /**
@@ -157,7 +155,7 @@ class Message extends Base {
        * A list of embeds in the message - e.g. YouTube Player
        * @type {MessageEmbed[]}
        */
-      this.embeds = data.embeds.map((e) => new Embed(e, true));
+      this.embeds = data.embeds.map(e => new Embed(e, true));
     } else {
       this.embeds = this.embeds?.slice() ?? [];
     }
@@ -171,9 +169,7 @@ class Message extends Base {
        * An array of components in the message
        * @type {TopLevelComponent[]}
        */
-      this.components = data.components.map((c) =>
-        BaseMessageComponent.create(c, this.client),
-      );
+      this.components = data.components.map(c => BaseMessageComponent.create(c, this.client));
     } else {
       this.components = this.components?.slice() ?? [];
     }
@@ -186,14 +182,7 @@ class Message extends Base {
       this.attachments = new Collection();
       if (data.attachments) {
         for (const attachment of data.attachments) {
-          this.attachments.set(
-            attachment.id,
-            new MessageAttachment(
-              attachment.url,
-              attachment.filename,
-              attachment,
-            ),
-          );
+          this.attachments.set(attachment.id, new MessageAttachment(attachment.url, attachment.filename, attachment));
         }
       }
     } else {
@@ -206,10 +195,7 @@ class Message extends Base {
        * @type {Collection<Snowflake, Sticker>}
        */
       this.stickers = new Collection(
-        (data.sticker_items ?? data.stickers)?.map((s) => [
-          s.id,
-          new Sticker(this.client, s),
-        ]),
+        (data.sticker_items ?? data.stickers)?.map(s => [s.id, new Sticker(this.client, s)]),
       );
     } else {
       this.stickers = new Collection(this.stickers);
@@ -221,9 +207,7 @@ class Message extends Base {
        * The timestamp the message was last edited at (if applicable)
        * @type {?number}
        */
-      this.editedTimestamp = data.edited_timestamp
-        ? Date.parse(data.edited_timestamp)
-        : null;
+      this.editedTimestamp = data.edited_timestamp ? Date.parse(data.edited_timestamp) : null;
     } else {
       this.editedTimestamp ??= null;
     }
@@ -292,10 +276,7 @@ class Message extends Base {
        * Supplemental application information for group activities
        * @type {?Application}
        */
-      this.groupActivityApplication = new Application(
-        this.client,
-        data.application,
-      );
+      this.groupActivityApplication = new Application(this.client, data.application);
     } else {
       this.groupActivityApplication ??= null;
     }
@@ -330,9 +311,7 @@ class Message extends Base {
     if (this.member && data.member) {
       this.member._patch(data.member);
     } else if (data.member && this.guild && this.author) {
-      this.guild.members._add(
-        Object.assign(data.member, { user: this.author }),
-      );
+      this.guild.members._add(Object.assign(data.member, { user: this.author }));
     }
 
     if ('flags' in data) {
@@ -377,10 +356,7 @@ class Message extends Base {
     }
 
     if (data.referenced_message) {
-      this.channel?.messages._add({
-        guild_id: data.message_reference?.guild_id,
-        ...data.referenced_message,
-      });
+      this.channel?.messages._add({ guild_id: data.message_reference?.guild_id, ...data.referenced_message });
     }
 
     /**
@@ -413,27 +389,20 @@ class Message extends Base {
        * The message snapshots associated with the message reference
        * @type {Collection<Snowflake, Message>}
        */
-      this.messageSnapshots = data.message_snapshots.reduce(
-        (coll, snapshot) => {
-          const channel = this.client.channels.cache.get(
-            this.reference.channelId,
-          );
-          const snapshotData = {
-            ...snapshot.message,
-            id: this.reference.messageId,
-            channel_id: this.reference.channelId,
-            guild_id: this.reference.guildId,
-          };
+      this.messageSnapshots = data.message_snapshots.reduce((coll, snapshot) => {
+        const channel = this.client.channels.cache.get(this.reference.channelId);
+        const snapshotData = {
+          ...snapshot.message,
+          id: this.reference.messageId,
+          channel_id: this.reference.channelId,
+          guild_id: this.reference.guildId,
+        };
 
-          return coll.set(
-            this.reference.messageId,
-            channel
-              ? channel.messages._add(snapshotData)
-              : new this.constructor(this.client, snapshotData),
-          );
-        },
-        new Collection(),
-      );
+        return coll.set(
+          this.reference.messageId,
+          channel ? channel.messages._add(snapshotData) : new this.constructor(this.client, snapshotData),
+        );
+      }, new Collection());
     } else {
       this.messageSnapshots ??= new Collection();
     }
@@ -452,9 +421,7 @@ class Message extends Base {
        * @type {?MessageCall}
        */
       this.call = {
-        endedTimestamp: data.call.ended_timestamp
-          ? Date.parse(data.call.ended_timestamp)
-          : null,
+        endedTimestamp: data.call.ended_timestamp ? Date.parse(data.call.ended_timestamp) : null,
         participants: data.call.participants,
         get endedAt() {
           return this.endedTimestamp && new Date(this.endedTimestamp);
@@ -547,9 +514,7 @@ class Message extends Base {
    * @readonly
    */
   get guild() {
-    return (
-      this.client.guilds.cache.get(this.guildId) ?? this.channel?.guild ?? null
-    );
+    return this.client.guilds.cache.get(this.guildId) ?? this.channel?.guild ?? null;
   }
 
   /**
@@ -589,9 +554,7 @@ class Message extends Base {
    */
   get cleanContent() {
     // eslint-disable-next-line eqeqeq
-    return this.content != null && this.channel
-      ? Util.cleanContent(this.content, this.channel)
-      : null;
+    return this.content != null && this.channel ? Util.cleanContent(this.content, this.channel) : null;
   }
 
   /**
@@ -656,8 +619,7 @@ class Message extends Base {
       if (this.channel.archived) return false;
       if (this.channel.locked) {
         const permissions = this.channel.permissionsFor(this.client.user);
-        if (!permissions?.has(Permissions.FLAGS.MANAGE_THREADS, true))
-          return false;
+        if (!permissions?.has(Permissions.FLAGS.MANAGE_THREADS, true)) return false;
       }
     }
 
@@ -689,8 +651,7 @@ class Message extends Base {
     return Boolean(
       this.author.id === this.client.user.id ||
         (permissions.has(Permissions.FLAGS.MANAGE_MESSAGES, false) &&
-          this.guild.members.me.communicationDisabledUntilTimestamp <
-            Date.now()),
+          this.guild.members.me.communicationDisabledUntilTimestamp < Date.now()),
     );
   }
 
@@ -718,9 +679,7 @@ class Message extends Base {
         !deletedMessages.has(this) &&
         (!this.guild ||
           (channel?.viewable &&
-            channel
-              ?.permissionsFor(this.client.user)
-              ?.has(Permissions.FLAGS.MANAGE_MESSAGES, false))),
+            channel?.permissionsFor(this.client.user)?.has(Permissions.FLAGS.MANAGE_MESSAGES, false))),
     );
   }
 
@@ -746,9 +705,7 @@ class Message extends Base {
   get crosspostable() {
     const bitfield =
       Permissions.FLAGS.SEND_MESSAGES |
-      (this.author.id === this.client.user.id
-        ? Permissions.defaultBit
-        : Permissions.FLAGS.MANAGE_MESSAGES);
+      (this.author.id === this.client.user.id ? Permissions.defaultBit : Permissions.FLAGS.MANAGE_MESSAGES);
     const { channel } = this;
     return Boolean(
       channel?.type === 'GUILD_NEWS' &&
@@ -914,8 +871,7 @@ class Message extends Base {
       data = MessagePayload.create(this, options, {
         reply: {
           messageReference: this,
-          failIfNotExists:
-            options?.failIfNotExists ?? this.client.options.failIfNotExists,
+          failIfNotExists: options?.failIfNotExists ?? this.client.options.failIfNotExists,
         },
       });
     }
@@ -929,8 +885,7 @@ class Message extends Base {
    */
   forward(channel) {
     const resolvedChannel = this.client.channels.resolve(channel);
-    if (!resolvedChannel)
-      throw new Error('INVALID_TYPE', 'channel', 'TextBasedChannelResolvable');
+    if (!resolvedChannel) throw new Error('INVALID_TYPE', 'channel', 'TextBasedChannelResolvable');
     return resolvedChannel.send({
       forward: {
         message: this.id,
@@ -993,7 +948,7 @@ class Message extends Base {
       .polls(this.id)
       .answers['@me'].put({
         data: {
-          answer_ids: ids.flat(1).map((value) => value.toString()),
+          answer_ids: ids.flat(1).map(value => value.toString()),
         },
       });
   }
@@ -1014,8 +969,7 @@ class Message extends Base {
    */
   async fetchWebhook() {
     if (!this.webhookId) throw new Error('WEBHOOK_MESSAGE');
-    if (this.webhookId === this.applicationId)
-      throw new Error('WEBHOOK_APPLICATION');
+    if (this.webhookId === this.applicationId) throw new Error('WEBHOOK_APPLICATION');
     return this.client.fetchWebhook(this.webhookId);
   }
 
@@ -1053,10 +1007,7 @@ class Message extends Base {
     return (
       this.components
         .flatMap(BaseMessageComponent.extractInteractiveComponents)
-        .find(
-          (component) =>
-            (component.customId ?? component.custom_id) === customId,
-        ) ?? null
+        .find(component => (component.customId ?? component.custom_id) === customId) ?? null
     );
   }
 
@@ -1071,10 +1022,7 @@ class Message extends Base {
   equals(message, rawData) {
     if (!message) return false;
     const embedUpdate = !message.author && !message.attachments;
-    if (embedUpdate)
-      return (
-        this.id === message.id && this.embeds.length === message.embeds.length
-      );
+    if (embedUpdate) return this.id === message.id && this.embeds.length === message.embeds.length;
 
     let equal =
       this.id === message.id &&
@@ -1084,9 +1032,7 @@ class Message extends Base {
       this.nonce === message.nonce &&
       this.embeds.length === message.embeds.length &&
       this.attachments.size === message.attachments.size &&
-      this.attachments.every((attachment) =>
-        message.attachments.has(attachment.id),
-      ) &&
+      this.attachments.every(attachment => message.attachments.has(attachment.id)) &&
       this.embeds.every((embed, index) => embed.equals(message.embeds[index]));
 
     if (equal && rawData) {
@@ -1153,8 +1099,7 @@ class Message extends Base {
    */
   clickButton(buttonid) {
     const button = this.resolveComponent(buttonid);
-    if (!button || button.type !== 'BUTTON')
-      throw new TypeError('BUTTON_NOT_FOUND');
+    if (!button || button.type !== 'BUTTON') throw new TypeError('BUTTON_NOT_FOUND');
     if (button.disabled) throw new TypeError('BUTTON_CANNOT_CLICK');
     const nonce = SnowflakeUtil.generate();
     const data = {
@@ -1189,36 +1134,24 @@ class Message extends Base {
       selectMenu = this.components[menu]?.components[0];
     } else if (typeof menu == 'string') {
       selectMenu = this.components
-        .flatMap((row) => row.components)
+        .flatMap(row => row.components)
         .find(
-          (b) =>
-            [
-              'STRING_SELECT',
-              'USER_SELECT',
-              'ROLE_SELECT',
-              'MENTIONABLE_SELECT',
-              'CHANNEL_SELECT',
-            ].includes(b.type) &&
+          b =>
+            ['STRING_SELECT', 'USER_SELECT', 'ROLE_SELECT', 'MENTIONABLE_SELECT', 'CHANNEL_SELECT'].includes(b.type) &&
             b.customId == menu &&
             !b.disabled,
         );
     }
     if (values.length < selectMenu.minValues) {
-      throw new RangeError(
-        `[SELECT_MENU_MIN_VALUES] The minimum number of values is ${selectMenu.minValues}`,
-      );
+      throw new RangeError(`[SELECT_MENU_MIN_VALUES] The minimum number of values is ${selectMenu.minValues}`);
     }
     if (values.length > selectMenu?.maxValues) {
-      throw new RangeError(
-        `[SELECT_MENU_MAX_VALUES] The maximum number of values is ${selectMenu.maxValues}`,
-      );
+      throw new RangeError(`[SELECT_MENU_MAX_VALUES] The maximum number of values is ${selectMenu.maxValues}`);
     }
-    values = values.map((value) => {
+    values = values.map(value => {
       switch (selectMenu.type) {
         case 'STRING_SELECT': {
-          return selectMenu.options.find(
-            (obj) => obj.value === value || obj.label === value,
-          ).value;
+          return selectMenu.options.find(obj => obj.value === value || obj.label === value).value;
         }
         case 'USER_SELECT': {
           return this.client.users.resolveId(value);
@@ -1227,10 +1160,7 @@ class Message extends Base {
           return this.guild.roles.resolveId(value);
         }
         case 'MENTIONABLE_SELECT': {
-          return (
-            this.client.users.resolveId(value) ||
-            this.guild.roles.resolveId(value)
-          );
+          return this.client.users.resolveId(value) || this.guild.roles.resolveId(value);
         }
         case 'CHANNEL_SELECT': {
           return this.client.channels.resolveId(value);

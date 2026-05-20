@@ -65,23 +65,22 @@ Formatters.channelMention = channelMention;
  * @returns {string}
  * @static
  */
-Formatters.chatInputApplicationCommandMention =
-  function chatInputApplicationCommandMention(
-    commandName,
-    subcommandGroupOrSubOrId,
-    subcommandNameOrId,
-    commandId,
-  ) {
-    if (typeof commandId !== 'undefined') {
-      return `</${commandName} ${subcommandGroupOrSubOrId} ${subcommandNameOrId}:${commandId}>`;
-    }
+Formatters.chatInputApplicationCommandMention = function chatInputApplicationCommandMention(
+  commandName,
+  subcommandGroupOrSubOrId,
+  subcommandNameOrId,
+  commandId,
+) {
+  if (typeof commandId !== 'undefined') {
+    return `</${commandName} ${subcommandGroupOrSubOrId} ${subcommandNameOrId}:${commandId}>`;
+  }
 
-    if (typeof subcommandNameOrId !== 'undefined') {
-      return `</${commandName} ${subcommandGroupOrSubOrId}:${subcommandNameOrId}>`;
-    }
+  if (typeof subcommandNameOrId !== 'undefined') {
+    return `</${commandName} ${subcommandGroupOrSubOrId}:${subcommandNameOrId}>`;
+  }
 
-    return `</${commandName}:${subcommandGroupOrSubOrId}>`;
-  };
+  return `</${commandName}:${subcommandGroupOrSubOrId}>`;
+};
 
 /**
  * Wraps the content inside a code block with an optional language.

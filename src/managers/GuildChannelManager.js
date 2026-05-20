@@ -18,11 +18,7 @@ const {
 } = require('../util/Constants');
 const DataResolver = require('../util/DataResolver');
 const Util = require('../util/Util');
-const {
-  resolveAutoArchiveMaxLimit,
-  transformGuildForumTag,
-  transformGuildDefaultReaction,
-} = require('../util/Util');
+const { resolveAutoArchiveMaxLimit, transformGuildForumTag, transformGuildDefaultReaction } = require('../util/Util');
 
 let cacheWarningEmitted = false;
 let storeChannelDeprecationEmitted = false;
@@ -36,10 +32,8 @@ class GuildChannelManager extends CachedManager {
     super(guild.client, GuildChannel, iterable);
     const defaultCaching =
       this._cache.constructor.name === 'Collection' ||
-      ((this._cache.maxSize === undefined ||
-        this._cache.maxSize === Infinity) &&
-        (this._cache.sweepFilter === undefined ||
-          this._cache.sweepFilter.isDefault));
+      ((this._cache.maxSize === undefined || this._cache.maxSize === Infinity) &&
+        (this._cache.sweepFilter === undefined || this._cache.sweepFilter.isDefault));
     if (!cacheWarningEmitted && !defaultCaching) {
       cacheWarningEmitted = true;
       process.emitWarning(
@@ -95,8 +89,7 @@ class GuildChannelManager extends CachedManager {
    * @returns {?(GuildChannel|ThreadChannel)}
    */
   resolve(channel) {
-    if (channel instanceof ThreadChannel)
-      return this.cache.get(channel.id) ?? null;
+    if (channel instanceof ThreadChannel) return this.cache.get(channel.id) ?? null;
     return super.resolve(channel);
   }
 
@@ -161,33 +154,17 @@ class GuildChannelManager extends CachedManager {
     } = {},
   ) {
     parent &&= this.client.channels.resolveId(parent);
-    permissionOverwrites &&= permissionOverwrites.map((o) =>
-      PermissionOverwrites.resolve(o, this.guild),
-    );
-    const intType =
-      typeof type === 'number'
-        ? type
-        : (ChannelTypes[type] ?? ChannelTypes.GUILD_TEXT);
+    permissionOverwrites &&= permissionOverwrites.map(o => PermissionOverwrites.resolve(o, this.guild));
+    const intType = typeof type === 'number' ? type : ChannelTypes[type] ?? ChannelTypes.GUILD_TEXT;
 
-    const videoMode =
-      typeof videoQualityMode === 'number'
-        ? videoQualityMode
-        : VideoQualityModes[videoQualityMode];
+    const videoMode = typeof videoQualityMode === 'number' ? videoQualityMode : VideoQualityModes[videoQualityMode];
 
-    const sortMode =
-      typeof defaultSortOrder === 'number'
-        ? defaultSortOrder
-        : SortOrderTypes[defaultSortOrder];
+    const sortMode = typeof defaultSortOrder === 'number' ? defaultSortOrder : SortOrderTypes[defaultSortOrder];
 
     const layoutMode =
-      typeof defaultForumLayout === 'number'
-        ? defaultForumLayout
-        : ForumLayoutTypes[defaultForumLayout];
+      typeof defaultForumLayout === 'number' ? defaultForumLayout : ForumLayoutTypes[defaultForumLayout];
 
-    if (
-      intType === ChannelTypes.GUILD_STORE &&
-      !storeChannelDeprecationEmitted
-    ) {
+    if (intType === ChannelTypes.GUILD_STORE && !storeChannelDeprecationEmitted) {
       storeChannelDeprecationEmitted = true;
       process.emitWarning(
         // eslint-disable-next-line max-len
@@ -210,12 +187,8 @@ class GuildChannelManager extends CachedManager {
         rate_limit_per_user: rateLimitPerUser,
         rtc_region: rtcRegion,
         video_quality_mode: videoMode,
-        available_tags: availableTags?.map((availableTag) =>
-          transformGuildForumTag(availableTag),
-        ),
-        default_reaction_emoji:
-          defaultReactionEmoji &&
-          transformGuildDefaultReaction(defaultReactionEmoji),
+        available_tags: availableTags?.map(availableTag => transformGuildForumTag(availableTag)),
+        default_reaction_emoji: defaultReactionEmoji && transformGuildDefaultReaction(defaultReactionEmoji),
         default_sort_order: sortMode,
         default_forum_layout: layoutMode,
         default_thread_rate_limit_per_user: defaultThreadRateLimitPerUser,
@@ -242,8 +215,7 @@ class GuildChannelManager extends CachedManager {
    */
   async createWebhook(channel, name, { avatar, reason } = {}) {
     const id = this.resolveId(channel);
-    if (!id)
-      throw new TypeError('INVALID_TYPE', 'channel', 'GuildChannelResolvable');
+    if (!id) throw new TypeError('INVALID_TYPE', 'channel', 'GuildChannelResolvable');
 
     const resolvedImage = await DataResolver.resolveImage(avatar);
 
@@ -267,11 +239,8 @@ class GuildChannelManager extends CachedManager {
   async addFollower(channel, targetChannel, reason) {
     const channelId = this.resolveId(channel);
     const targetChannelId = this.resolveId(targetChannel);
-    if (!channelId || !targetChannelId)
-      throw new Error('GUILD_CHANNEL_RESOLVE');
-    const { webhook_id } = await this.client.api.channels[
-      channelId
-    ].followers.post({
+    if (!channelId || !targetChannelId) throw new Error('GUILD_CHANNEL_RESOLVE');
+    const { webhook_id } = await this.client.api.channels[channelId].followers.post({
       data: { webhook_channel_id: targetChannelId },
       reason,
     });
@@ -319,36 +288,31 @@ class GuildChannelManager extends CachedManager {
    */
   async edit(channel, data, reason) {
     channel = this.resolve(channel);
-    if (!channel)
-      throw new TypeError('INVALID_TYPE', 'channel', 'GuildChannelResolvable');
+    if (!channel) throw new TypeError('INVALID_TYPE', 'channel', 'GuildChannelResolvable');
 
     const parentId = data.parent && this.client.channels.resolveId(data.parent);
 
-    if (typeof data.position !== 'undefined')
-      await this.setPosition(channel, data.position, { reason });
+    if (typeof data.position !== 'undefined') await this.setPosition(channel, data.position, { reason });
 
-    let permission_overwrites = data.permissionOverwrites?.map((o) =>
-      PermissionOverwrites.resolve(o, this.guild),
-    );
+    let permission_overwrites = data.permissionOverwrites?.map(o => PermissionOverwrites.resolve(o, this.guild));
 
     if (data.lockPermissions) {
       if (parentId) {
         const newParent = this.cache.get(parentId);
         if (newParent?.type === 'GUILD_CATEGORY') {
-          permission_overwrites = newParent.permissionOverwrites.cache.map(
-            (o) => PermissionOverwrites.resolve(o, this.guild),
+          permission_overwrites = newParent.permissionOverwrites.cache.map(o =>
+            PermissionOverwrites.resolve(o, this.guild),
           );
         }
       } else if (channel.parent) {
-        permission_overwrites = channel.parent.permissionOverwrites.cache.map(
-          (o) => PermissionOverwrites.resolve(o, this.guild),
+        permission_overwrites = channel.parent.permissionOverwrites.cache.map(o =>
+          PermissionOverwrites.resolve(o, this.guild),
         );
       }
     }
 
     let defaultAutoArchiveDuration = data.defaultAutoArchiveDuration;
-    if (defaultAutoArchiveDuration === 'MAX')
-      defaultAutoArchiveDuration = resolveAutoArchiveMaxLimit(this.guild);
+    if (defaultAutoArchiveDuration === 'MAX') defaultAutoArchiveDuration = resolveAutoArchiveMaxLimit(this.guild);
 
     const newData = await this.client.api.channels(channel.id).patch({
       data: {
@@ -360,26 +324,18 @@ class GuildChannelManager extends CachedManager {
         user_limit: data.userLimit ?? channel.userLimit,
         rtc_region: 'rtcRegion' in data ? data.rtcRegion : channel.rtcRegion,
         video_quality_mode:
-          typeof data.videoQualityMode === 'string'
-            ? VideoQualityModes[data.videoQualityMode]
-            : data.videoQualityMode,
+          typeof data.videoQualityMode === 'string' ? VideoQualityModes[data.videoQualityMode] : data.videoQualityMode,
         parent_id: parentId,
         lock_permissions: data.lockPermissions,
         rate_limit_per_user: data.rateLimitPerUser,
         default_auto_archive_duration: defaultAutoArchiveDuration,
         permission_overwrites,
-        available_tags: data.availableTags?.map((availableTag) =>
-          transformGuildForumTag(availableTag),
-        ),
-        default_reaction_emoji:
-          data.defaultReactionEmoji &&
-          transformGuildDefaultReaction(data.defaultReactionEmoji),
+        available_tags: data.availableTags?.map(availableTag => transformGuildForumTag(availableTag)),
+        default_reaction_emoji: data.defaultReactionEmoji && transformGuildDefaultReaction(data.defaultReactionEmoji),
         default_thread_rate_limit_per_user: data.defaultThreadRateLimitPerUser,
         flags: 'flags' in data ? ChannelFlags.resolve(data.flags) : undefined,
         default_sort_order:
-          typeof data.defaultSortOrder === 'string'
-            ? SortOrderTypes[data.defaultSortOrder]
-            : data.defaultSortOrder,
+          typeof data.defaultSortOrder === 'string' ? SortOrderTypes[data.defaultSortOrder] : data.defaultSortOrder,
       },
       reason,
     });
@@ -401,8 +357,7 @@ class GuildChannelManager extends CachedManager {
    */
   async setPosition(channel, position, { relative, reason } = {}) {
     channel = this.resolve(channel);
-    if (!channel)
-      throw new TypeError('INVALID_TYPE', 'channel', 'GuildChannelResolvable');
+    if (!channel) throw new TypeError('INVALID_TYPE', 'channel', 'GuildChannelResolvable');
     const updatedChannels = await Util.setPosition(
       channel,
       position,
@@ -444,18 +399,13 @@ class GuildChannelManager extends CachedManager {
     if (id) {
       const data = await this.client.api.channels(id).get();
       // Since this is the guild manager, throw if on a different guild
-      if (this.guild.id !== data.guild_id)
-        throw new Error('GUILD_CHANNEL_UNOWNED');
+      if (this.guild.id !== data.guild_id) throw new Error('GUILD_CHANNEL_UNOWNED');
       return this.client.channels._add(data, this.guild, { cache });
     }
 
     const data = await this.client.api.guilds(this.guild.id).channels.get();
     const channels = new Collection();
-    for (const channel of data)
-      channels.set(
-        channel.id,
-        this.client.channels._add(channel, this.guild, { cache }),
-      );
+    for (const channel of data) channels.set(channel.id, this.client.channels._add(channel, this.guild, { cache }));
     return channels;
   }
 
@@ -471,13 +421,9 @@ class GuildChannelManager extends CachedManager {
    */
   async fetchWebhooks(channel) {
     const id = this.resolveId(channel);
-    if (!id)
-      throw new TypeError('INVALID_TYPE', 'channel', 'GuildChannelResolvable');
+    if (!id) throw new TypeError('INVALID_TYPE', 'channel', 'GuildChannelResolvable');
     const data = await this.client.api.channels[id].webhooks.get();
-    return data.reduce(
-      (hooks, hook) => hooks.set(hook.id, new Webhook(this.client, hook)),
-      new Collection(),
-    );
+    return data.reduce((hooks, hook) => hooks.set(hook.id, new Webhook(this.client, hook)), new Collection());
   }
 
   /**
@@ -507,17 +453,14 @@ class GuildChannelManager extends CachedManager {
    *   .catch(console.error);
    */
   async setPositions(channelPositions) {
-    channelPositions = channelPositions.map((r) => ({
+    channelPositions = channelPositions.map(r => ({
       id: this.client.channels.resolveId(r.channel),
       position: r.position,
       lock_permissions: r.lockPermissions,
-      parent_id:
-        typeof r.parent !== 'undefined' ? this.resolveId(r.parent) : undefined,
+      parent_id: typeof r.parent !== 'undefined' ? this.resolveId(r.parent) : undefined,
     }));
 
-    await this.client.api
-      .guilds(this.guild.id)
-      .channels.patch({ data: channelPositions });
+    await this.client.api.guilds(this.guild.id).channels.patch({ data: channelPositions });
     return this.client.actions.GuildChannelsPositionUpdate.handle({
       guild_id: this.guild.id,
       channels: channelPositions,
@@ -537,8 +480,7 @@ class GuildChannelManager extends CachedManager {
    */
   async delete(channel, reason) {
     const id = this.resolveId(channel);
-    if (!id)
-      throw new TypeError('INVALID_TYPE', 'channel', 'GuildChannelResolvable');
+    if (!id) throw new TypeError('INVALID_TYPE', 'channel', 'GuildChannelResolvable');
     await this.client.api.channels(id).delete({ reason });
   }
 }

@@ -33,7 +33,7 @@ class Sweepers {
      * A record of interval timeout that is used to sweep the indicated items, or null if not being swept
      * @type {Object<SweeperKey, ?Timeout>}
      */
-    this.intervals = Object.fromEntries(SweeperKeys.map((key) => [key, null]));
+    this.intervals = Object.fromEntries(SweeperKeys.map(key => [key, null]));
 
     for (const key of SweeperKeys) {
       if (!(key in options)) continue;
@@ -46,27 +46,17 @@ class Sweepers {
       if (!('filter' in clonedOptions)) {
         switch (key) {
           case 'invites':
-            clonedOptions.filter = this.constructor.expiredInviteSweepFilter(
-              clonedOptions.lifetime,
-            );
+            clonedOptions.filter = this.constructor.expiredInviteSweepFilter(clonedOptions.lifetime);
             break;
           case 'messages':
-            clonedOptions.filter = this.constructor.outdatedMessageSweepFilter(
-              clonedOptions.lifetime,
-            );
+            clonedOptions.filter = this.constructor.outdatedMessageSweepFilter(clonedOptions.lifetime);
             break;
           case 'threads':
-            clonedOptions.filter = this.constructor.archivedThreadSweepFilter(
-              clonedOptions.lifetime,
-            );
+            clonedOptions.filter = this.constructor.archivedThreadSweepFilter(clonedOptions.lifetime);
         }
       }
 
-      this._initInterval(
-        key,
-        `sweep${key[0].toUpperCase()}${key.slice(1)}`,
-        clonedOptions,
-      );
+      this._initInterval(key, `sweep${key[0].toUpperCase()}${key.slice(1)}`, clonedOptions);
     }
   }
 
@@ -76,14 +66,9 @@ class Sweepers {
    * @returns {number} Amount of commands that were removed from the caches
    */
   sweepApplicationCommands(filter) {
-    const { guilds, items: guildCommands } = this._sweepGuildDirectProp(
-      'commands',
-      filter,
-      { emit: false },
-    );
+    const { guilds, items: guildCommands } = this._sweepGuildDirectProp('commands', filter, { emit: false });
 
-    const globalCommands =
-      this.client.application?.commands.cache.sweep(filter) ?? 0;
+    const globalCommands = this.client.application?.commands.cache.sweep(filter) ?? 0;
 
     this.client.emit(
       Events.CACHE_SWEEP,
@@ -136,9 +121,7 @@ class Sweepers {
    * @returns {number} Amount of guild members that were removed from the caches
    */
   sweepGuildMembers(filter) {
-    return this._sweepGuildDirectProp('members', filter, {
-      outputName: 'guild members',
-    }).items;
+    return this._sweepGuildDirectProp('members', filter, { outputName: 'guild members' }).items;
   }
 
   /**
@@ -168,10 +151,7 @@ class Sweepers {
       channels++;
       messages += channel.messages.cache.sweep(filter);
     }
-    this.client.emit(
-      Events.CACHE_SWEEP,
-      `Swept ${messages} messages in ${channels} text-based channels.`,
-    );
+    this.client.emit(Events.CACHE_SWEEP, `Swept ${messages} messages in ${channels} text-based channels.`);
     return messages;
   }
 
@@ -219,9 +199,7 @@ class Sweepers {
    * @returns {number} Amount of stage instances that were removed from the caches
    */
   sweepStageInstances(filter) {
-    return this._sweepGuildDirectProp('stageInstances', filter, {
-      outputName: 'stage instances',
-    }).items;
+    return this._sweepGuildDirectProp('stageInstances', filter, { outputName: 'stage instances' }).items;
   }
 
   /**
@@ -251,10 +229,7 @@ class Sweepers {
       threads++;
       members += channel.members.cache.sweep(filter);
     }
-    this.client.emit(
-      Events.CACHE_SWEEP,
-      `Swept ${members} thread members in ${threads} threads.`,
-    );
+    this.client.emit(Events.CACHE_SWEEP, `Swept ${members} thread members in ${threads} threads.`);
     return members;
   }
 
@@ -312,9 +287,7 @@ class Sweepers {
    * @returns {number} Amount of voice states that were removed from the caches
    */
   sweepVoiceStates(filter) {
-    return this._sweepGuildDirectProp('voiceStates', filter, {
-      outputName: 'voice states',
-    }).items;
+    return this._sweepGuildDirectProp('voiceStates', filter, { outputName: 'voice states' }).items;
   }
 
   /**
@@ -345,7 +318,7 @@ class Sweepers {
    */
   static filterByLifetime({
     lifetime = 14400,
-    getComparisonTimestamp = (e) => e?.createdTimestamp,
+    getComparisonTimestamp = e => e?.createdTimestamp,
     excludeFromSweep = () => false,
   } = {}) {
     if (typeof lifetime !== 'number') {
@@ -366,8 +339,7 @@ class Sweepers {
           return false;
         }
         const comparisonTimestamp = getComparisonTimestamp(entry, key, coll);
-        if (!comparisonTimestamp || typeof comparisonTimestamp !== 'number')
-          return false;
+        if (!comparisonTimestamp || typeof comparisonTimestamp !== 'number') return false;
         return now - comparisonTimestamp > lifetimeMs;
       };
     };
@@ -381,8 +353,8 @@ class Sweepers {
   static archivedThreadSweepFilter(lifetime = 14400) {
     return this.filterByLifetime({
       lifetime,
-      getComparisonTimestamp: (e) => e.archiveTimestamp,
-      excludeFromSweep: (e) => !e.archived,
+      getComparisonTimestamp: e => e.archiveTimestamp,
+      excludeFromSweep: e => !e.archived,
     });
   }
 
@@ -394,7 +366,7 @@ class Sweepers {
   static expiredInviteSweepFilter(lifetime = 14400) {
     return this.filterByLifetime({
       lifetime,
-      getComparisonTimestamp: (i) => i.expiresTimestamp,
+      getComparisonTimestamp: i => i.expiresTimestamp,
     });
   }
 
@@ -406,7 +378,7 @@ class Sweepers {
   static outdatedMessageSweepFilter(lifetime = 3600) {
     return this.filterByLifetime({
       lifetime,
-      getComparisonTimestamp: (m) => m.editedTimestamp ?? m.createdTimestamp,
+      getComparisonTimestamp: m => m.editedTimestamp ?? m.createdTimestamp,
     });
   }
 
@@ -442,10 +414,7 @@ class Sweepers {
     }
 
     if (emit) {
-      this.client.emit(
-        Events.CACHE_SWEEP,
-        `Swept ${items} ${outputName ?? key} in ${guilds} guilds.`,
-      );
+      this.client.emit(Events.CACHE_SWEEP, `Swept ${items} ${outputName ?? key} in ${guilds} guilds.`);
     }
 
     return { guilds, items };
@@ -465,16 +434,9 @@ class Sweepers {
       throw new TypeError('INVALID_TYPE', `sweepers.${key}.interval`, 'number');
     }
     // Invites, Messages, and Threads can be provided a lifetime parameter, which we use to generate the filter
-    if (
-      ['invites', 'messages', 'threads'].includes(key) &&
-      !('filter' in props)
-    ) {
+    if (['invites', 'messages', 'threads'].includes(key) && !('filter' in props)) {
       if (typeof props.lifetime !== 'number') {
-        throw new TypeError(
-          'INVALID_TYPE',
-          `sweepers.${key}.lifetime`,
-          'number',
-        );
+        throw new TypeError('INVALID_TYPE', `sweepers.${key}.lifetime`, 'number');
       }
       return;
     }
@@ -495,8 +457,7 @@ class Sweepers {
     this.intervals[intervalKey] = setInterval(() => {
       const sweepFn = opts.filter();
       if (sweepFn === null) return;
-      if (typeof sweepFn !== 'function')
-        throw new TypeError('SWEEP_FILTER_RETURN');
+      if (typeof sweepFn !== 'function') throw new TypeError('SWEEP_FILTER_RETURN');
       this[sweepKey](sweepFn);
     }, opts.interval * 1_000).unref();
   }

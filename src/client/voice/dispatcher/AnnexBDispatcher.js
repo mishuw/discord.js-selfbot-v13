@@ -20,20 +20,10 @@ Please use the @dank074/discord-video-stream library for the best support.
 const { Buffer } = require('buffer');
 const VideoDispatcher = require('./VideoDispatcher');
 const Util = require('../../../util/Util');
-const {
-  H264Helpers,
-  H265Helpers,
-} = require('../player/processing/AnnexBNalSplitter');
+const { H264Helpers, H265Helpers } = require('../player/processing/AnnexBNalSplitter');
 
 class AnnexBDispatcher extends VideoDispatcher {
-  constructor(
-    player,
-    highWaterMark = 12,
-    streams,
-    fps,
-    nalFunctions,
-    payloadType,
-  ) {
+  constructor(player, highWaterMark = 12, streams, fps, nalFunctions, payloadType) {
     super(player, highWaterMark, streams, fps, payloadType);
     this._nalFunctions = nalFunctions;
   }
@@ -50,19 +40,12 @@ class AnnexBDispatcher extends VideoDispatcher {
       const isLastNal = offset + naluSize >= accessUnit.length;
       if (nalu.length <= this.mtu) {
         // Send as Single NAL Unit Packet.
-        this._playChunk(
-          Buffer.concat([this.createPayloadExtension(), nalu]),
-          isLastNal,
-        );
+        this._playChunk(Buffer.concat([this.createPayloadExtension(), nalu]), isLastNal);
       } else {
         const [naluHeader, naluData] = this._nalFunctions.splitHeader(nalu);
         const dataFragments = this.partitionMtu(naluData);
         // Send as Fragmentation Unit A (FU-A):
-        for (
-          let fragmentIndex = 0;
-          fragmentIndex < dataFragments.length;
-          fragmentIndex++
-        ) {
+        for (let fragmentIndex = 0; fragmentIndex < dataFragments.length; fragmentIndex++) {
           const data = dataFragments[fragmentIndex];
           const isFirstPacket = fragmentIndex === 0;
           const isFinalPacket = fragmentIndex === dataFragments.length - 1;
@@ -70,11 +53,7 @@ class AnnexBDispatcher extends VideoDispatcher {
           this._playChunk(
             Buffer.concat([
               this.createPayloadExtension(),
-              this.makeFragmentationUnitHeader(
-                isFirstPacket,
-                isFinalPacket,
-                naluHeader,
-              ),
+              this.makeFragmentationUnitHeader(isFirstPacket, isFinalPacket, naluHeader),
               data,
             ]),
             isLastNal && isFinalPacket,
@@ -88,14 +67,7 @@ class AnnexBDispatcher extends VideoDispatcher {
 
 class H264Dispatcher extends AnnexBDispatcher {
   constructor(player, highWaterMark = 12, streams, fps) {
-    super(
-      player,
-      highWaterMark,
-      streams,
-      fps,
-      H264Helpers,
-      Util.getPayloadType('H264'),
-    );
+    super(player, highWaterMark, streams, fps, H264Helpers, Util.getPayloadType('H264'));
   }
 
   makeFragmentationUnitHeader(isFirstPacket, isLastPacket, naluHeader) {
@@ -120,14 +92,7 @@ class H264Dispatcher extends AnnexBDispatcher {
 
 class H265Dispatcher extends AnnexBDispatcher {
   constructor(player, highWaterMark = 12, streams, fps) {
-    super(
-      player,
-      highWaterMark,
-      streams,
-      fps,
-      H265Helpers,
-      Util.getPayloadType('H265'),
-    );
+    super(player, highWaterMark, streams, fps, H265Helpers, Util.getPayloadType('H265'));
   }
 
   makeFragmentationUnitHeader(isFirstPacket, isLastPacket, naluHeader) {

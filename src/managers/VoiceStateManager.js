@@ -51,9 +51,7 @@ class VoiceStateManager extends CachedManager {
       const existing = this.cache.get(id === '@me' ? this.client.user.id : id);
       if (existing) return existing;
     }
-    const data = await this.client.api
-      .guilds(this.guild.id)
-      ['voice-states'][id].get();
+    const data = await this.client.api.guilds(this.guild.id)['voice-states'][id].get();
     return this._add(data, cache);
   }
 }

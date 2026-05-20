@@ -24,7 +24,7 @@ class MediaGalleryComponent extends BaseMessageComponent {
      * 1 to 10 media gallery items
      * @type {MediaGalleryItem[]}
      */
-    this.items = data.items?.map((item) => new MediaGalleryItem(item)) ?? [];
+    this.items = data.items?.map(item => new MediaGalleryItem(item)) ?? [];
   }
 
   /**
@@ -33,7 +33,7 @@ class MediaGalleryComponent extends BaseMessageComponent {
   toJSON() {
     return {
       type: MessageComponentTypes[this.type],
-      items: this.items.map((c) => c.toJSON()),
+      items: this.items.map(c => c.toJSON()),
     };
   }
 }

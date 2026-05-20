@@ -38,11 +38,7 @@ class Webhook {
      * @name Webhook#token
      * @type {?string}
      */
-    Object.defineProperty(this, 'token', {
-      value: data.token ?? null,
-      writable: true,
-      configurable: true,
-    });
+    Object.defineProperty(this, 'token', { value: data.token ?? null, writable: true, configurable: true });
 
     if ('avatar' in data) {
       /**
@@ -97,9 +93,7 @@ class Webhook {
        * The source guild of the webhook
        * @type {?(Guild|APIGuild)}
        */
-      this.sourceGuild =
-        this.client.guilds?.cache.get(data.source_guild.id) ??
-        data.source_guild;
+      this.sourceGuild = this.client.guilds?.cache.get(data.source_guild.id) ?? data.source_guild;
     } else {
       this.sourceGuild ??= null;
     }
@@ -109,9 +103,7 @@ class Webhook {
        * The source channel of the webhook
        * @type {?(NewsChannel|APIChannel)}
        */
-      this.sourceChannel =
-        this.client.channels?.cache.get(data.source_channel?.id) ??
-        data.source_channel;
+      this.sourceChannel = this.client.channels?.cache.get(data.source_channel?.id) ?? data.source_channel;
     } else {
       this.sourceChannel ??= null;
     }
@@ -219,10 +211,7 @@ class Webhook {
       auth: false,
       webhook: true,
     });
-    return (
-      this.client.channels?.cache.get(d.channel_id)?.messages._add(d, false) ??
-      d
-    );
+    return this.client.channels?.cache.get(d.channel_id)?.messages._add(d, false) ?? d;
   }
 
   /**
@@ -246,14 +235,12 @@ class Webhook {
   async sendSlackMessage(body) {
     if (!this.token) throw new Error('WEBHOOK_TOKEN_UNAVAILABLE');
 
-    const data = await this.client.api
-      .webhooks(this.id, this.token)
-      .slack.post({
-        query: { wait: true },
-        auth: false,
-        data: body,
-        webhook: true,
-      });
+    const data = await this.client.api.webhooks(this.id, this.token).slack.post({
+      query: { wait: true },
+      auth: false,
+      data: body,
+      webhook: true,
+    });
     return data.toString() === 'ok';
   }
 
@@ -277,14 +264,12 @@ class Webhook {
       avatar = await DataResolver.resolveImage(avatar);
     }
     channel &&= channel.id ?? channel;
-    const data = await this.client.api
-      .webhooks(this.id, channel ? undefined : this.token)
-      .patch({
-        data: { name, avatar, channel_id: channel },
-        reason,
-        auth: !this.token || Boolean(channel),
-        webhook: true,
-      });
+    const data = await this.client.api.webhooks(this.id, channel ? undefined : this.token).patch({
+      data: { name, avatar, channel_id: channel },
+      reason,
+      auth: !this.token || Boolean(channel),
+      webhook: true,
+    });
 
     this.name = data.name;
     this.avatar = data.avatar;
@@ -334,11 +319,7 @@ class Webhook {
         auth: false,
         webhook: true,
       });
-    return (
-      this.client.channels?.cache
-        .get(data.channel_id)
-        ?.messages._add(data, cacheOrOptions.cache) ?? data
-    );
+    return this.client.channels?.cache.get(data.channel_id)?.messages._add(data, cacheOrOptions.cache) ?? data;
   }
 
   /**
@@ -372,9 +353,7 @@ class Webhook {
         webhook: true,
       });
 
-    const messageManager = this.client.channels?.cache.get(
-      d.channel_id,
-    )?.messages;
+    const messageManager = this.client.channels?.cache.get(d.channel_id)?.messages;
     if (!messageManager) return d;
 
     const existing = messageManager.cache.get(d.id);
@@ -391,9 +370,7 @@ class Webhook {
    * @returns {Promise<void>}
    */
   async delete(reason) {
-    await this.client.api
-      .webhooks(this.id, this.token)
-      .delete({ reason, auth: !this.token, webhook: true });
+    await this.client.api.webhooks(this.id, this.token).delete({ reason, auth: !this.token, webhook: true });
   }
 
   /**
@@ -450,10 +427,7 @@ class Webhook {
    * @readonly
    */
   get url() {
-    return (
-      this.client.options.http.api +
-      this.client.api.webhooks(this.id, this.token)
-    );
+    return this.client.options.http.api + this.client.api.webhooks(this.id, this.token);
   }
 
   /**
@@ -496,11 +470,7 @@ class Webhook {
       'url',
     ]) {
       if (ignore.includes(prop)) continue;
-      Object.defineProperty(
-        structure.prototype,
-        prop,
-        Object.getOwnPropertyDescriptor(Webhook.prototype, prop),
-      );
+      Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(Webhook.prototype, prop));
     }
   }
 }

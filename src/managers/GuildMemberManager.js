@@ -106,41 +106,20 @@ class GuildMemberManager extends CachedManager {
       deaf: options.deaf,
     };
     if (options.roles) {
-      if (
-        !Array.isArray(options.roles) &&
-        !(options.roles instanceof Collection)
-      ) {
-        throw new TypeError(
-          'INVALID_TYPE',
-          'options.roles',
-          'Array or Collection of Roles or Snowflakes',
-          true,
-        );
+      if (!Array.isArray(options.roles) && !(options.roles instanceof Collection)) {
+        throw new TypeError('INVALID_TYPE', 'options.roles', 'Array or Collection of Roles or Snowflakes', true);
       }
       const resolvedRoles = [];
       for (const role of options.roles.values()) {
         const resolvedRole = this.guild.roles.resolveId(role);
-        if (!resolvedRole)
-          throw new TypeError(
-            'INVALID_ELEMENT',
-            'Array or Collection',
-            'options.roles',
-            role,
-          );
+        if (!resolvedRole) throw new TypeError('INVALID_ELEMENT', 'Array or Collection', 'options.roles', role);
         resolvedRoles.push(resolvedRole);
       }
       resolvedOptions.roles = resolvedRoles;
     }
-    const data = await this.client.api
-      .guilds(this.guild.id)
-      .members(userId)
-      .put({ data: resolvedOptions });
+    const data = await this.client.api.guilds(this.guild.id).members(userId).put({ data: resolvedOptions });
     // Data is an empty buffer if the member is already part of the guild.
-    return data instanceof Buffer
-      ? options.fetchWhenExisting === false
-        ? null
-        : this.fetch(userId)
-      : this._add(data);
+    return data instanceof Buffer ? (options.fetchWhenExisting === false ? null : this.fetch(userId)) : this._add(data);
   }
 
   /**
@@ -228,13 +207,12 @@ class GuildMemberManager extends CachedManager {
     if (user) return this._fetchSingle({ user, cache: true });
     if (options.user) {
       if (Array.isArray(options.user)) {
-        options.user = options.user.map((u) => this.client.users.resolveId(u));
+        options.user = options.user.map(u => this.client.users.resolveId(u));
         return this._fetchMany(options);
       } else {
         options.user = this.client.users.resolveId(options.user);
       }
-      if (!options.limit && !options.withPresences)
-        return this._fetchSingle(options);
+      if (!options.limit && !options.withPresences) return this._fetchSingle(options);
     }
     return this._fetchMany(options);
   }
@@ -262,13 +240,8 @@ class GuildMemberManager extends CachedManager {
    * @returns {Promise<Collection<Snowflake, GuildMember>>}
    */
   async search({ query, limit = 1, cache = true } = {}) {
-    const data = await this.client.api
-      .guilds(this.guild.id)
-      .members.search.get({ query: { query, limit } });
-    return data.reduce(
-      (col, member) => col.set(member.user.id, this._add(member, cache)),
-      new Collection(),
-    );
+    const data = await this.client.api.guilds(this.guild.id).members.search.get({ query: { query, limit } });
+    return data.reduce((col, member) => col.set(member.user.id, this._add(member, cache)), new Collection());
   }
 
   /**
@@ -313,13 +286,10 @@ class GuildMemberManager extends CachedManager {
       _data.channel_id = null;
       _data.channel = undefined;
     }
-    _data.roles &&= _data.roles.map((role) =>
-      role instanceof Role ? role.id : role,
-    );
+    _data.roles &&= _data.roles.map(role => (role instanceof Role ? role.id : role));
 
     _data.communication_disabled_until =
-      _data.communicationDisabledUntil &&
-      new Date(_data.communicationDisabledUntil).toISOString();
+      _data.communicationDisabledUntil && new Date(_data.communicationDisabledUntil).toISOString();
 
     _data.flags = _data.flags && GuildMemberFlags.resolve(_data.flags);
 
@@ -334,10 +304,7 @@ class GuildMemberManager extends CachedManager {
     let endpoint = this.client.api.guilds(this.guild.id);
     if (id === this.client.user.id) {
       const keys = Object.keys(data);
-      if (
-        keys.length === 1 &&
-        ['nick', 'avatar', 'banner', 'bio'].includes(keys[0])
-      ) {
+      if (keys.length === 1 && ['nick', 'avatar', 'banner', 'bio'].includes(keys[0])) {
         endpoint = endpoint.members('@me');
       } else {
         endpoint = endpoint.members(id);
@@ -384,13 +351,7 @@ class GuildMemberManager extends CachedManager {
    *    .then(pruned => console.log(`I just pruned ${pruned} people!`))
    *    .catch(console.error);
    */
-  async prune({
-    days = 7,
-    dry = false,
-    count: compute_prune_count = true,
-    roles = [],
-    reason,
-  } = {}) {
+  async prune({ days = 7, dry = false, count: compute_prune_count = true, roles = [], reason } = {}) {
     if (typeof days !== 'number') throw new TypeError('PRUNE_DAYS_TYPE');
 
     const query = { days };
@@ -479,10 +440,7 @@ class GuildMemberManager extends CachedManager {
       if (existing && !existing.partial) return existing;
     }
 
-    const data = await this.client.api
-      .guilds(this.guild.id)
-      .members(user)
-      .get();
+    const data = await this.client.api.guilds(this.guild.id).members(user).get();
     return this._add(data, cache);
   }
 
@@ -497,11 +455,7 @@ class GuildMemberManager extends CachedManager {
     const userId = this.resolveId(user);
     const roleId = this.guild.roles.resolveId(role);
 
-    await this.client.api
-      .guilds(this.guild.id)
-      .members(userId)
-      .roles(roleId)
-      .put({ reason });
+    await this.client.api.guilds(this.guild.id).members(userId).roles(roleId).put({ reason });
 
     return this.resolve(user) ?? this.client.users.resolve(user) ?? userId;
   }
@@ -517,11 +471,7 @@ class GuildMemberManager extends CachedManager {
     const userId = this.resolveId(user);
     const roleId = this.guild.roles.resolveId(role);
 
-    await this.client.api
-      .guilds(this.guild.id)
-      .members(userId)
-      .roles(roleId)
-      .delete({ reason });
+    await this.client.api.guilds(this.guild.id).members(userId).roles(roleId).delete({ reason });
 
     return this.resolve(user) ?? this.client.users.resolve(user) ?? userId;
   }
@@ -533,7 +483,7 @@ class GuildMemberManager extends CachedManager {
    * @returns {Promise<Collection<Snowflake, GuildMember>>}
    */
   fetchByMemberSafety(timeout = 15_000) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const nonce = SnowflakeUtil.generate();
       const fetchedMembers = new Collection();
       let timeout_ = setTimeout(() => {
@@ -606,17 +556,12 @@ class GuildMemberManager extends CachedManager {
         for (const member of members.values()) {
           fetchedMembers.set(member.id, member);
         }
-        if (
-          members.size < 1_000 ||
-          (limit && fetchedMembers.size >= limit) ||
-          i === chunk.count
-        ) {
+        if (members.size < 1_000 || (limit && fetchedMembers.size >= limit) || i === chunk.count) {
           clearTimeout(timeout);
           this.client.removeListener(Events.GUILD_MEMBERS_CHUNK, handler);
           this.client.decrementMaxListeners();
           let fetched = fetchedMembers;
-          if (user_ids && !Array.isArray(user_ids) && fetched.size)
-            fetched = fetched.first();
+          if (user_ids && !Array.isArray(user_ids) && fetched.size) fetched = fetched.first();
           resolve(fetched);
         }
       };

@@ -34,8 +34,7 @@ class GuildDeleteAction extends Action {
         };
       }
 
-      for (const channel of guild.channels.cache.values())
-        this.client.channels._remove(channel.id);
+      for (const channel of guild.channels.cache.values()) this.client.channels._remove(channel.id);
       client.voice.adapters.get(data.id)?.destroy();
 
       // Delete guild
@@ -59,10 +58,7 @@ class GuildDeleteAction extends Action {
   }
 
   scheduleForDeletion(id) {
-    setTimeout(
-      () => this.deleted.delete(id),
-      this.client.options.restWsBridgeTimeout,
-    ).unref();
+    setTimeout(() => this.deleted.delete(id), this.client.options.restWsBridgeTimeout).unref();
   }
 }
 

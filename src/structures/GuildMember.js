@@ -100,20 +100,16 @@ class GuildMember extends Base {
       this.banner ??= null;
     }
 
-    if ('joined_at' in data)
-      this.joinedTimestamp = new Date(data.joined_at).getTime();
+    if ('joined_at' in data) this.joinedTimestamp = new Date(data.joined_at).getTime();
     if ('premium_since' in data) {
-      this.premiumSinceTimestamp = data.premium_since
-        ? new Date(data.premium_since).getTime()
-        : null;
+      this.premiumSinceTimestamp = data.premium_since ? new Date(data.premium_since).getTime() : null;
     }
     if ('roles' in data) this._roles = data.roles;
     this.pending = data.pending ?? false;
 
     if ('communication_disabled_until' in data) {
       this.communicationDisabledUntilTimestamp =
-        data.communication_disabled_until &&
-        Date.parse(data.communication_disabled_until);
+        data.communication_disabled_until && Date.parse(data.communication_disabled_until);
     }
     if ('flags' in data) {
       /**
@@ -199,10 +195,7 @@ class GuildMember extends Base {
    * @readonly
    */
   get voice() {
-    return (
-      this.guild.voiceStates.cache.get(this.id) ??
-      new VoiceState(this.guild, { user_id: this.id })
-    );
+    return this.guild.voiceStates.cache.get(this.id) ?? new VoiceState(this.guild, { user_id: this.id });
   }
 
   /**
@@ -211,9 +204,7 @@ class GuildMember extends Base {
    */
   avatarDecorationURL() {
     if (!this.avatarDecorationData) return null;
-    return this.client.rest.cdn.AvatarDecoration(
-      this.avatarDecorationData.asset,
-    );
+    return this.client.rest.cdn.AvatarDecoration(this.avatarDecorationData.asset);
   }
 
   /**
@@ -223,14 +214,7 @@ class GuildMember extends Base {
    */
   avatarURL({ format, size, dynamic } = {}) {
     if (!this.avatar) return null;
-    return this.client.rest.cdn.GuildMemberAvatar(
-      this.guild.id,
-      this.id,
-      this.avatar,
-      format,
-      size,
-      dynamic,
-    );
+    return this.client.rest.cdn.GuildMemberAvatar(this.guild.id, this.id, this.avatar, format, size, dynamic);
   }
 
   /**
@@ -240,15 +224,7 @@ class GuildMember extends Base {
    */
   bannerURL({ format, size, dynamic } = {}) {
     return (
-      this.banner &&
-      this.client.rest.cdn.GuildMemberBanner(
-        this.guild.id,
-        this.id,
-        this.banner,
-        format,
-        size,
-        dynamic,
-      )
+      this.banner && this.client.rest.cdn.GuildMemberBanner(this.guild.id, this.id, this.banner, format, size, dynamic)
     );
   }
 
@@ -296,10 +272,7 @@ class GuildMember extends Base {
    * @readonly
    */
   get communicationDisabledUntil() {
-    return (
-      this.communicationDisabledUntilTimestamp &&
-      new Date(this.communicationDisabledUntilTimestamp)
-    );
+    return this.communicationDisabledUntilTimestamp && new Date(this.communicationDisabledUntilTimestamp);
   }
 
   /**
@@ -308,9 +281,7 @@ class GuildMember extends Base {
    * @readonly
    */
   get premiumSince() {
-    return this.premiumSinceTimestamp
-      ? new Date(this.premiumSinceTimestamp)
-      : null;
+    return this.premiumSinceTimestamp ? new Date(this.premiumSinceTimestamp) : null;
   }
 
   /**
@@ -364,11 +335,8 @@ class GuildMember extends Base {
    * @readonly
    */
   get permissions() {
-    if (this.user.id === this.guild.ownerId)
-      return new Permissions(Permissions.ALL).freeze();
-    return new Permissions(
-      this.roles.cache.map((role) => role.permissions),
-    ).freeze();
+    if (this.user.id === this.guild.ownerId) return new Permissions(Permissions.ALL).freeze();
+    return new Permissions(this.roles.cache.map(role => role.permissions)).freeze();
   }
 
   /**
@@ -382,11 +350,7 @@ class GuildMember extends Base {
     if (this.user.id === this.client.user.id) return false;
     if (this.client.user.id === this.guild.ownerId) return true;
     if (!this.guild.members.me) throw new Error('GUILD_UNCACHED_ME');
-    return (
-      this.guild.members.me.roles.highest.comparePositionTo(
-        this.roles.highest,
-      ) > 0
-    );
+    return this.guild.members.me.roles.highest.comparePositionTo(this.roles.highest) > 0;
   }
 
   /**
@@ -395,10 +359,7 @@ class GuildMember extends Base {
    * @readonly
    */
   get kickable() {
-    return (
-      this.manageable &&
-      this.guild.members.me.permissions.has(Permissions.FLAGS.KICK_MEMBERS)
-    );
+    return this.manageable && this.guild.members.me.permissions.has(Permissions.FLAGS.KICK_MEMBERS);
   }
 
   /**
@@ -407,10 +368,7 @@ class GuildMember extends Base {
    * @readonly
    */
   get bannable() {
-    return (
-      this.manageable &&
-      this.guild.members.me.permissions.has(Permissions.FLAGS.BAN_MEMBERS)
-    );
+    return this.manageable && this.guild.members.me.permissions.has(Permissions.FLAGS.BAN_MEMBERS);
   }
 
   /**
@@ -422,10 +380,7 @@ class GuildMember extends Base {
     return (
       !this.permissions.has(Permissions.FLAGS.ADMINISTRATOR) &&
       this.manageable &&
-      (this.guild.members.me?.permissions.has(
-        Permissions.FLAGS.MODERATE_MEMBERS,
-      ) ??
-        false)
+      (this.guild.members.me?.permissions.has(Permissions.FLAGS.MODERATE_MEMBERS) ?? false)
     );
   }
 
@@ -563,10 +518,7 @@ class GuildMember extends Base {
    *   .catch(console.error);
    */
   timeout(timeout, reason) {
-    return this.disableCommunicationUntil(
-      timeout && Date.now() + timeout,
-      reason,
-    );
+    return this.disableCommunicationUntil(timeout && Date.now() + timeout, reason);
   }
 
   /**
@@ -596,12 +548,10 @@ class GuildMember extends Base {
       this.avatar === member.avatar &&
       this.banner === member.banner &&
       this.pending === member.pending &&
-      this.communicationDisabledUntilTimestamp ===
-        member.communicationDisabledUntilTimestamp &&
+      this.communicationDisabledUntilTimestamp === member.communicationDisabledUntilTimestamp &&
       this.flags.equals(member.flags) &&
       (this._roles === member._roles ||
-        (this._roles.length === member._roles.length &&
-          this._roles.every((role, i) => role === member._roles[i]))) &&
+        (this._roles.length === member._roles.length && this._roles.every((role, i) => role === member._roles[i]))) &&
       this.avatarDecorationData?.asset === member.avatarDecorationData?.asset &&
       this.avatarDecorationData?.skuId === member.avatarDecorationData?.skuId
     );

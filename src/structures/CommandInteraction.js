@@ -17,9 +17,7 @@ class CommandInteraction extends BaseCommandInteraction {
      */
     this.options = new CommandInteractionOptionResolver(
       this.client,
-      data.data.options?.map((option) =>
-        this.transformOption(option, data.data.resolved),
-      ) ?? [],
+      data.data.options?.map(option => this.transformOption(option, data.data.resolved)) ?? [],
       this.transformResolved(data.data.resolved ?? {}),
     );
   }
@@ -34,7 +32,7 @@ class CommandInteraction extends BaseCommandInteraction {
       this.commandName,
       this.options._group,
       this.options._subcommand,
-      ...this.options._hoistedOptions.map((o) => `${o.name}:${o.value}`),
+      ...this.options._hoistedOptions.map(o => `${o.name}:${o.value}`),
     ];
     return `/${properties.filter(Boolean).join(' ')}`;
   }

@@ -1,5 +1,14 @@
 'use strict';
 
+// Message de bienvenue pour les utilisateurs
+console.log('\x1b[36m%s\x1b[0m', '╔══════════════════════════════════════════════════════════════╗');
+console.log('\x1b[36m%s\x1b[0m', '║           discord.js-selfbot-youtsuho-v13 chargé !           ║');
+console.log('\x1b[36m%s\x1b[0m', '╠══════════════════════════════════════════════════════════════╣');
+console.log('\x1b[33m%s\x1b[0m', '║  🐛 Si vous trouvez un bug, merci de le reporter sur :      ║');
+console.log('\x1b[33m%s\x1b[0m', '║  https://github.com/3T6-dsc/discord.js-selfbot-youtsuho-v13/issues ║');
+console.log('\x1b[36m%s\x1b[0m', '╚══════════════════════════════════════════════════════════════╝');
+console.log('');
+
 // "Root" classes (starting points)
 exports.BaseClient = require('./client/BaseClient');
 exports.Client = require('./client/Client');
@@ -107,8 +116,7 @@ exports.GuildEmoji = require('./structures/GuildEmoji');
 exports.GuildMember = require('./structures/GuildMember').GuildMember;
 exports.GuildPreview = require('./structures/GuildPreview');
 exports.GuildPreviewEmoji = require('./structures/GuildPreviewEmoji');
-exports.GuildScheduledEvent =
-  require('./structures/GuildScheduledEvent').GuildScheduledEvent;
+exports.GuildScheduledEvent = require('./structures/GuildScheduledEvent').GuildScheduledEvent;
 exports.GuildTemplate = require('./structures/GuildTemplate');
 exports.Integration = require('./structures/Integration');
 exports.IntegrationApplication = require('./structures/IntegrationApplication');
@@ -133,8 +141,7 @@ exports.PermissionOverwrites = require('./structures/PermissionOverwrites');
 exports.Presence = require('./structures/Presence').Presence;
 exports.ReactionCollector = require('./structures/ReactionCollector');
 exports.ReactionEmoji = require('./structures/ReactionEmoji');
-exports.RichPresenceAssets =
-  require('./structures/Presence').RichPresenceAssets;
+exports.RichPresenceAssets = require('./structures/Presence').RichPresenceAssets;
 exports.Role = require('./structures/Role').Role;
 exports.Session = require('./structures/Session');
 exports.StageChannel = require('./structures/StageChannel');
@@ -162,6 +169,12 @@ exports.WelcomeChannel = require('./structures/WelcomeChannel');
 exports.WelcomeScreen = require('./structures/WelcomeScreen');
 
 exports.WebSocket = require('./WebSocket');
+
+exports.EventBatcher = require('./util/EventBatcher');
+exports.BatchEventHandler = require('./util/BatchEventHandler');
+
+exports.LazyManagerRegistry = require('./util/LazyManagerRegistry');
+exports.WorkerManager = require('./util/WorkerManager');
 
 exports.CustomStatus = require('./structures/Presence').CustomStatus;
 exports.RichPresence = require('./structures/Presence').RichPresence;

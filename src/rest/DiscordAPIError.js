@@ -7,14 +7,9 @@
 class DiscordAPIError extends Error {
   constructor(error, status, request) {
     super();
-    const flattened = this.constructor
-      .flattenErrors(error.errors ?? error)
-      .join('\n');
+    const flattened = this.constructor.flattenErrors(error.errors ?? error).join('\n');
     this.name = 'DiscordAPIError';
-    this.message =
-      error.message && flattened
-        ? `${error.message}\n${flattened}`
-        : (error.message ?? flattened);
+    this.message = error.message && flattened ? `${error.message}\n${flattened}` : error.message ?? flattened;
 
     /**
      * The HTTP method used for the request
@@ -102,9 +97,7 @@ class DiscordAPIError extends Error {
       const newKey = key ? (isNaN(k) ? `${key}.${k}` : `${key}[${k}]`) : k;
 
       if (v._errors) {
-        messages.push(
-          `${newKey}: ${v._errors.map((e) => e.message).join(' ')}`,
-        );
+        messages.push(`${newKey}: ${v._errors.map(e => e.message).join(' ')}`);
       } else if (v.code ?? v.message) {
         messages.push(`${v.code ? `${v.code}: ` : ''}${v.message}`.trim());
       } else if (typeof v === 'string') {

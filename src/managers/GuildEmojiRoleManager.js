@@ -31,9 +31,7 @@ class GuildEmojiRoleManager extends DataManager {
    * @readonly
    */
   get cache() {
-    return this.guild.roles.cache.filter((role) =>
-      this.emoji._roles.includes(role.id),
-    );
+    return this.guild.roles.cache.filter(role => this.emoji._roles.includes(role.id));
   }
 
   /**
@@ -42,19 +40,13 @@ class GuildEmojiRoleManager extends DataManager {
    * @returns {Promise<GuildEmoji>}
    */
   async add(roleOrRoles) {
-    if (!Array.isArray(roleOrRoles) && !(roleOrRoles instanceof Collection))
-      roleOrRoles = [roleOrRoles];
+    if (!Array.isArray(roleOrRoles) && !(roleOrRoles instanceof Collection)) roleOrRoles = [roleOrRoles];
 
     const resolvedRoles = [];
     for (const role of roleOrRoles.values()) {
       const resolvedRole = this.guild.roles.resolveId(role);
       if (!resolvedRole) {
-        throw new TypeError(
-          'INVALID_ELEMENT',
-          'Array or Collection',
-          'roles',
-          role,
-        );
+        throw new TypeError('INVALID_ELEMENT', 'Array or Collection', 'roles', role);
       }
       resolvedRoles.push(resolvedRole);
     }
@@ -69,26 +61,18 @@ class GuildEmojiRoleManager extends DataManager {
    * @returns {Promise<GuildEmoji>}
    */
   async remove(roleOrRoles) {
-    if (!Array.isArray(roleOrRoles) && !(roleOrRoles instanceof Collection))
-      roleOrRoles = [roleOrRoles];
+    if (!Array.isArray(roleOrRoles) && !(roleOrRoles instanceof Collection)) roleOrRoles = [roleOrRoles];
 
     const resolvedRoleIds = [];
     for (const role of roleOrRoles.values()) {
       const roleId = this.guild.roles.resolveId(role);
       if (!roleId) {
-        throw new TypeError(
-          'INVALID_ELEMENT',
-          'Array or Collection',
-          'roles',
-          role,
-        );
+        throw new TypeError('INVALID_ELEMENT', 'Array or Collection', 'roles', role);
       }
       resolvedRoleIds.push(roleId);
     }
 
-    const newRoles = [...this.cache.keys()].filter(
-      (id) => !resolvedRoleIds.includes(id),
-    );
+    const newRoles = [...this.cache.keys()].filter(id => !resolvedRoleIds.includes(id));
     return this.set(newRoles);
   }
 

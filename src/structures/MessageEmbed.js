@@ -88,8 +88,7 @@ class MessageEmbed {
      * The timestamp of this embed
      * @type {?number}
      */
-    this.timestamp =
-      'timestamp' in data ? new Date(data.timestamp).getTime() : null;
+    this.timestamp = 'timestamp' in data ? new Date(data.timestamp).getTime() : null;
 
     /**
      * Represents a field of a MessageEmbed
@@ -105,9 +104,7 @@ class MessageEmbed {
      */
     this.fields = [];
     if (data.fields) {
-      this.fields = skipValidation
-        ? data.fields.map(Util.cloneObject)
-        : this.constructor.normalizeFields(data.fields);
+      this.fields = skipValidation ? data.fields.map(Util.cloneObject) : this.constructor.normalizeFields(data.fields);
     }
 
     /**
@@ -266,10 +263,7 @@ class MessageEmbed {
       (this.title?.length ?? 0) +
       (this.description?.length ?? 0) +
       (this.fields.length >= 1
-        ? this.fields.reduce(
-            (prev, curr) => prev + curr.name.length + curr.value.length,
-            0,
-          )
+        ? this.fields.reduce((prev, curr) => prev + curr.name.length + curr.value.length, 0)
         : 0) +
       (this.footer?.text.length ?? 0) +
       (this.author?.name.length ?? 0)
@@ -286,20 +280,16 @@ class MessageEmbed {
       this.type === embed.type &&
       this.author?.name === embed.author?.name &&
       this.author?.url === embed.author?.url &&
-      this.author?.iconURL ===
-        (embed.author?.iconURL ?? embed.author?.icon_url) &&
+      this.author?.iconURL === (embed.author?.iconURL ?? embed.author?.icon_url) &&
       this.color === embed.color &&
       this.title === embed.title &&
       this.description === embed.description &&
       this.url === embed.url &&
       this.timestamp === embed.timestamp &&
       this.fields.length === embed.fields.length &&
-      this.fields.every((field, i) =>
-        this._fieldEquals(field, embed.fields[i]),
-      ) &&
+      this.fields.every((field, i) => this._fieldEquals(field, embed.fields[i])) &&
       this.footer?.text === embed.footer?.text &&
-      this.footer?.iconURL ===
-        (embed.footer?.iconURL ?? embed.footer?.icon_url) &&
+      this.footer?.iconURL === (embed.footer?.iconURL ?? embed.footer?.icon_url) &&
       this.image?.url === embed.image?.url &&
       this.thumbnail?.url === embed.thumbnail?.url &&
       this.video?.url === embed.video?.url &&
@@ -316,11 +306,7 @@ class MessageEmbed {
    * @private
    */
   _fieldEquals(field, other) {
-    return (
-      field.name === other.name &&
-      field.value === other.value &&
-      field.inline === other.inline
-    );
+    return field.name === other.name && field.value === other.value && field.inline === other.inline;
   }
 
   /**
@@ -362,11 +348,7 @@ class MessageEmbed {
    * @returns {MessageEmbed}
    */
   spliceFields(index, deleteCount, ...fields) {
-    this.fields.splice(
-      index,
-      deleteCount,
-      ...this.constructor.normalizeFields(...fields),
-    );
+    this.fields.splice(index, deleteCount, ...this.constructor.normalizeFields(...fields));
     return this;
   }
 
@@ -414,19 +396,11 @@ class MessageEmbed {
         deprecationEmittedForSetAuthor = true;
       }
 
-      options = {
-        name: options,
-        url: deprecatedURL,
-        iconURL: deprecatedIconURL,
-      };
+      options = { name: options, url: deprecatedURL, iconURL: deprecatedIconURL };
     }
 
     const { name, url, iconURL } = options;
-    this.author = {
-      name: Util.verifyString(name, RangeError, 'EMBED_AUTHOR_NAME'),
-      url,
-      iconURL,
-    };
+    this.author = { name: Util.verifyString(name, RangeError, 'EMBED_AUTHOR_NAME'), url, iconURL };
     return this;
   }
 
@@ -446,11 +420,7 @@ class MessageEmbed {
    * @returns {MessageEmbed}
    */
   setDescription(description) {
-    this.description = Util.verifyString(
-      description,
-      RangeError,
-      'EMBED_DESCRIPTION',
-    );
+    this.description = Util.verifyString(description, RangeError, 'EMBED_DESCRIPTION');
     return this;
   }
 
@@ -489,10 +459,7 @@ class MessageEmbed {
     }
 
     const { text, iconURL } = options;
-    this.footer = {
-      text: Util.verifyString(text, RangeError, 'EMBED_FOOTER_TEXT'),
-      iconURL,
-    };
+    this.footer = { text: Util.verifyString(text, RangeError, 'EMBED_FOOTER_TEXT'), iconURL };
     return this;
   }
 
@@ -615,12 +582,8 @@ class MessageEmbed {
   static normalizeFields(...fields) {
     return fields
       .flat(2)
-      .map((field) =>
-        this.normalizeField(
-          field.name,
-          field.value,
-          typeof field.inline === 'boolean' ? field.inline : false,
-        ),
+      .map(field =>
+        this.normalizeField(field.name, field.value, typeof field.inline === 'boolean' ? field.inline : false),
       );
   }
 }

@@ -36,8 +36,10 @@ const Application = require('../structures/interfaces/Application');
 const { Events, Status } = require('../util/Constants');
 const DataResolver = require('../util/DataResolver');
 const Intents = require('../util/Intents');
+const { LazyManagerRegistry } = require('../util/LazyManagerRegistry');
 const DiscordAuthWebsocket = require('../util/RemoteAuth');
 const Sweepers = require('../util/Sweepers');
+const { WorkerManager } = require('../util/WorkerManager');
 
 /**
  * The main hub for interacting with the Discord API, and the starting point for any bot.
@@ -67,6 +69,20 @@ class Client extends BaseClient {
     this._finalizers = new FinalizationRegistry(this._finalize.bind(this));
 
     /**
+     * Lazy manager registry for performance optimization
+     * @type {LazyManagerRegistry}
+     * @private
+     */
+    this._managerRegistry = new LazyManagerRegistry(this);
+
+    /**
+     * Worker manager for CPU-intensive operations
+     * @type {WorkerManager}
+     * @private
+     */
+    this._workerManager = new WorkerManager(this);
+
+    /**
      * The WebSocket manager of the client
      * @type {WebSocketManager}
      */
@@ -91,6 +107,9 @@ class Client extends BaseClient {
      */
     this.voiceStates = new VoiceStateManager({ client: this });
 
+    // Enregistrer les managers pour lazy loading
+    this._registerLazyManagers();
+
     /**
      * Shard helpers for the client (only if the process was spawned from a {@link ShardingManager})
      * @type {?ShardClientUtil}
@@ -99,76 +118,8 @@ class Client extends BaseClient {
       ? ShardClientUtil.singleton(this, process.env.SHARDING_MANAGER_MODE)
       : null;
 
-    /**
-     * The user manager of this client
-     * @type {UserManager}
-     */
-    this.users = new UserManager(this);
-
-    /**
-     * A manager of all the guilds the client is currently handling -
-     * as long as sharding isn't being used, this will be *every* guild the bot is a member of
-     * @type {GuildManager}
-     */
-    this.guilds = new GuildManager(this);
-
-    /**
-     * All of the {@link Channel}s that the client is currently handling -
-     * as long as sharding isn't being used, this will be *every* channel in *every* guild the bot
-     * is a member of. Note that DM channels will not be initially cached, and thus not be present
-     * in the Manager without their explicit fetching or use.
-     * @type {ChannelManager}
-     */
-    this.channels = new ChannelManager(this);
-
-    /**
-     * The sweeping functions and their intervals used to periodically sweep caches
-     * @type {Sweepers}
-     */
-    this.sweepers = new Sweepers(this, this.options.sweepers);
-
-    /**
-     * The presence of the Client
-     * @private
-     * @type {ClientPresence}
-     */
-    this.presence = new ClientPresence(this, this.options.presence);
-
-    /**
-     * A manager of the presences belonging to this client
-     * @type {PresenceManager}
-     */
-    this.presences = new PresenceManager(this);
-
-    /**
-     * All of the note that have been cached at any point, mapped by their ids
-     * @type {UserManager}
-     */
-    this.notes = new UserNoteManager(this);
-
-    /**
-     * All of the relationships {@link User}
-     * @type {RelationshipManager}
-     */
-    this.relationships = new RelationshipManager(this);
-
-    /**
-     * Manages the API methods
-     * @type {BillingManager}
-     */
-    this.billing = new BillingManager(this);
-
-    /**
-     * All of the sessions of the client
-     * @type {SessionManager}
-     */
-    this.sessions = new SessionManager(this);
-
-    /**
-     * All of the settings {@link Object}
-     * @type {ClientUserSettingManager}
-     */
-    this.settings = new ClientUserSettingManager(this);
+    // Définir les getters lazy loading pour les managers
+    this._setupLazyManagerGetters();
 
     Object.defineProperty(this, 'token', { writable: true });
     if (!this.token && 'DISCORD_TOKEN' in process.env) {
@@ -228,9 +179,7 @@ class Client extends BaseClient {
   get emojis() {
     const emojis = new BaseGuildEmojiManager(this);
     for (const guild of this.guilds.cache.values()) {
-      if (guild.available)
-        for (const emoji of guild.emojis.cache.values())
-          emojis.cache.set(emoji.id, emoji);
+      if (guild.available) for (const emoji of guild.emojis.cache.values()) emojis.cache.set(emoji.id, emoji);
     }
     return emojis;
   }
@@ -314,13 +263,7 @@ class Client extends BaseClient {
     const initial = await this.api.auth.login.post({
       auth: false,
       versioned: true,
-      data: {
-        gift_code_sku_id: null,
-        login_source: null,
-        undelete: false,
-        login: email,
-        password,
-      },
+      data: { gift_code_sku_id: null, login_source: null, undelete: false, login: email, password },
     });
 
     if ('token' in initial) {
@@ -331,12 +274,7 @@ class Client extends BaseClient {
       const totp = await this.api.auth.mfa.totp.post({
         auth: false,
         versioned: true,
-        data: {
-          gift_code_sku_id: null,
-          login_source: null,
-          code: otp,
-          ticket: initial.ticket,
-        },
+        data: { gift_code_sku_id: null, login_source: null, code: otp, ticket: initial.ticket },
       });
       if ('token' in totp) {
         return this.login(totp.token);
@@ -367,7 +305,21 @@ class Client extends BaseClient {
 
     if (this.sweepMessageInterval) clearInterval(this.sweepMessageInterval);
 
-    this.sweepers.destroy();
+    // Nettoyer les managers lazy loading
+    if (this._managerRegistry) {
+      this._managerRegistry.destroy();
+    }
+
+    // Nettoyer les workers
+    if (this._workerManager) {
+      this._workerManager.destroy();
+    }
+
+    // Nettoyer les sweepers (si initialisés)
+    if (this._managerRegistry?.isInitialized('sweepers')) {
+      this.sweepers.destroy();
+    }
+
     this.ws.destroy();
     this.token = null;
   }
@@ -384,6 +336,119 @@ class Client extends BaseClient {
       },
     });
     return this.destroy();
+  }
+
+  /**
+   * Enregistre les managers pour le lazy loading
+   * @private
+   */
+  _registerLazyManagers() {
+    const registry = this._managerRegistry;
+
+    // Managers critiques (haute priorité)
+    registry.register('users', () => new UserManager(this), 10);
+    registry.register('guilds', () => new GuildManager(this), 10);
+    registry.register('channels', () => new ChannelManager(this), 10);
+
+    // Managers importants (priorité moyenne)
+    registry.register('presences', () => new PresenceManager(this), 7);
+    registry.register('relationships', () => new RelationshipManager(this), 7);
+    registry.register('sessions', () => new SessionManager(this), 7);
+
+    // Managers secondaires (basse priorité)
+    registry.register('notes', () => new UserNoteManager(this), 3);
+    registry.register('billing', () => new BillingManager(this), 3);
+    registry.register('settings', () => new ClientUserSettingManager(this), 3);
+    registry.register('sweepers', () => new Sweepers(this, this.options.sweepers), 3);
+
+    // Présence (toujours initialisée)
+    this.presence = new ClientPresence(this, this.options.presence);
+  }
+
+  /**
+   * Configure les getters lazy loading pour les managers
+   * @private
+   */
+  _setupLazyManagerGetters() {
+    const managers = [
+      'users',
+      'guilds',
+      'channels',
+      'presences',
+      'relationships',
+      'sessions',
+      'notes',
+      'billing',
+      'settings',
+      'sweepers',
+    ];
+
+    for (const managerName of managers) {
+      Object.defineProperty(this, managerName, {
+        get: () => this._managerRegistry.get(managerName),
+        configurable: true,
+        enumerable: true,
+      });
+    }
+  }
+
+  /**
+   * Exécute une opération CPU-intensive dans un worker thread
+   * @param {string} type Type d'opération
+   * @param {*} data Données à traiter
+   * @param {Object} [options] Options
+   * @returns {Promise<*>} Résultat de l'opération
+   */
+  async executeWorkerTask(type, data, options = {}) {
+    return this._workerManager.execute(type, data, options);
+  }
+
+  /**
+   * Retourne les statistiques de performance
+   * @returns {Object} Statistiques complètes
+   */
+  getPerformanceStats() {
+    return {
+      lazyManagers: this._managerRegistry.getStats(),
+      workers: this._workerManager.getStats(),
+      eventBatcher: this.ws?.eventBatcher?.getStats(),
+    };
+  }
+
+  /**
+   * Sets the client configuration to appear as a Mobile device (Phone).
+   * Changes the WebSocket properties to reflect an Android client.
+   * This affects the "Online via Mobile" indicator on Discord.
+   * @returns {this}
+   */
+  setMobileIndicator() {
+    this.options.ws.properties.$os = 'android';
+    this.options.ws.properties.$browser = 'Discord Android';
+    this.options.ws.properties.$device = 'Discord Android';
+    return this;
+  }
+
+  /**
+   * Sets the client configuration to appear as a Desktop client.
+   * Changes the WebSocket properties to reflect a standard Desktop client.
+   * @returns {this}
+   */
+  setDesktopIndicator() {
+    this.options.ws.properties.$os = process.platform === 'win32' ? 'Windows' : process.platform;
+    this.options.ws.properties.$browser = 'Discord Client';
+    this.options.ws.properties.$device = 'Discord Client';
+    return this;
+  }
+
+  /**
+   * Sets the client configuration to appear as a Web client (Browser).
+   * @returns {this}
+   */
+  setWebIndicator() {
+    this.options.ws.properties.$os = process.platform === 'win32' ? 'Windows' : process.platform;
+    this.options.ws.properties.$browser = 'Discord Web';
+    this.options.ws.properties.$device = 'Discord Web';
+    return this;
   }
 
   /**
@@ -406,10 +471,7 @@ class Client extends BaseClient {
   async fetchInvite(invite, options) {
     const code = DataResolver.resolveInviteCode(invite);
     const data = await this.api.invites(code).get({
-      query: {
-        with_counts: true,
-        guild_scheduled_event_id: options?.guildScheduledEventId,
-      },
+      query: { with_counts: true, guild_scheduled_event_id: options?.guildScheduledEventId },
     });
     return new Invite(this, data);
   }
@@ -455,8 +517,7 @@ class Client extends BaseClient {
   async fetchVoiceRegions() {
     const apiRegions = await this.api.voice.regions.get();
     const regions = new Collection();
-    for (const region of apiRegions)
-      regions.set(region.id, new VoiceRegion(region));
+    for (const region of apiRegions) regions.set(region.id, new VoiceRegion(region));
     return regions;
   }
 
@@ -484,9 +545,7 @@ class Client extends BaseClient {
    */
   async fetchPremiumStickerPacks() {
     const data = await this.api('sticker-packs').get();
-    return new Collection(
-      data.sticker_packs.map((p) => [p.id, new StickerPack(this, p)]),
-    );
+    return new Collection(data.sticker_packs.map(p => [p.id, new StickerPack(this, p)]));
   }
   /**
    * A last ditch cleanup function for garbage collection.
@@ -503,10 +562,7 @@ class Client extends BaseClient {
         this.emit(Events.DEBUG, message);
       }
     } catch {
-      this.emit(
-        Events.DEBUG,
-        `Garbage collection failed on ${name ?? 'an unknown item'}.`,
-      );
+      this.emit(Events.DEBUG, `Garbage collection failed on ${name ?? 'an unknown item'}.`);
     }
   }
 
@@ -531,13 +587,8 @@ class Client extends BaseClient {
       return -1;
     }
 
-    const messages = this.sweepers.sweepMessages(
-      Sweepers.outdatedMessageSweepFilter(lifetime)(),
-    );
-    this.emit(
-      Events.DEBUG,
-      `Swept ${messages} messages older than ${lifetime} seconds`,
-    );
+    const messages = this.sweepers.sweepMessages(Sweepers.outdatedMessageSweepFilter(lifetime)());
+    this.emit(Events.DEBUG, `Swept ${messages} messages older than ${lifetime} seconds`);
     return messages;
   }
 
@@ -572,7 +623,7 @@ class Client extends BaseClient {
    */
   async refreshAttachmentURL(...urls) {
     // Clean up the URLs
-    urls = urls.map((url) => {
+    urls = urls.map(url => {
       const urlObject = new URL(url);
       // Clean query
       urlObject.search = '';
@@ -610,7 +661,7 @@ class Client extends BaseClient {
    * @returns {void} The `sleep` function is returning a Promise.
    */
   sleep(timeout) {
-    return new Promise((r) => setTimeout(r, timeout));
+    return new Promise(r => setTimeout(r, timeout));
   }
 
   toJSON() {
@@ -642,18 +693,13 @@ class Client extends BaseClient {
    * @example
    * await client.acceptInvite('https://discord.gg/genshinimpact', { bypassOnboarding: true, bypassVerify: true })
    */
-  async acceptInvite(
-    invite,
-    options = { bypassOnboarding: true, bypassVerify: true },
-  ) {
+  async acceptInvite(invite, options = { bypassOnboarding: true, bypassVerify: true }) {
     // ! throw new Error('METHOD_WARNING');
     const code = DataResolver.resolveInviteCode(invite);
     if (!code) throw new Error('INVITE_RESOLVE_CODE');
     const i = await this.fetchInvite(code);
-    if (i.guild?.id && this.guilds.cache.has(i.guild?.id))
-      return this.guilds.cache.get(i.guild?.id);
-    if (this.channels.cache.has(i.channelId))
-      return this.channels.cache.get(i.channelId);
+    if (i.guild?.id && this.guilds.cache.has(i.guild?.id)) return this.guilds.cache.get(i.guild?.id);
+    if (this.channels.cache.has(i.channelId)) return this.channels.cache.get(i.channelId);
     const data = await this.api.invites(code).post({
       DiscordContext: { location: 'Markdown Link' },
       data: {
@@ -669,11 +715,10 @@ class Client extends BaseClient {
         return guild;
       }
       if (options.bypassOnboarding) {
-        const onboardingData =
-          await this.api.guilds[i.guild?.id].onboarding.get();
+        const onboardingData = await this.api.guilds[i.guild?.id].onboarding.get();
         // Onboarding
         if (onboardingData.enabled) {
-          const prompts = onboardingData.prompts.filter((o) => o.in_onboarding);
+          const prompts = onboardingData.prompts.filter(o => o.in_onboarding);
           if (prompts.length) {
             const onboarding_prompts_seen = {};
             const onboarding_responses = [];
@@ -681,11 +726,10 @@ class Client extends BaseClient {
 
             const currentDate = Date.now();
 
-            prompts.forEach((prompt) => {
+            prompts.forEach(prompt => {
               onboarding_prompts_seen[prompt.id] = currentDate;
-              if (prompt.required)
-                onboarding_responses.push(prompt.options[0].id);
-              prompt.options.forEach((option) => {
+              if (prompt.required) onboarding_responses.push(prompt.options[0].id);
+              prompt.options.forEach(option => {
                 onboarding_responses_seen[option.id] = currentDate;
               });
             });
@@ -697,10 +741,7 @@ class Client extends BaseClient {
                 onboarding_responses_seen,
               },
             });
-            this.emit(
-              Events.DEBUG,
-              `[Invite > Guild ${i.guild?.id}] Bypassed onboarding`,
-            );
+            this.emit(Events.DEBUG, `[Invite > Guild ${i.guild?.id}] Bypassed onboarding`);
           }
         }
       }
@@ -708,36 +749,23 @@ class Client extends BaseClient {
       if (data.show_verification_form && options.bypassVerify) {
         // Check Guild
         if (i.guild.verificationLevel == 'VERY_HIGH' && !this.user.phone) {
-          this.emit(
-            Events.DEBUG,
-            `[Invite > Guild ${i.guild?.id}] Cannot bypass verify (Phone required)`,
-          );
+          this.emit(Events.DEBUG, `[Invite > Guild ${i.guild?.id}] Cannot bypass verify (Phone required)`);
           return this.guilds.cache.get(i.guild?.id);
         }
         if (i.guild.verificationLevel !== 'NONE' && !this.user.email) {
-          this.emit(
-            Events.DEBUG,
-            `[Invite > Guild ${i.guild?.id}] Cannot bypass verify (Email required)`,
-          );
+          this.emit(Events.DEBUG, `[Invite > Guild ${i.guild?.id}] Cannot bypass verify (Email required)`);
           return this.guilds.cache.get(i.guild?.id);
         }
         const getForm = await this.api
           .guilds(i.guild?.id)
-          ['member-verification'].get({
-            query: { with_guild: false, invite_code: this.code },
-          })
+          ['member-verification'].get({ query: { with_guild: false, invite_code: this.code } })
           .catch(() => {});
         if (getForm && getForm.form_fields[0]) {
-          const form = Object.assign(getForm.form_fields[0], {
-            response: true,
-          });
-          await this.api.guilds(i.guild?.id).requests['@me'].put({
-            data: { form_fields: [form], version: getForm.version },
-          });
-          this.emit(
-            Events.DEBUG,
-            `[Invite > Guild ${i.guild?.id}] Bypassed verify`,
-          );
+          const form = Object.assign(getForm.form_fields[0], { response: true });
+          await this.api
+            .guilds(i.guild?.id)
+            .requests['@me'].put({ data: { form_fields: [form], version: getForm.version } });
+          this.emit(Events.DEBUG, `[Invite > Guild ${i.guild?.id}] Bypassed verify`);
         }
       }
       return guild;
@@ -756,21 +784,14 @@ class Client extends BaseClient {
   redeemNitro(nitro, channel, paymentSourceId) {
     if (typeof nitro !== 'string') throw new Error('INVALID_NITRO');
     const nitroCode =
-      nitro.match(
-        /(discord.gift|discord.com|discordapp.com\/gifts)\/(\w{16,25})/,
-      ) ||
-      nitro.match(
-        /(discord\.gift\/|discord\.com\/gifts\/|discordapp\.com\/gifts\/)(\w+)/,
-      );
+      nitro.match(/(discord.gift|discord.com|discordapp.com\/gifts)\/(\w{16,25})/) ||
+      nitro.match(/(discord\.gift\/|discord\.com\/gifts\/|discordapp\.com\/gifts\/)(\w+)/);
     if (!nitroCode) return false;
     const code = nitroCode[2];
     channel = this.channels.resolveId(channel);
     return this.api.entitlements['gift-codes'](code).redeem.post({
       auth: true,
-      data: {
-        channel_id: channel || null,
-        payment_source_id: paymentSourceId || null,
-      },
+      data: { channel_id: channel || null, payment_source_id: paymentSourceId || null },
     });
   }
 
@@ -796,11 +817,7 @@ class Client extends BaseClient {
   authorizeURL(urlOAuth2, options = {}) {
     // ! throw new Error('METHOD_WARNING');
     const url = new URL(urlOAuth2);
-    if (
-      !/^https:\/\/(?:canary\.|ptb\.)?discord\.com(?:\/api(?:\/v\d{1,2})?)?\/oauth2\/authorize\?/.test(
-        urlOAuth2,
-      )
-    ) {
+    if (!/^https:\/\/(?:canary\.|ptb\.)?discord\.com(?:\/api(?:\/v\d{1,2})?)?\/oauth2\/authorize\?/.test(urlOAuth2)) {
       throw new Error('INVALID_URL', urlOAuth2);
     }
     const searchParams = Object.fromEntries(url.searchParams);
@@ -827,8 +844,8 @@ class Client extends BaseClient {
   }
 
   /**
-   * Install User Apps
-   * @param {Snowflake} applicationId  Discord Application id
+   * Install User Apps (Integration Type 1)
+   * @param {Snowflake} applicationId Discord Application id
    * @returns {Promise<void>}
    */
   installUserApps(applicationId) {
@@ -839,13 +856,28 @@ class Client extends BaseClient {
           with_guild: false,
         },
       })
-      .then((rawData) => {
-        const installTypes = rawData.integration_types_config['1'];
+      .then(rawData => {
+        const installTypes = rawData.integration_types_config?.['1'] || rawData.integration_types_config?.USER_INSTALL;
         if (installTypes) {
+          const scopes = installTypes.oauth2_install_params?.scopes ?? ['identify', 'applications.commands'];
+          const permissions = installTypes.oauth2_install_params?.permissions ?? '0';
           return this.api.oauth2.authorize.post({
             query: {
               client_id: applicationId,
-              scope: installTypes.oauth2_install_params.scopes.join(' '),
+              scope: scopes.join(' '),
+            },
+            data: {
+              permissions: permissions.toString(),
+              authorize: true,
+              integration_type: 1, // User Install
+            },
+          });
+        } else {
+          // Fallback if no specific config but the app is public
+          return this.api.oauth2.authorize.post({
+            query: {
+              client_id: applicationId,
+              scope: 'identify applications.commands',
             },
             data: {
               permissions: '0',
@@ -853,8 +885,6 @@ class Client extends BaseClient {
               integration_type: 1,
             },
           });
-        } else {
-          return false;
         }
       });
   }
@@ -869,8 +899,8 @@ class Client extends BaseClient {
     if (type === 'application') {
       return this.api.oauth2.tokens
         .get()
-        .then((data) => data.find((o) => o.application.id == id))
-        .then((o) => this.api.oauth2.tokens(o.id).delete());
+        .then(data => data.find(o => o.application.id == id))
+        .then(o => this.api.oauth2.tokens(o.id).delete());
     } else {
       return this.api.oauth2.tokens(id).delete();
     }
@@ -889,7 +919,7 @@ class Client extends BaseClient {
    * @returns {Promise<Collection<Snowflake, AuthorizedApplicationData>>}
    */
   authorizedApplications() {
-    return this.api.oauth2.tokens.get().then((data) => {
+    return this.api.oauth2.tokens.get().then(data => {
       const results = new Collection();
       for (const o of data) {
         const application = new Application(this, o.application);
@@ -925,124 +955,50 @@ class Client extends BaseClient {
     if (typeof options.makeCache !== 'function') {
       throw new TypeError('CLIENT_INVALID_OPTION', 'makeCache', 'a function');
     }
-    if (
-      typeof options.messageCacheLifetime !== 'number' ||
-      isNaN(options.messageCacheLifetime)
-    ) {
-      throw new TypeError(
-        'CLIENT_INVALID_OPTION',
-        'The messageCacheLifetime',
-        'a number',
-      );
+    if (typeof options.messageCacheLifetime !== 'number' || isNaN(options.messageCacheLifetime)) {
+      throw new TypeError('CLIENT_INVALID_OPTION', 'The messageCacheLifetime', 'a number');
     }
-    if (
-      typeof options.messageSweepInterval !== 'number' ||
-      isNaN(options.messageSweepInterval)
-    ) {
-      throw new TypeError(
-        'CLIENT_INVALID_OPTION',
-        'messageSweepInterval',
-        'a number',
-      );
+    if (typeof options.messageSweepInterval !== 'number' || isNaN(options.messageSweepInterval)) {
+      throw new TypeError('CLIENT_INVALID_OPTION', 'messageSweepInterval', 'a number');
     }
     if (typeof options.sweepers !== 'object' || options.sweepers === null) {
       throw new TypeError('CLIENT_INVALID_OPTION', 'sweepers', 'an object');
     }
-    if (
-      typeof options.invalidRequestWarningInterval !== 'number' ||
-      isNaN(options.invalidRequestWarningInterval)
-    ) {
-      throw new TypeError(
-        'CLIENT_INVALID_OPTION',
-        'invalidRequestWarningInterval',
-        'a number',
-      );
+    if (typeof options.invalidRequestWarningInterval !== 'number' || isNaN(options.invalidRequestWarningInterval)) {
+      throw new TypeError('CLIENT_INVALID_OPTION', 'invalidRequestWarningInterval', 'a number');
     }
     if (!Array.isArray(options.partials)) {
       throw new TypeError('CLIENT_INVALID_OPTION', 'partials', 'an Array');
     }
-    if (
-      typeof options.DMChannelVoiceStatusSync !== 'number' ||
-      isNaN(options.DMChannelVoiceStatusSync)
-    ) {
-      throw new TypeError(
-        'CLIENT_INVALID_OPTION',
-        'DMChannelVoiceStatusSync',
-        'a number',
-      );
+    if (typeof options.DMChannelVoiceStatusSync !== 'number' || isNaN(options.DMChannelVoiceStatusSync)) {
+      throw new TypeError('CLIENT_INVALID_OPTION', 'DMChannelVoiceStatusSync', 'a number');
     }
-    if (
-      typeof options.waitGuildTimeout !== 'number' ||
-      isNaN(options.waitGuildTimeout)
-    ) {
-      throw new TypeError(
-        'CLIENT_INVALID_OPTION',
-        'waitGuildTimeout',
-        'a number',
-      );
+    if (typeof options.waitGuildTimeout !== 'number' || isNaN(options.waitGuildTimeout)) {
+      throw new TypeError('CLIENT_INVALID_OPTION', 'waitGuildTimeout', 'a number');
     }
-    if (
-      typeof options.restWsBridgeTimeout !== 'number' ||
-      isNaN(options.restWsBridgeTimeout)
-    ) {
-      throw new TypeError(
-        'CLIENT_INVALID_OPTION',
-        'restWsBridgeTimeout',
-        'a number',
-      );
+    if (typeof options.restWsBridgeTimeout !== 'number' || isNaN(options.restWsBridgeTimeout)) {
+      throw new TypeError('CLIENT_INVALID_OPTION', 'restWsBridgeTimeout', 'a number');
     }
-    if (
-      typeof options.restRequestTimeout !== 'number' ||
-      isNaN(options.restRequestTimeout)
-    ) {
-      throw new TypeError(
-        'CLIENT_INVALID_OPTION',
-        'restRequestTimeout',
-        'a number',
-      );
+    if (typeof options.restRequestTimeout !== 'number' || isNaN(options.restRequestTimeout)) {
+      throw new TypeError('CLIENT_INVALID_OPTION', 'restRequestTimeout', 'a number');
     }
-    if (
-      typeof options.restGlobalRateLimit !== 'number' ||
-      isNaN(options.restGlobalRateLimit)
-    ) {
-      throw new TypeError(
-        'CLIENT_INVALID_OPTION',
-        'restGlobalRateLimit',
-        'a number',
-      );
+    if (typeof options.restGlobalRateLimit !== 'number' || isNaN(options.restGlobalRateLimit)) {
+      throw new TypeError('CLIENT_INVALID_OPTION', 'restGlobalRateLimit', 'a number');
     }
-    if (
-      typeof options.restSweepInterval !== 'number' ||
-      isNaN(options.restSweepInterval)
-    ) {
-      throw new TypeError(
-        'CLIENT_INVALID_OPTION',
-        'restSweepInterval',
-        'a number',
-      );
+    if (typeof options.restSweepInterval !== 'number' || isNaN(options.restSweepInterval)) {
+      throw new TypeError('CLIENT_INVALID_OPTION', 'restSweepInterval', 'a number');
     }
     if (typeof options.retryLimit !== 'number' || isNaN(options.retryLimit)) {
       throw new TypeError('CLIENT_INVALID_OPTION', 'retryLimit', 'a number');
     }
     if (typeof options.failIfNotExists !== 'boolean') {
-      throw new TypeError(
-        'CLIENT_INVALID_OPTION',
-        'failIfNotExists',
-        'a boolean',
-      );
+      throw new TypeError('CLIENT_INVALID_OPTION', 'failIfNotExists', 'a boolean');
     }
     if (
       typeof options.rejectOnRateLimit !== 'undefined' &&
-      !(
-        typeof options.rejectOnRateLimit === 'function' ||
-        Array.isArray(options.rejectOnRateLimit)
-      )
+      !(typeof options.rejectOnRateLimit === 'function' || Array.isArray(options.rejectOnRateLimit))
     ) {
-      throw new TypeError(
-        'CLIENT_INVALID_OPTION',
-        'rejectOnRateLimit',
-        'an array or a function',
-      );
+      throw new TypeError('CLIENT_INVALID_OPTION', 'rejectOnRateLimit', 'an array or a function');
     }
     if (typeof options.TOTPKey === 'string') {
       // Convert to base32 if not already
@@ -1056,14 +1012,3 @@ class Client extends BaseClient {
 }
 
 module.exports = Client;
-
-/**
- * Emitted for general warnings.
- * @event Client#warn
- * @param {string} info The warning
- */
-
-/**
- * @external Collection
- * @see {@link https://discord.js.org/docs/packages/collection/stable/Collection:Class}
- */

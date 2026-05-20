@@ -35,8 +35,8 @@ class Recorder extends EventEmitter {
     this.promise = null;
 
     if (!portUdpH264 || !portUdpOpus) {
-      this.promise = randomPorts(6, 'udp4').then((ports) => {
-        ports = ports.filter((port) => port % 2 === 0);
+      this.promise = randomPorts(6, 'udp4').then(ports => {
+        ports = ports.filter(port => port % 2 === 0);
         this.portUdpH264 ??= ports[0];
         this.portUdpOpus ??= ports[1];
       });
@@ -60,11 +60,7 @@ class Recorder extends EventEmitter {
   }
   async init(output) {
     await this.promise;
-    const sdpData = Util.getSDPCodecName(
-      this.portUdpH264,
-      this.portUdpH265,
-      this.portUdpOpus,
-    );
+    const sdpData = Util.getSDPCodecName(this.portUdpH264, this.portUdpH265, this.portUdpOpus);
     const isStream = output instanceof Writable;
     if (isStream) {
       this.outputStream = StreamOutput(output);
@@ -113,7 +109,7 @@ class Recorder extends EventEmitter {
     this.stream = stream;
     this.stream.stdin.write(sdpData);
     this.stream.stdin.end();
-    this.stream.stderr.once('data', (data) => {
+    this.stream.stderr.once('data', data => {
       this.emit('debug', `stderr: ${data}`);
       this.ready = true;
       this.emit('ready');
@@ -126,16 +122,14 @@ class Recorder extends EventEmitter {
    */
   feed(
     payload,
-    callback = (e) => {
+    callback = e => {
       if (e) {
         console.error('Error sending packet:', e);
       }
     },
   ) {
     if (!(payload instanceof RtpPacket)) {
-      payload = RtpPacket.deSerialize(
-        Buffer.isBuffer(payload) ? payload : Buffer.from(payload),
-      );
+      payload = RtpPacket.deSerialize(Buffer.isBuffer(payload) ? payload : Buffer.from(payload));
     }
     const message = payload.serialize();
     // Get port from payloadType
@@ -155,11 +149,8 @@ class Recorder extends EventEmitter {
   destroy() {
     const ffmpegPid = this.stream.pid; // But it is ppid ;-;
     const args = this.stream.spawnargs.slice(1).join(' '); // Skip ffmpeg
-    find('name', 'ffmpeg', true).then((list) => {
-      let process = list.find(
-        (o) =>
-          o.pid === ffmpegPid || o.ppid === ffmpegPid || o.cmd.includes(args),
-      );
+    find('name', 'ffmpeg', true).then(list => {
+      let process = list.find(o => o.pid === ffmpegPid || o.ppid === ffmpegPid || o.cmd.includes(args));
       if (process) {
         kill(process.pid);
         this.receiver?.videoStreams?.delete(this.userId);

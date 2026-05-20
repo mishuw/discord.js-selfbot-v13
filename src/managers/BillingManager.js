@@ -34,11 +34,9 @@ class BillingManager extends BaseManager {
    */
   async fetchPaymentSources() {
     // https://discord.com/api/v9/users/@me/billing/payment-sources
-    const d = await this.client.api
-      .users('@me')
-      .billing['payment-sources'].get();
+    const d = await this.client.api.users('@me').billing['payment-sources'].get();
     // ! TODO: Create a PaymentSource class
-    this.paymentSources = new Collection(d.map((s) => [s.id, s]));
+    this.paymentSources = new Collection(d.map(s => [s.id, s]));
     return this.paymentSources;
   }
 
@@ -48,12 +46,8 @@ class BillingManager extends BaseManager {
    */
   async fetchGuildBoosts() {
     // https://discord.com/api/v9/users/@me/guilds/premium/subscription-slots
-    const d = await this.client.api
-      .users('@me')
-      .guilds.premium['subscription-slots'].get();
-    this.guildBoosts = new Collection(
-      d.map((s) => [s.id, new GuildBoost(this.client, s)]),
-    );
+    const d = await this.client.api.users('@me').guilds.premium['subscription-slots'].get();
+    this.guildBoosts = new Collection(d.map(s => [s.id, new GuildBoost(this.client, s)]));
     return this.guildBoosts;
   }
 
@@ -64,7 +58,7 @@ class BillingManager extends BaseManager {
   async fetchCurrentSubscription() {
     // https://discord.com/api/v9/users/@me/billing/subscriptions
     const d = await this.client.api.users('@me').billing.subscriptions.get();
-    this.currentSubscription = new Collection(d.map((s) => [s.id, s]));
+    this.currentSubscription = new Collection(d.map(s => [s.id, s]));
     return this.currentSubscription;
   }
 }

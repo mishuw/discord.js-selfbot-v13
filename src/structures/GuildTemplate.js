@@ -121,17 +121,16 @@ class GuildTemplate extends Base {
       },
     });
 
-    if (client.guilds.cache.has(data.id))
-      return client.guilds.cache.get(data.id);
+    if (client.guilds.cache.has(data.id)) return client.guilds.cache.get(data.id);
 
-    return new Promise((resolve) => {
-      const resolveGuild = (guild) => {
+    return new Promise(resolve => {
+      const resolveGuild = guild => {
         client.off(Events.GUILD_CREATE, handleGuild);
         client.decrementMaxListeners();
         resolve(guild);
       };
 
-      const handleGuild = (guild) => {
+      const handleGuild = guild => {
         if (guild.id === data.id) {
           clearTimeout(timeout);
           resolveGuild(guild);
@@ -141,10 +140,7 @@ class GuildTemplate extends Base {
       client.incrementMaxListeners();
       client.on(Events.GUILD_CREATE, handleGuild);
 
-      const timeout = setTimeout(
-        () => resolveGuild(client.guilds._add(data)),
-        10_000,
-      ).unref();
+      const timeout = setTimeout(() => resolveGuild(client.guilds._add(data)), 10_000).unref();
     });
   }
 
@@ -161,10 +157,7 @@ class GuildTemplate extends Base {
    * @returns {Promise<GuildTemplate>}
    */
   async edit({ name, description } = {}) {
-    const data = await this.client.api
-      .guilds(this.guildId)
-      .templates(this.code)
-      .patch({ data: { name, description } });
+    const data = await this.client.api.guilds(this.guildId).templates(this.code).patch({ data: { name, description } });
     return this._patch(data);
   }
 
@@ -182,10 +175,7 @@ class GuildTemplate extends Base {
    * @returns {Promise<GuildTemplate>}
    */
   async sync() {
-    const data = await this.client.api
-      .guilds(this.guildId)
-      .templates(this.code)
-      .put();
+    const data = await this.client.api.guilds(this.guildId).templates(this.code).put();
     return this._patch(data);
   }
 
@@ -241,7 +231,6 @@ class GuildTemplate extends Base {
  * Regular expression that globally matches guild template links
  * @type {RegExp}
  */
-GuildTemplate.GUILD_TEMPLATES_PATTERN =
-  /discord(?:app)?\.(?:com\/template|new)\/([\w-]{2,255})/gi;
+GuildTemplate.GUILD_TEMPLATES_PATTERN = /discord(?:app)?\.(?:com\/template|new)\/([\w-]{2,255})/gi;
 
 module.exports = GuildTemplate;

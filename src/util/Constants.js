@@ -58,17 +58,12 @@ exports.WSCodes = {
 
 const AllowedImageFormats = ['webp', 'png', 'jpg', 'jpeg', 'gif'];
 
-const AllowedImageSizes = [
-  16, 32, 56, 64, 96, 128, 256, 300, 512, 600, 1024, 2048, 4096,
-];
+const AllowedImageSizes = [16, 32, 56, 64, 96, 128, 256, 300, 512, 600, 1024, 2048, 4096];
 
 function makeImageUrl(root, { format = 'webp', size } = {}) {
-  if (!['undefined', 'number'].includes(typeof size))
-    throw new TypeError('INVALID_TYPE', 'size', 'number');
-  if (format && !AllowedImageFormats.includes(format))
-    throw new Error('IMAGE_FORMAT', format);
-  if (size && !AllowedImageSizes.includes(size))
-    throw new RangeError('IMAGE_SIZE', size);
+  if (!['undefined', 'number'].includes(typeof size)) throw new TypeError('INVALID_TYPE', 'size', 'number');
+  if (format && !AllowedImageFormats.includes(format)) throw new Error('IMAGE_FORMAT', format);
+  if (size && !AllowedImageSizes.includes(size)) throw new RangeError('IMAGE_SIZE', size);
   return `${root}.${format}${size ? `?size=${size}` : ''}`;
 }
 
@@ -94,50 +89,22 @@ function makeImageUrl(root, { format = 'webp', size } = {}) {
 exports.Endpoints = {
   CDN(root) {
     return {
-      Emoji: (emojiId, format = 'webp') =>
-        `${root}/emojis/${emojiId}.${format}`,
-      Asset: (name) => `${root}/assets/${name}`,
-      DefaultAvatar: (index) => `${root}/embed/avatars/${index}.png`,
+      Emoji: (emojiId, format = 'webp') => `${root}/emojis/${emojiId}.${format}`,
+      Asset: name => `${root}/assets/${name}`,
+      DefaultAvatar: index => `${root}/embed/avatars/${index}.png`,
       Avatar: (userId, hash, format, size, dynamic = false) => {
         if (dynamic && hash.startsWith('a_')) format = 'gif';
-        return makeImageUrl(`${root}/avatars/${userId}/${hash}`, {
-          format,
-          size,
-        });
+        return makeImageUrl(`${root}/avatars/${userId}/${hash}`, { format, size });
       },
-      AvatarDecoration: (hash) =>
-        makeImageUrl(`${root}/avatar-decoration-presets/${hash}`, {
-          format: 'png',
-        }),
-      GuildTagBadge: (guildId, hash) =>
-        `${root}/guild-tag-badges/${guildId}/${hash}.png`,
-      GuildMemberAvatar: (
-        guildId,
-        memberId,
-        hash,
-        format = 'webp',
-        size,
-        dynamic = false,
-      ) => {
+      AvatarDecoration: hash => makeImageUrl(`${root}/avatar-decoration-presets/${hash}`, { format: 'png' }),
+      GuildTagBadge: (guildId, hash) => `${root}/guild-tag-badges/${guildId}/${hash}.png`,
+      GuildMemberAvatar: (guildId, memberId, hash, format = 'webp', size, dynamic = false) => {
         if (dynamic && hash.startsWith('a_')) format = 'gif';
-        return makeImageUrl(
-          `${root}/guilds/${guildId}/users/${memberId}/avatars/${hash}`,
-          { format, size },
-        );
+        return makeImageUrl(`${root}/guilds/${guildId}/users/${memberId}/avatars/${hash}`, { format, size });
       },
-      GuildMemberBanner: (
-        guildId,
-        memberId,
-        hash,
-        format = 'webp',
-        size,
-        dynamic = false,
-      ) => {
+      GuildMemberBanner: (guildId, memberId, hash, format = 'webp', size, dynamic = false) => {
         if (dynamic && hash.startsWith('a_')) format = 'gif';
-        return makeImageUrl(
-          `${root}/guilds/${guildId}/users/${memberId}/banners/${hash}`,
-          { format, size },
-        );
+        return makeImageUrl(`${root}/guilds/${guildId}/users/${memberId}/banners/${hash}`, { format, size });
       },
       Banner: (id, hash, format, size, dynamic = false) => {
         if (dynamic && hash.startsWith('a_')) format = 'gif';
@@ -145,53 +112,29 @@ exports.Endpoints = {
       },
       Icon: (guildId, hash, format, size, dynamic = false) => {
         if (dynamic && hash.startsWith('a_')) format = 'gif';
-        return makeImageUrl(`${root}/icons/${guildId}/${hash}`, {
-          format,
-          size,
-        });
+        return makeImageUrl(`${root}/icons/${guildId}/${hash}`, { format, size });
       },
-      AppIcon: (appId, hash, options) =>
-        makeImageUrl(`${root}/app-icons/${appId}/${hash}`, options),
-      AppAsset: (appId, hash, options) =>
-        makeImageUrl(`${root}/app-assets/${appId}/${hash}`, options),
+      AppIcon: (appId, hash, options) => makeImageUrl(`${root}/app-icons/${appId}/${hash}`, options),
+      AppAsset: (appId, hash, options) => makeImageUrl(`${root}/app-assets/${appId}/${hash}`, options),
       StickerPackBanner: (bannerId, format, size) =>
-        makeImageUrl(
-          `${root}/app-assets/710982414301790216/store/${bannerId}`,
-          { size, format },
-        ),
+        makeImageUrl(`${root}/app-assets/710982414301790216/store/${bannerId}`, { size, format }),
       GDMIcon: (channelId, hash, format, size) =>
-        makeImageUrl(`${root}/channel-icons/${channelId}/${hash}`, {
-          size,
-          format,
-        }),
-      Splash: (guildId, hash, format, size) =>
-        makeImageUrl(`${root}/splashes/${guildId}/${hash}`, { size, format }),
+        makeImageUrl(`${root}/channel-icons/${channelId}/${hash}`, { size, format }),
+      Splash: (guildId, hash, format, size) => makeImageUrl(`${root}/splashes/${guildId}/${hash}`, { size, format }),
       DiscoverySplash: (guildId, hash, format, size) =>
-        makeImageUrl(`${root}/discovery-splashes/${guildId}/${hash}`, {
-          size,
-          format,
-        }),
-      TeamIcon: (teamId, hash, options) =>
-        makeImageUrl(`${root}/team-icons/${teamId}/${hash}`, options),
+        makeImageUrl(`${root}/discovery-splashes/${guildId}/${hash}`, { size, format }),
+      TeamIcon: (teamId, hash, options) => makeImageUrl(`${root}/team-icons/${teamId}/${hash}`, options),
       Sticker: (stickerId, stickerFormat) =>
         `${root}/stickers/${stickerId}.${
-          stickerFormat === 'LOTTIE'
-            ? 'json'
-            : stickerFormat === 'GIF'
-              ? 'gif'
-              : 'png'
+          stickerFormat === 'LOTTIE' ? 'json' : stickerFormat === 'GIF' ? 'gif' : 'png'
         }`,
       RoleIcon: (roleId, hash, format = 'webp', size) =>
         makeImageUrl(`${root}/role-icons/${roleId}/${hash}`, { size, format }),
       GuildScheduledEventCover: (scheduledEventId, coverHash, format, size) =>
-        makeImageUrl(`${root}/guild-events/${scheduledEventId}/${coverHash}`, {
-          size,
-          format,
-        }),
+        makeImageUrl(`${root}/guild-events/${scheduledEventId}/${coverHash}`, { size, format }),
     };
   },
-  invite: (root, code, eventId) =>
-    eventId ? `${root}/${code}?event=${eventId}` : `${root}/${code}`,
+  invite: (root, code, eventId) => (eventId ? `${root}/${code}?event=${eventId}` : `${root}/${code}`),
   scheduledEvent: (root, guildId, eventId) => `${root}/${guildId}/${eventId}`,
   botGateway: '/gateway',
 };
@@ -570,14 +513,7 @@ exports.ShardEvents = {
  * [guide](https://discordjs.guide/popular-topics/partials.html) for more information.</warn>
  * @typedef {string} PartialType
  */
-exports.PartialTypes = keyMirror([
-  'USER',
-  'CHANNEL',
-  'GUILD_MEMBER',
-  'MESSAGE',
-  'REACTION',
-  'GUILD_SCHEDULED_EVENT',
-]);
+exports.PartialTypes = keyMirror(['USER', 'CHANNEL', 'GUILD_MEMBER', 'MESSAGE', 'REACTION', 'GUILD_SCHEDULED_EVENT']);
 
 /**
  * The type of a WebSocket message event, e.g. `MESSAGE_CREATE`. Here are the available events:
@@ -912,14 +848,7 @@ exports.SweeperKeys = [
  * @typedef {string} SystemMessageType
  */
 exports.SystemMessageTypes = exports.MessageTypes.filter(
-  (type) =>
-    type &&
-    ![
-      'DEFAULT',
-      'REPLY',
-      'APPLICATION_COMMAND',
-      'CONTEXT_MENU_COMMAND',
-    ].includes(type),
+  type => type && !['DEFAULT', 'REPLY', 'APPLICATION_COMMAND', 'CONTEXT_MENU_COMMAND'].includes(type),
 );
 
 /**
@@ -935,15 +864,7 @@ exports.SystemMessageTypes = exports.MessageTypes.filter(
  * @typedef {string} ActivityType
  * @see {@link https://discord.com/developers/docs/game-sdk/activities#data-models-activitytype-enum}
  */
-exports.ActivityTypes = createEnum([
-  'PLAYING',
-  'STREAMING',
-  'LISTENING',
-  'WATCHING',
-  'CUSTOM',
-  'COMPETING',
-  'HANG',
-]);
+exports.ActivityTypes = createEnum(['PLAYING', 'STREAMING', 'LISTENING', 'WATCHING', 'CUSTOM', 'COMPETING', 'HANG']);
 
 /**
  * All available channel types:
@@ -1035,11 +956,7 @@ exports.TextBasedChannelTypes = [
  * * GUILD_PRIVATE_THREAD
  * @typedef {string} ThreadChannelTypes
  */
-exports.ThreadChannelTypes = [
-  'GUILD_NEWS_THREAD',
-  'GUILD_PUBLIC_THREAD',
-  'GUILD_PRIVATE_THREAD',
-];
+exports.ThreadChannelTypes = ['GUILD_NEWS_THREAD', 'GUILD_PUBLIC_THREAD', 'GUILD_PRIVATE_THREAD'];
 
 /**
  * The types of channels that are voice-based. The available types are:
@@ -1150,11 +1067,7 @@ exports.HolographicStyles = {
  * @typedef {string} ExplicitContentFilterLevel
  * @see {@link https://discord.com/developers/docs/resources/guild#guild-object-explicit-content-filter-level}
  */
-exports.ExplicitContentFilterLevels = createEnum([
-  'DISABLED',
-  'MEMBERS_WITHOUT_ROLES',
-  'ALL_MEMBERS',
-]);
+exports.ExplicitContentFilterLevels = createEnum(['DISABLED', 'MEMBERS_WITHOUT_ROLES', 'ALL_MEMBERS']);
 
 /**
  * The value set for the verification levels for a guild:
@@ -1166,13 +1079,7 @@ exports.ExplicitContentFilterLevels = createEnum([
  * @typedef {string} VerificationLevel
  * @see {@link https://discord.com/developers/docs/resources/guild#guild-object-verification-level}
  */
-exports.VerificationLevels = createEnum([
-  'NONE',
-  'LOW',
-  'MEDIUM',
-  'HIGH',
-  'VERY_HIGH',
-]);
+exports.VerificationLevels = createEnum(['NONE', 'LOW', 'MEDIUM', 'HIGH', 'VERY_HIGH']);
 
 /**
  * An error encountered while performing an API request. Here are the potential errors:
@@ -1486,10 +1393,7 @@ exports.APIErrors = {
  * @typedef {string} DefaultMessageNotificationLevel
  * @see {@link https://discord.com/developers/docs/resources/guild#guild-object-default-message-notification-level}
  */
-exports.DefaultMessageNotificationLevels = createEnum([
-  'ALL_MESSAGES',
-  'ONLY_MENTIONS',
-]);
+exports.DefaultMessageNotificationLevels = createEnum(['ALL_MESSAGES', 'ONLY_MENTIONS']);
 
 /**
  * The value set for a team member's membership state:
@@ -1508,12 +1412,7 @@ exports.MembershipStates = createEnum([null, 'INVITED', 'ACCEPTED']);
  * @typedef {string} WebhookType
  * @see {@link https://discord.com/developers/docs/resources/webhook#webhook-object-webhook-types}
  */
-exports.WebhookTypes = createEnum([
-  null,
-  'Incoming',
-  'Channel Follower',
-  'Application',
-]);
+exports.WebhookTypes = createEnum([null, 'Incoming', 'Channel Follower', 'Application']);
 
 /**
  * The value set for a sticker's type:
@@ -1553,12 +1452,7 @@ exports.OverwriteTypes = createEnum(['role', 'member']);
  * @typedef {string} ApplicationCommandType
  * @see {@link https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-types}
  */
-exports.ApplicationCommandTypes = createEnum([
-  null,
-  'CHAT_INPUT',
-  'USER',
-  'MESSAGE',
-]);
+exports.ApplicationCommandTypes = createEnum([null, 'CHAT_INPUT', 'USER', 'MESSAGE']);
 
 /**
  * The type of an {@link ApplicationCommandOption} object:
@@ -1638,14 +1532,7 @@ exports.ApplicationRoleConnectionMetadataTypes = createEnum([
  * @typedef {string} AutoModerationRuleTriggerType
  * @see {@link https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-types}
  */
-exports.AutoModerationRuleTriggerTypes = createEnum([
-  null,
-  'KEYWORD',
-  null,
-  'SPAM',
-  'KEYWORD_PRESET',
-  'MENTION_SPAM',
-]);
+exports.AutoModerationRuleTriggerTypes = createEnum([null, 'KEYWORD', null, 'SPAM', 'KEYWORD_PRESET', 'MENTION_SPAM']);
 
 /**
  * The type of an {@link AutoModerationRuleKeywordPresetTypes} object:
@@ -1656,12 +1543,7 @@ exports.AutoModerationRuleTriggerTypes = createEnum([
  * @typedef {string} AutoModerationRuleKeywordPresetType
  * @see {@link https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-keyword-preset-types}
  */
-exports.AutoModerationRuleKeywordPresetTypes = createEnum([
-  null,
-  'PROFANITY',
-  'SEXUAL_CONTENT',
-  'SLURS',
-]);
+exports.AutoModerationRuleKeywordPresetTypes = createEnum([null, 'PROFANITY', 'SEXUAL_CONTENT', 'SLURS']);
 /**
  * The type of an {@link AutoModerationActionTypes} object:
  * * BLOCK_MESSAGE
@@ -1670,12 +1552,7 @@ exports.AutoModerationRuleKeywordPresetTypes = createEnum([
  * @typedef {string} AutoModerationActionType
  * @see {@link https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-types}
  */
-exports.AutoModerationActionTypes = createEnum([
-  null,
-  'BLOCK_MESSAGE',
-  'SEND_ALERT_MESSAGE',
-  'TIMEOUT',
-]);
+exports.AutoModerationActionTypes = createEnum([null, 'BLOCK_MESSAGE', 'SEND_ALERT_MESSAGE', 'TIMEOUT']);
 
 /**
  * The type of an {@link AutoModerationRuleEventTypes} object:
@@ -1793,14 +1670,7 @@ exports.SelectMenuComponentTypes = createEnum([
  * @typedef {string} MessageButtonStyle
  * @see {@link https://discord.com/developers/docs/interactions/message-components#button-object-button-styles}
  */
-exports.MessageButtonStyles = createEnum([
-  null,
-  'PRIMARY',
-  'SECONDARY',
-  'SUCCESS',
-  'DANGER',
-  'LINK',
-]);
+exports.MessageButtonStyles = createEnum([null, 'PRIMARY', 'SECONDARY', 'SUCCESS', 'DANGER', 'LINK']);
 
 /**
  * The required MFA level for a guild
@@ -1820,12 +1690,7 @@ exports.MFALevels = createEnum(['NONE', 'ELEVATED']);
  * @typedef {string} NSFWLevel
  * @see {@link https://discord.com/developers/docs/resources/guild#guild-object-guild-nsfw-level}
  */
-exports.NSFWLevels = createEnum([
-  'DEFAULT',
-  'EXPLICIT',
-  'SAFE',
-  'AGE_RESTRICTED',
-]);
+exports.NSFWLevels = createEnum(['DEFAULT', 'EXPLICIT', 'SAFE', 'AGE_RESTRICTED']);
 
 /**
  * Privacy level of a {@link StageInstance} object:
@@ -1851,11 +1716,7 @@ exports.TextInputStyles = createEnum([null, 'SHORT', 'PARAGRAPH']);
  * @typedef {string} GuildScheduledEventPrivacyLevel
  * @see {@link https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-privacy-level}
  */
-exports.GuildScheduledEventPrivacyLevels = createEnum([
-  null,
-  null,
-  'GUILD_ONLY',
-]);
+exports.GuildScheduledEventPrivacyLevels = createEnum([null, null, 'GUILD_ONLY']);
 
 /**
  * The premium tier (Server Boost level) of a guild:
@@ -1877,13 +1738,7 @@ exports.PremiumTiers = createEnum(['NONE', 'TIER_1', 'TIER_2', 'TIER_3']);
  * @typedef {string} GuildScheduledEventStatus
  * @see {@link https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-status}
  */
-exports.GuildScheduledEventStatuses = createEnum([
-  null,
-  'SCHEDULED',
-  'ACTIVE',
-  'COMPLETED',
-  'CANCELED',
-]);
+exports.GuildScheduledEventStatuses = createEnum([null, 'SCHEDULED', 'ACTIVE', 'COMPLETED', 'CANCELED']);
 
 /**
  * The entity type of a {@link GuildScheduledEvent}:
@@ -1894,12 +1749,7 @@ exports.GuildScheduledEventStatuses = createEnum([
  * @typedef {string} GuildScheduledEventEntityType
  * @see {@link https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-types}
  */
-exports.GuildScheduledEventEntityTypes = createEnum([
-  null,
-  'STAGE_INSTANCE',
-  'VOICE',
-  'EXTERNAL',
-]);
+exports.GuildScheduledEventEntityTypes = createEnum([null, 'STAGE_INSTANCE', 'VOICE', 'EXTERNAL']);
 /* eslint-enable max-len */
 
 /**

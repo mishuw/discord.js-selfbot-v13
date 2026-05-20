@@ -43,7 +43,7 @@ class UserNoteManager extends BaseManager {
     }
     const data = await this.client.api.users['@me'].notes[id]
       .get()
-      .then((d) => d.note)
+      .then(d => d.note)
       .catch(() => '');
     if (cache) this.cache.set(id, data);
     return data;

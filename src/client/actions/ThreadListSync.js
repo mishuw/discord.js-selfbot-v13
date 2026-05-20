@@ -48,7 +48,7 @@ class ThreadListSyncAction extends Action {
   }
 
   removeStale(channel) {
-    channel.threads?.cache.forEach((thread) => {
+    channel.threads?.cache.forEach(thread => {
       if (!thread.archived) {
         this.client.channels._remove(thread.id);
       }

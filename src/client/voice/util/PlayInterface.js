@@ -64,19 +64,11 @@ class PlayInterface {
       } else if (type === 'opus') {
         return this.player.playOpusStream(resource, options);
       } else if (type === 'ogg/opus') {
-        if (!(resource instanceof Readable))
-          throw new Error('VOICE_PRISM_DEMUXERS_NEED_STREAM');
-        return this.player.playOpusStream(
-          resource.pipe(new prism.opus.OggDemuxer()),
-          options,
-        );
+        if (!(resource instanceof Readable)) throw new Error('VOICE_PRISM_DEMUXERS_NEED_STREAM');
+        return this.player.playOpusStream(resource.pipe(new prism.opus.OggDemuxer()), options);
       } else if (type === 'webm/opus') {
-        if (!(resource instanceof Readable))
-          throw new Error('VOICE_PRISM_DEMUXERS_NEED_STREAM');
-        return this.player.playOpusStream(
-          resource.pipe(new prism.opus.WebmDemuxer()),
-          options,
-        );
+        if (!(resource instanceof Readable)) throw new Error('VOICE_PRISM_DEMUXERS_NEED_STREAM');
+        return this.player.playOpusStream(resource.pipe(new prism.opus.WebmDemuxer()), options);
       }
     }
     throw new Error('VOICE_PLAY_INTERFACE_BAD_TYPE');
@@ -122,11 +114,7 @@ class PlayInterface {
 
   static applyToClass(structure) {
     for (const prop of ['playAudio', 'playVideo']) {
-      Object.defineProperty(
-        structure.prototype,
-        prop,
-        Object.getOwnPropertyDescriptor(PlayInterface.prototype, prop),
-      );
+      Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(PlayInterface.prototype, prop));
     }
   }
 }

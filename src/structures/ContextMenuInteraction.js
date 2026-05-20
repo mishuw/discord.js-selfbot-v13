@@ -2,10 +2,7 @@
 
 const BaseCommandInteraction = require('./BaseCommandInteraction');
 const CommandInteractionOptionResolver = require('./CommandInteractionOptionResolver');
-const {
-  ApplicationCommandOptionTypes,
-  ApplicationCommandTypes,
-} = require('../util/Constants');
+const { ApplicationCommandOptionTypes, ApplicationCommandTypes } = require('../util/Constants');
 
 /**
  * Represents a context menu interaction.
@@ -48,14 +45,7 @@ class ContextMenuInteraction extends BaseCommandInteraction {
 
     if (resolved.users?.[target_id]) {
       result.push(
-        this.transformOption(
-          {
-            name: 'user',
-            type: ApplicationCommandOptionTypes.USER,
-            value: target_id,
-          },
-          resolved,
-        ),
+        this.transformOption({ name: 'user', type: ApplicationCommandOptionTypes.USER, value: target_id }, resolved),
       );
     }
 
@@ -64,9 +54,7 @@ class ContextMenuInteraction extends BaseCommandInteraction {
         name: 'message',
         type: '_MESSAGE',
         value: target_id,
-        message:
-          this.channel?.messages._add(resolved.messages[target_id]) ??
-          resolved.messages[target_id],
+        message: this.channel?.messages._add(resolved.messages[target_id]) ?? resolved.messages[target_id],
       });
     }
 

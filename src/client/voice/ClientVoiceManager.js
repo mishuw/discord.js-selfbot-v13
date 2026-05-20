@@ -61,25 +61,14 @@ class ClientVoiceManager {
   onVoiceStateUpdate(payload) {
     const { guild_id, session_id, channel_id } = payload;
     // @discordjs/voice
-    if (
-      payload.guild_id &&
-      payload.session_id &&
-      payload.user_id === this.client.user?.id
-    ) {
+    if (payload.guild_id && payload.session_id && payload.user_id === this.client.user?.id) {
       this.adapters.get(payload.guild_id)?.onVoiceStateUpdate(payload);
-    } else if (
-      payload.channel_id &&
-      payload.session_id &&
-      payload.user_id === this.client.user?.id
-    ) {
+    } else if (payload.channel_id && payload.session_id && payload.user_id === this.client.user?.id) {
       this.adapters.get(payload.channel_id)?.onVoiceStateUpdate(payload);
     }
     // Main lib
     const connection = this.connection;
-    this.client.emit(
-      'debug',
-      `[VOICE] connection? ${!!connection}, ${guild_id} ${session_id} ${channel_id}`,
-    );
+    this.client.emit('debug', `[VOICE] connection? ${!!connection}, ${guild_id} ${session_id} ${channel_id}`);
     if (!connection) return;
     if (!channel_id) {
       connection._disconnect();
@@ -91,10 +80,7 @@ class ClientVoiceManager {
       connection.channel = channel;
       connection.setSessionId(session_id);
     } else {
-      this.client.emit(
-        'debug',
-        `[VOICE] disconnecting from guild ${guild_id} as channel ${channel_id} is uncached`,
-      );
+      this.client.emit('debug', `[VOICE] disconnecting from guild ${guild_id} as channel ${channel_id} is uncached`);
       connection.disconnect();
     }
   }
@@ -131,11 +117,8 @@ class ClientVoiceManager {
       } else {
         connection = new VoiceConnection(this, channel);
         if (config?.videoCodec) connection.setVideoCodec(config.videoCodec);
-        connection.on('debug', (msg) =>
-          this.client.emit(
-            'debug',
-            `[VOICE (${channel.guild?.id || channel.id}:${connection.status})]: ${msg}`,
-          ),
+        connection.on('debug', msg =>
+          this.client.emit('debug', `[VOICE (${channel.guild?.id || channel.id}:${connection.status})]: ${msg}`),
         );
         connection.authenticate({
           self_mute: Boolean(config.selfMute),
@@ -145,7 +128,7 @@ class ClientVoiceManager {
         this.connection = connection;
       }
 
-      connection.once('failed', (reason) => {
+      connection.once('failed', reason => {
         this.connection = null;
         reject(reason);
       });

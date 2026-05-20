@@ -79,30 +79,22 @@ class VoiceConnectionUDPClient extends EventEmitter {
   send(packet) {
     return new Promise((resolve, reject) => {
       if (!this.socket) throw new Error('UDP_SEND_FAIL');
-      if (!this.discordAddress || !this.discordPort)
-        throw new Error('UDP_ADDRESS_MALFORMED');
-      this.socket.send(
-        packet,
-        0,
-        packet.length,
-        this.discordPort,
-        this.discordAddress,
-        (error) => {
-          if (error) {
-            this.emit('debug', `[UDP] >> ERROR: ${error}`);
-            reject(error);
-          } else {
-            resolve(packet);
-          }
-        },
-      );
+      if (!this.discordAddress || !this.discordPort) throw new Error('UDP_ADDRESS_MALFORMED');
+      this.socket.send(packet, 0, packet.length, this.discordPort, this.discordAddress, error => {
+        if (error) {
+          this.emit('debug', `[UDP] >> ERROR: ${error}`);
+          reject(error);
+        } else {
+          resolve(packet);
+        }
+      });
     });
   }
 
   async createUDPSocket(address) {
     this.discordAddress = address;
     const socket = (this.socket = udp.createSocket('udp4'));
-    socket.on('error', (e) => {
+    socket.on('error', e => {
       this.emit('debug', `[UDP] Error: ${e}`);
       this.emit('error', e);
     });
@@ -110,7 +102,7 @@ class VoiceConnectionUDPClient extends EventEmitter {
       this.emit('debug', '[UDP] socket closed');
     });
     this.emit('debug', `[UDP] created socket`);
-    socket.once('message', (message) => {
+    socket.once('message', message => {
       this.emit('debug', `[UDP] message: [${[...message]}] (${message})`);
       if (message.readUInt16BE(0) !== 2) {
         throw new Error('UDP_WRONG_HANDSHAKE');
@@ -125,10 +117,7 @@ class VoiceConnectionUDPClient extends EventEmitter {
         return;
       }
 
-      this.emit(
-        'debug',
-        `[UDP] Parse local packet: ${packet.address}:${packet.port}`,
-      );
+      this.emit('debug', `[UDP] Parse local packet: ${packet.address}:${packet.port}`);
 
       this.localAddress = packet.address;
       this.localPort = packet.port;
@@ -154,9 +143,7 @@ class VoiceConnectionUDPClient extends EventEmitter {
 
       this.emit('debug', `[UDP] << ${JSON.stringify(packet)}`);
 
-      socket.on('message', (buffer) =>
-        this.voiceConnection.receiver.packets.push(buffer),
-      );
+      socket.on('message', buffer => this.voiceConnection.receiver.packets.push(buffer));
     });
 
     const blankMessage = Buffer.alloc(74);

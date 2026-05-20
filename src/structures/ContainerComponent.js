@@ -26,8 +26,7 @@ class ContainerComponent extends BaseMessageComponent {
      * Components of the type action row, text display, section, media gallery, separator, or file
      * @type {ContainerComponents[]}
      */
-    this.components =
-      data.components?.map((c) => BaseMessageComponent.create(c)) ?? [];
+    this.components = data.components?.map(c => BaseMessageComponent.create(c)) ?? [];
 
     /**
      * Color for the accent on the container as RGB from 0x000000 to 0xFFFFFF
@@ -50,7 +49,7 @@ class ContainerComponent extends BaseMessageComponent {
   get hexAccentColor() {
     return typeof this.accentColor === 'number'
       ? `#${this.accentColor.toString(16).padStart(6, '0')}`
-      : (this.accentColor ?? null);
+      : this.accentColor ?? null;
   }
 
   /**
@@ -59,7 +58,7 @@ class ContainerComponent extends BaseMessageComponent {
   toJSON() {
     return {
       type: MessageComponentTypes[this.type],
-      components: this.components.map((c) => c.toJSON()),
+      components: this.components.map(c => c.toJSON()),
       accent_color: this.accent_color,
       spoiler: this.spoiler,
     };

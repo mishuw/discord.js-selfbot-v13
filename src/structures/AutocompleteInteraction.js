@@ -3,10 +3,7 @@
 const CommandInteractionOptionResolver = require('./CommandInteractionOptionResolver');
 const Interaction = require('./Interaction');
 const { Error } = require('../errors');
-const {
-  InteractionResponseTypes,
-  ApplicationCommandOptionTypes,
-} = require('../util/Constants');
+const { InteractionResponseTypes, ApplicationCommandOptionTypes } = require('../util/Constants');
 
 /**
  * Represents an autocomplete interaction.
@@ -46,9 +43,7 @@ class AutocompleteInteraction extends Interaction {
      */
     this.options = new CommandInteractionOptionResolver(
       this.client,
-      data.data.options?.map((option) =>
-        this.transformOption(option, data.data.resolved),
-      ) ?? [],
+      data.data.options?.map(option => this.transformOption(option, data.data.resolved)) ?? [],
     );
   }
 
@@ -58,11 +53,7 @@ class AutocompleteInteraction extends Interaction {
    */
   get command() {
     const id = this.commandId;
-    return (
-      this.guild?.commands.cache.get(id) ??
-      this.client.application.commands.cache.get(id) ??
-      null
-    );
+    return this.guild?.commands.cache.get(id) ?? this.client.application.commands.cache.get(id) ?? null;
   }
 
   /**
@@ -78,8 +69,7 @@ class AutocompleteInteraction extends Interaction {
     };
 
     if ('value' in option) result.value = option.value;
-    if ('options' in option)
-      result.options = option.options.map((opt) => this.transformOption(opt));
+    if ('options' in option) result.options = option.options.map(opt => this.transformOption(opt));
     if ('focused' in option) result.focused = option.focused;
 
     return result;
@@ -106,12 +96,7 @@ class AutocompleteInteraction extends Interaction {
     await this.client.api.interactions(this.id, this.token).callback.post({
       data: {
         type: InteractionResponseTypes.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
-        data: {
-          choices: options.map((choice) => ({
-            ...choice,
-            name_localizations: options.nameLocalizations,
-          })),
-        },
+        data: { choices: options.map(choice => ({ ...choice, name_localizations: options.nameLocalizations })) },
       },
       auth: false,
     });

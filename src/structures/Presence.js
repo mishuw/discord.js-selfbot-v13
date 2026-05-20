@@ -87,7 +87,7 @@ class Presence extends Base {
        * The activities of this presence (Always `Activity[]` if not ClientUser)
        * @type {CustomStatus[]|RichPresence[]|SpotifyRPC[]|Activity[]}
        */
-      this.activities = data.activities.map((activity) => {
+      this.activities = data.activities.map(activity => {
         if (this.userId == this.client.user.id) {
           if ([ActivityTypes.CUSTOM, 'CUSTOM'].includes(activity.type)) {
             return new CustomStatus(this.client, activity);
@@ -142,7 +142,7 @@ class Presence extends Base {
 
   _clone() {
     const clone = Object.assign(Object.create(this), this);
-    clone.activities = this.activities.map((activity) => activity._clone());
+    clone.activities = this.activities.map(activity => activity._clone());
     return clone;
   }
 
@@ -160,9 +160,7 @@ class Presence extends Base {
         this.clientStatus?.mobile === presence.clientStatus?.mobile &&
         this.clientStatus?.desktop === presence.clientStatus?.desktop &&
         this.activities.length === presence.activities.length &&
-        this.activities.every((activity, index) =>
-          activity.equals(presence.activities[index]),
-        ))
+        this.activities.every((activity, index) => activity.equals(presence.activities[index])))
     );
   }
 
@@ -190,9 +188,7 @@ class Presence extends Base {
 class Activity {
   constructor(presence, data) {
     if (!(presence instanceof Presence)) {
-      throw new Error(
-        "Class constructor Activity cannot be invoked without 'presence'",
-      );
+      throw new Error("Class constructor Activity cannot be invoked without 'presence'");
     }
     /**
      * The presence of the Activity
@@ -227,8 +223,7 @@ class Activity {
        * The activity status's type
        * @type {ActivityType}
        */
-      this.type =
-        typeof data.type === 'number' ? ActivityTypes[data.type] : data.type;
+      this.type = typeof data.type === 'number' ? ActivityTypes[data.type] : data.type;
     }
 
     if ('url' in data) {
@@ -282,12 +277,8 @@ class Activity {
        * @type {?ActivityTimestamps}
        */
       this.timestamps = {
-        start: data.timestamps.start
-          ? new Date(data.timestamps.start).getTime()
-          : null,
-        end: data.timestamps.end
-          ? new Date(data.timestamps.end).getTime()
-          : null,
+        start: data.timestamps.start ? new Date(data.timestamps.start).getTime() : null,
+        end: data.timestamps.end ? new Date(data.timestamps.end).getTime() : null,
       };
     } else {
       this.timestamps = null;
@@ -431,8 +422,7 @@ class Activity {
   toJSON(...props) {
     return Util.clearNullOrUndefinedObject({
       ...Util.flatten(this, ...props),
-      type:
-        typeof this.type === 'number' ? this.type : ActivityTypes[this.type],
+      type: typeof this.type === 'number' ? this.type : ActivityTypes[this.type],
     });
   }
 }
@@ -518,14 +508,10 @@ class RichPresenceAssets {
       }
     }
 
-    return this.activity.presence.client.rest.cdn.AppAsset(
-      this.activity.applicationId,
-      this.smallImage,
-      {
-        format,
-        size,
-      },
-    );
+    return this.activity.presence.client.rest.cdn.AppAsset(this.activity.applicationId, this.smallImage, {
+      format,
+      size,
+    });
   }
 
   /**
@@ -551,23 +537,16 @@ class RichPresenceAssets {
       }
     }
 
-    return this.activity.presence.client.rest.cdn.AppAsset(
-      this.activity.applicationId,
-      this.largeImage,
-      {
-        format,
-        size,
-      },
-    );
+    return this.activity.presence.client.rest.cdn.AppAsset(this.activity.applicationId, this.largeImage, {
+      format,
+      size,
+    });
   }
 
   static parseImage(image) {
     if (typeof image != 'string') {
       image = null;
-    } else if (
-      URL.canParse(image) &&
-      ['http:', 'https:'].includes(new URL(image).protocol)
-    ) {
+    } else if (URL.canParse(image) && ['http:', 'https:'].includes(new URL(image).protocol)) {
       // Discord URL:
       image = image
         .replace('https://cdn.discordapp.com/', 'mp:')
@@ -580,11 +559,7 @@ class RichPresenceAssets {
       }
     } else if (/^[0-9]{17,19}$/.test(image)) {
       // ID Assets
-    } else if (
-      ['mp:', 'youtube:', 'spotify:', 'twitch:'].some((v) =>
-        image.startsWith(v),
-      )
-    ) {
+    } else if (['mp:', 'youtube:', 'spotify:', 'twitch:'].some(v => image.startsWith(v))) {
       // Image
     } else if (image.startsWith('external/')) {
       image = `mp:${image}`;
@@ -593,13 +568,7 @@ class RichPresenceAssets {
   }
 
   toJSON() {
-    if (
-      !this.largeImage &&
-      !this.largeText &&
-      !this.smallImage &&
-      !this.smallText
-    )
-      return null;
+    if (!this.largeImage && !this.largeText && !this.smallImage && !this.smallText) return null;
     return {
       large_image: RichPresenceAssets.parseImage(this.largeImage),
       large_text: this.largeText,
@@ -675,10 +644,7 @@ class CustomStatus extends Activity {
    * @param {CustomStatus|CustomStatusOptions} [data={}] CustomStatus to clone or raw data
    */
   constructor(client, data = {}) {
-    if (!client)
-      throw new Error(
-        "Class constructor CustomStatus cannot be invoked without 'client'",
-      );
+    if (!client) throw new Error("Class constructor CustomStatus cannot be invoked without 'client'");
     super('presence' in client ? client.presence : client, {
       name: ' ',
       type: ActivityTypes.CUSTOM,
@@ -702,8 +668,7 @@ class CustomStatus extends Activity {
    * @returns {CustomStatus}
    */
   setState(state) {
-    if (typeof state == 'string' && state.length > 128)
-      throw new Error('State must be less than 128 characters');
+    if (typeof state == 'string' && state.length > 128) throw new Error('State must be less than 128 characters');
     this.state = state;
     return this;
   }
@@ -713,8 +678,7 @@ class CustomStatus extends Activity {
    * @returns {CustomStatus}
    */
   toJSON() {
-    if (!this.emoji & !this.state)
-      throw new Error('CustomStatus must have at least one of emoji or state');
+    if (!this.emoji & !this.state) throw new Error('CustomStatus must have at least one of emoji or state');
     return {
       name: this.name,
       emoji: this.emoji,
@@ -730,14 +694,8 @@ class RichPresence extends Activity {
    * @param {RichPresence} [data={}] RichPresence to clone or raw data
    */
   constructor(client, data = {}) {
-    if (!client)
-      throw new Error(
-        "Class constructor RichPresence cannot be invoked without 'client'",
-      );
-    super('presence' in client ? client.presence : client, {
-      type: 0,
-      ...data,
-    });
+    if (!client) throw new Error("Class constructor RichPresence cannot be invoked without 'client'");
+    super('presence' in client ? client.presence : client, { type: 0, ...data });
     this.setup(data);
   }
 
@@ -807,8 +765,7 @@ class RichPresence extends Activity {
    * @returns {RichPresence}
    */
   setURL(url) {
-    if (typeof url == 'string' && !URL.canParse(url))
-      throw new Error('URL must be a valid URL');
+    if (typeof url == 'string' && !URL.canParse(url)) throw new Error('URL must be a valid URL');
     this.url = url;
     return this;
   }
@@ -867,12 +824,9 @@ class RichPresence extends Activity {
    */
   setParty(party) {
     if (typeof party == 'object') {
-      if (!party.max || typeof party.max != 'number')
-        throw new Error('Party must have max number');
-      if (!party.current || typeof party.current != 'number')
-        throw new Error('Party must have current');
-      if (party.current > party.max)
-        throw new Error('Party current must be less than max number');
+      if (!party.max || typeof party.max != 'number') throw new Error('Party must have max number');
+      if (!party.current || typeof party.current != 'number') throw new Error('Party must have current');
+      if (party.current > party.max) throw new Error('Party current must be less than max number');
       if (!party.id || typeof party.id != 'string') party.id = randomUUID();
       this.party = {
         size: [party.current, party.max],
@@ -930,11 +884,10 @@ class RichPresence extends Activity {
     this.buttons = [];
     this.metadata.button_urls = [];
 
-    button.flat(2).forEach((b) => {
+    button.flat(2).forEach(b => {
       if (b.name && b.url) {
         this.buttons.push(b.name);
-        if (!URL.canParse(b.url))
-          throw new Error('Button url must be a valid url');
+        if (!URL.canParse(b.url)) throw new Error('Button url must be a valid url');
         this.metadata.button_urls.push(b.url);
       } else {
         throw new Error('Button must have name and url');
@@ -973,12 +926,10 @@ class RichPresence extends Activity {
     if (!name || !url) {
       throw new Error('Button must have name and url');
     }
-    if (typeof name !== 'string')
-      throw new Error('Button name must be a string');
+    if (typeof name !== 'string') throw new Error('Button name must be a string');
     if (!URL.canParse(url)) throw new Error('Button url must be a valid url');
     this.buttons.push(name);
-    if (Array.isArray(this.metadata.button_urls))
-      this.metadata.button_urls.push(url);
+    if (Array.isArray(this.metadata.button_urls)) this.metadata.button_urls.push(url);
     else this.metadata.button_urls = [url];
     return this;
   }
@@ -1013,8 +964,7 @@ class RichPresence extends Activity {
    * @returns {Promise<ExternalAssets[]>}
    */
   static async getExternal(client, applicationId, ...images) {
-    if (!client || !client.token || !client.api)
-      throw new Error('Client must be set');
+    if (!client || !client.token || !client.api) throw new Error('Client must be set');
     // Check if applicationId is discord snowflake (17 , 18, 19 numbers)
     if (!/^[0-9]{17,19}$/.test(applicationId)) {
       throw new Error('Application id must be a Discord Snowflake');
@@ -1024,12 +974,10 @@ class RichPresence extends Activity {
       throw new Error('RichPresence can only have up to 2 external images');
     }
     // Check if all images are valid URLs
-    if (images.some((image) => !URL.canParse(image))) {
+    if (images.some(image => !URL.canParse(image))) {
       throw new Error('Each image must be a valid URL.');
     }
-    const res = await client.api.applications[applicationId][
-      'external-assets'
-    ].post({
+    const res = await client.api.applications[applicationId]['external-assets'].post({
       data: {
         urls: images,
       },
@@ -1060,10 +1008,7 @@ class SpotifyRPC extends RichPresence {
    * @param {SpotifyRPC} [options] Options for the Spotify RPC
    */
   constructor(client, options = {}) {
-    if (!client)
-      throw new Error(
-        "Class constructor SpotifyRPC cannot be invoked without 'client'",
-      );
+    if (!client) throw new Error("Class constructor SpotifyRPC cannot be invoked without 'client'");
     super(client, {
       name: 'Spotify',
       type: ActivityTypes.LISTENING,
@@ -1132,7 +1077,7 @@ class SpotifyRPC extends RichPresence {
       return this;
     }
     if (!this.metadata.artist_ids) this.metadata.artist_ids = [];
-    ids.flat(2).forEach((id) => this.metadata.artist_ids.push(id));
+    ids.flat(2).forEach(id => this.metadata.artist_ids.push(id));
     return this;
   }
 
@@ -1148,12 +1093,7 @@ class SpotifyRPC extends RichPresence {
   }
 
   toJSON() {
-    return super.toJSON({
-      id: false,
-      emoji: false,
-      platform: false,
-      buttons: false,
-    });
+    return super.toJSON({ id: false, emoji: false, platform: false, buttons: false });
   }
 }
 

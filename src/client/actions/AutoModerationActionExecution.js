@@ -17,10 +17,7 @@ class AutoModerationActionExecutionAction extends Action {
        * @param {AutoModerationActionExecution} autoModerationActionExecution The data of the execution
        * @deprecated This event is not received by user accounts.
        */
-      client.emit(
-        Events.AUTO_MODERATION_ACTION_EXECUTION,
-        new AutoModerationActionExecution(data, guild),
-      );
+      client.emit(Events.AUTO_MODERATION_ACTION_EXECUTION, new AutoModerationActionExecution(data, guild));
     }
 
     return {};

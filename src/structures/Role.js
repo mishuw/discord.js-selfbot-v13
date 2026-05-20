@@ -243,7 +243,7 @@ class Role extends Base {
    * @readonly
    */
   get members() {
-    return this.guild.members.cache.filter((m) => m.roles.cache.has(this.id));
+    return this.guild.members.cache.filter(m => m.roles.cache.has(this.id));
   }
 
   /**
@@ -254,8 +254,7 @@ class Role extends Base {
   get editable() {
     if (this.managed) return false;
     const clientMember = this.guild.members.resolve(this.client.user);
-    if (!clientMember.permissions.has(Permissions.FLAGS.MANAGE_ROLES))
-      return false;
+    if (!clientMember.permissions.has(Permissions.FLAGS.MANAGE_ROLES)) return false;
     return clientMember.roles.highest.comparePositionTo(this) > 0;
   }
 
@@ -268,11 +267,7 @@ class Role extends Base {
     let count = 0;
     for (const role of this.guild.roles.cache.values()) {
       if (this.rawPosition > role.rawPosition) count++;
-      else if (
-        this.rawPosition === role.rawPosition &&
-        BigInt(this.id) < BigInt(role.id)
-      )
-        count++;
+      else if (this.rawPosition === role.rawPosition && BigInt(this.id) < BigInt(role.id)) count++;
     }
 
     return count;

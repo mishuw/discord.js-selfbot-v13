@@ -166,9 +166,7 @@ class AnnexBNalSplitter extends Transform {
   findNalStart(buf) {
     const pos = buf.indexOf(nalSuffix);
     if (pos === -1) return null;
-    return pos > 0 && buf[pos - 1] === 0
-      ? { index: pos - 1, length: 4 }
-      : { index: pos, length: 3 };
+    return pos > 0 && buf[pos - 1] === 0 ? { index: pos - 1, length: 4 } : { index: pos, length: 3 };
   }
 
   processFrame(frame) {
@@ -176,14 +174,11 @@ class AnnexBNalSplitter extends Transform {
 
     const unitType = this._nalFunctions.getUnitType(frame);
     if (this._nalFunctions.isAUD(unitType) && this._accessUnit.length > 0) {
-      const sizeOfAccessUnit = this._accessUnit.reduce(
-        (acc, nalu) => acc + nalu.length + 4,
-        0,
-      );
+      const sizeOfAccessUnit = this._accessUnit.reduce((acc, nalu) => acc + nalu.length + 4, 0);
       const accessUnitBuf = Buffer.allocUnsafe(sizeOfAccessUnit);
 
       let offset = 0;
-      this._accessUnit.forEach((nalu) => {
+      this._accessUnit.forEach(nalu => {
         accessUnitBuf.writeUint32BE(nalu.length, offset);
         offset += 4;
         nalu.copy(accessUnitBuf, offset);
@@ -225,10 +220,7 @@ class H264NalSplitter extends AnnexBNalSplitter {
   }
 
   removeEpbs(frame, unitType) {
-    return unitType === H264NalUnitTypes.SPS ||
-      unitType === H264NalUnitTypes.SEI
-      ? this.rbsp(frame)
-      : frame;
+    return unitType === H264NalUnitTypes.SPS || unitType === H264NalUnitTypes.SEI ? this.rbsp(frame) : frame;
   }
 }
 

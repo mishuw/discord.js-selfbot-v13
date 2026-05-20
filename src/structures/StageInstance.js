@@ -99,9 +99,7 @@ class StageInstance extends Base {
    * @readonly
    */
   get guildScheduledEvent() {
-    return (
-      this.guild?.scheduledEvents.resolve(this.guildScheduledEventId) ?? null
-    );
+    return this.guild?.scheduledEvents.resolve(this.guildScheduledEventId) ?? null;
   }
 
   /**

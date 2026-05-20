@@ -116,55 +116,35 @@ class AutoModerationRuleManager extends CachedManager {
     exemptChannels,
     reason,
   }) {
-    const data = await this.client.api
-      .guilds(this.guild.id)
-      ['auto-moderation'].rules.post({
-        data: {
-          name,
-          event_type:
-            typeof eventType === 'number'
-              ? eventType
-              : AutoModerationRuleEventTypes[eventType],
-          trigger_type:
-            typeof triggerType === 'number'
-              ? triggerType
-              : AutoModerationRuleTriggerTypes[triggerType],
-          trigger_metadata: triggerMetadata && {
-            keyword_filter: triggerMetadata.keywordFilter,
-            regex_patterns: triggerMetadata.regexPatterns,
-            presets: triggerMetadata.presets?.map((preset) =>
-              typeof preset === 'number'
-                ? preset
-                : AutoModerationRuleKeywordPresetTypes[preset],
-            ),
-            allow_list: triggerMetadata.allowList,
-            mention_total_limit: triggerMetadata.mentionTotalLimit,
-            mention_raid_protection_enabled:
-              triggerMetadata.mentionRaidProtectionEnabled,
-          },
-          actions: actions.map((action) => ({
-            type:
-              typeof action.type === 'number'
-                ? action.type
-                : AutoModerationActionTypes[action.type],
-            metadata: {
-              duration_seconds: action.metadata?.durationSeconds,
-              channel_id:
-                action.metadata?.channel &&
-                this.guild.channels.resolveId(action.metadata.channel),
-              custom_message: action.metadata?.customMessage,
-            },
-          })),
-          enabled,
-          exempt_roles: exemptRoles?.map((exemptRole) =>
-            this.guild.roles.resolveId(exemptRole),
+    const data = await this.client.api.guilds(this.guild.id)['auto-moderation'].rules.post({
+      data: {
+        name,
+        event_type: typeof eventType === 'number' ? eventType : AutoModerationRuleEventTypes[eventType],
+        trigger_type: typeof triggerType === 'number' ? triggerType : AutoModerationRuleTriggerTypes[triggerType],
+        trigger_metadata: triggerMetadata && {
+          keyword_filter: triggerMetadata.keywordFilter,
+          regex_patterns: triggerMetadata.regexPatterns,
+          presets: triggerMetadata.presets?.map(preset =>
+            typeof preset === 'number' ? preset : AutoModerationRuleKeywordPresetTypes[preset],
           ),
-          exempt_channels: exemptChannels?.map((exemptChannel) =>
-            this.guild.channels.resolveId(exemptChannel),
-          ),
+          allow_list: triggerMetadata.allowList,
+          mention_total_limit: triggerMetadata.mentionTotalLimit,
+          mention_raid_protection_enabled: triggerMetadata.mentionRaidProtectionEnabled,
         },
-        reason,
-      });
+        actions: actions.map(action => ({
+          type: typeof action.type === 'number' ? action.type : AutoModerationActionTypes[action.type],
+          metadata: {
+            duration_seconds: action.metadata?.durationSeconds,
+            channel_id: action.metadata?.channel && this.guild.channels.resolveId(action.metadata.channel),
+            custom_message: action.metadata?.customMessage,
+          },
+        })),
+        enabled,
+        exempt_roles: exemptRoles?.map(exemptRole => this.guild.roles.resolveId(exemptRole)),
+        exempt_channels: exemptChannels?.map(exemptChannel => this.guild.channels.resolveId(exemptChannel)),
+      },
+      reason,
+    });
 
     return this._add(data);
   }
@@ -193,16 +173,7 @@ class AutoModerationRuleManager extends CachedManager {
    */
   async edit(
     autoModerationRule,
-    {
-      name,
-      eventType,
-      triggerMetadata,
-      actions,
-      enabled,
-      exemptRoles,
-      exemptChannels,
-      reason,
-    },
+    { name, eventType, triggerMetadata, actions, enabled, exemptRoles, exemptChannels, reason },
   ) {
     const autoModerationRuleId = this.resolveId(autoModerationRule);
 
@@ -212,43 +183,28 @@ class AutoModerationRuleManager extends CachedManager {
       .patch({
         data: {
           name,
-          event_type:
-            typeof eventType === 'number'
-              ? eventType
-              : AutoModerationRuleEventTypes[eventType],
+          event_type: typeof eventType === 'number' ? eventType : AutoModerationRuleEventTypes[eventType],
           trigger_metadata: triggerMetadata && {
             keyword_filter: triggerMetadata.keywordFilter,
             regex_patterns: triggerMetadata.regexPatterns,
-            presets: triggerMetadata.presets?.map((preset) =>
-              typeof preset === 'number'
-                ? preset
-                : AutoModerationRuleKeywordPresetTypes[preset],
+            presets: triggerMetadata.presets?.map(preset =>
+              typeof preset === 'number' ? preset : AutoModerationRuleKeywordPresetTypes[preset],
             ),
             allow_list: triggerMetadata.allowList,
             mention_total_limit: triggerMetadata.mentionTotalLimit,
-            mention_raid_protection_enabled:
-              triggerMetadata.mentionRaidProtectionEnabled,
+            mention_raid_protection_enabled: triggerMetadata.mentionRaidProtectionEnabled,
           },
-          actions: actions?.map((action) => ({
-            type:
-              typeof action.type === 'number'
-                ? action.type
-                : AutoModerationActionTypes[action.type],
+          actions: actions?.map(action => ({
+            type: typeof action.type === 'number' ? action.type : AutoModerationActionTypes[action.type],
             metadata: {
               duration_seconds: action.metadata?.durationSeconds,
-              channel_id:
-                action.metadata?.channel &&
-                this.guild.channels.resolveId(action.metadata.channel),
+              channel_id: action.metadata?.channel && this.guild.channels.resolveId(action.metadata.channel),
               custom_message: action.metadata?.customMessage,
             },
           })),
           enabled,
-          exempt_roles: exemptRoles?.map((exemptRole) =>
-            this.guild.roles.resolveId(exemptRole),
-          ),
-          exempt_channels: exemptChannels?.map((exemptChannel) =>
-            this.guild.channels.resolveId(exemptChannel),
-          ),
+          exempt_roles: exemptRoles?.map(exemptRole => this.guild.roles.resolveId(exemptRole)),
+          exempt_channels: exemptChannels?.map(exemptChannel => this.guild.channels.resolveId(exemptChannel)),
         },
         reason,
       });
@@ -299,15 +255,9 @@ class AutoModerationRuleManager extends CachedManager {
   fetch(options) {
     if (!options) return this._fetchMany();
     const { autoModerationRule, cache, force } = options;
-    const resolvedAutoModerationRule = this.resolveId(
-      autoModerationRule ?? options,
-    );
+    const resolvedAutoModerationRule = this.resolveId(autoModerationRule ?? options);
     if (resolvedAutoModerationRule) {
-      return this._fetchSingle({
-        autoModerationRule: resolvedAutoModerationRule,
-        cache,
-        force,
-      });
+      return this._fetchSingle({ autoModerationRule: resolvedAutoModerationRule, cache, force });
     }
     return this._fetchMany(options);
   }
@@ -318,24 +268,15 @@ class AutoModerationRuleManager extends CachedManager {
       if (existing) return existing;
     }
 
-    const data = await this.client.api
-      .guilds(this.guild.id)('auto-moderation')
-      .rules(autoModerationRule)
-      .get();
+    const data = await this.client.api.guilds(this.guild.id)('auto-moderation').rules(autoModerationRule).get();
     return this._add(data, cache);
   }
 
   async _fetchMany(options = {}) {
-    const data = await this.client.api
-      .guilds(this.guild.id)('auto-moderation')
-      .rules.get();
+    const data = await this.client.api.guilds(this.guild.id)('auto-moderation').rules.get();
 
     return data.reduce(
-      (col, autoModerationRule) =>
-        col.set(
-          autoModerationRule.id,
-          this._add(autoModerationRule, options.cache),
-        ),
+      (col, autoModerationRule) => col.set(autoModerationRule.id, this._add(autoModerationRule, options.cache)),
       new Collection(),
     );
   }
@@ -348,10 +289,7 @@ class AutoModerationRuleManager extends CachedManager {
    */
   async delete(autoModerationRule, reason) {
     const autoModerationRuleId = this.resolveId(autoModerationRule);
-    await this.client.api
-      .guilds(this.guild.id)('auto-moderation')
-      .rules(autoModerationRuleId)
-      .delete({ reason });
+    await this.client.api.guilds(this.guild.id)('auto-moderation').rules(autoModerationRuleId).delete({ reason });
   }
 }
 

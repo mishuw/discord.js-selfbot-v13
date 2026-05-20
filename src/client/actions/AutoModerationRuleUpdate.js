@@ -9,8 +9,7 @@ class AutoModerationRuleUpdateAction extends Action {
     const guild = client.guilds.cache.get(data.guild_id);
 
     if (guild) {
-      const oldAutoModerationRule =
-        guild.autoModerationRules.cache.get(data.id)?._clone() ?? null;
+      const oldAutoModerationRule = guild.autoModerationRules.cache.get(data.id)?._clone() ?? null;
       const newAutoModerationRule = guild.autoModerationRules._add(data);
 
       /**
@@ -21,11 +20,7 @@ class AutoModerationRuleUpdateAction extends Action {
        * @param {AutoModerationRule} newAutoModerationRule The auto moderation rule after the update
        * @deprecated This event is not received by user accounts.
        */
-      client.emit(
-        Events.AUTO_MODERATION_RULE_UPDATE,
-        oldAutoModerationRule,
-        newAutoModerationRule,
-      );
+      client.emit(Events.AUTO_MODERATION_RULE_UPDATE, oldAutoModerationRule, newAutoModerationRule);
     }
 
     return {};

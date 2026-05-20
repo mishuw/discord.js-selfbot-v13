@@ -33,8 +33,7 @@ class ThreadMember extends Base {
   }
 
   _patch(data, extra = {}) {
-    if ('join_timestamp' in data)
-      this.joinedTimestamp = new Date(data.join_timestamp).getTime();
+    if ('join_timestamp' in data) this.joinedTimestamp = new Date(data.join_timestamp).getTime();
 
     if ('flags' in data) {
       /**

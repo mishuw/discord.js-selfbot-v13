@@ -63,9 +63,7 @@ class BaseGuildTextChannel extends GuildChannel {
        * The timestamp when the last pinned message was pinned, if there was one
        * @type {?number}
        */
-      this.lastPinTimestamp = data.last_pin_timestamp
-        ? new Date(data.last_pin_timestamp).getTime()
-        : null;
+      this.lastPinTimestamp = data.last_pin_timestamp ? new Date(data.last_pin_timestamp).getTime() : null;
     }
 
     if ('default_auto_archive_duration' in data) {
@@ -81,8 +79,7 @@ class BaseGuildTextChannel extends GuildChannel {
        * The initial rate limit per user (slowmode) to set on newly created threads in a channel.
        * @type {?number}
        */
-      this.defaultThreadRateLimitPerUser =
-        data.default_thread_rate_limit_per_user;
+      this.defaultThreadRateLimitPerUser = data.default_thread_rate_limit_per_user;
     } else {
       this.defaultThreadRateLimitPerUser ??= null;
     }

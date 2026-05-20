@@ -37,7 +37,7 @@ class MessageCollector extends Collector {
      */
     this.received = 0;
 
-    const bulkDeleteListener = (messages) => {
+    const bulkDeleteListener = messages => {
       for (const message of messages.values()) this.handleDispose(message);
     };
 
@@ -56,22 +56,10 @@ class MessageCollector extends Collector {
     this.once('end', () => {
       this.client.removeListener(Events.MESSAGE_CREATE, this.handleCollect);
       this.client.removeListener(Events.MESSAGE_DELETE, this.handleDispose);
-      this.client.removeListener(
-        Events.MESSAGE_BULK_DELETE,
-        bulkDeleteListener,
-      );
-      this.client.removeListener(
-        Events.CHANNEL_DELETE,
-        this._handleChannelDeletion,
-      );
-      this.client.removeListener(
-        Events.THREAD_DELETE,
-        this._handleThreadDeletion,
-      );
-      this.client.removeListener(
-        Events.GUILD_DELETE,
-        this._handleGuildDeletion,
-      );
+      this.client.removeListener(Events.MESSAGE_BULK_DELETE, bulkDeleteListener);
+      this.client.removeListener(Events.CHANNEL_DELETE, this._handleChannelDeletion);
+      this.client.removeListener(Events.THREAD_DELETE, this._handleThreadDeletion);
+      this.client.removeListener(Events.GUILD_DELETE, this._handleGuildDeletion);
       this.client.decrementMaxListeners();
     });
   }
@@ -113,13 +101,8 @@ class MessageCollector extends Collector {
    * @readonly
    */
   get endReason() {
-    if (this.options.max && this.collected.size >= this.options.max)
-      return 'limit';
-    if (
-      this.options.maxProcessed &&
-      this.received === this.options.maxProcessed
-    )
-      return 'processedLimit';
+    if (this.options.max && this.collected.size >= this.options.max) return 'limit';
+    if (this.options.maxProcessed && this.received === this.options.maxProcessed) return 'processedLimit';
     return null;
   }
 
@@ -130,10 +113,7 @@ class MessageCollector extends Collector {
    * @returns {void}
    */
   _handleChannelDeletion(channel) {
-    if (
-      channel.id === this.channel.id ||
-      channel.id === this.channel.parentId
-    ) {
+    if (channel.id === this.channel.id || channel.id === this.channel.parentId) {
       this.stop('channelDelete');
     }
   }

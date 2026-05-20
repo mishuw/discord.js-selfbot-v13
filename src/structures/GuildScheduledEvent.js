@@ -92,9 +92,7 @@ class GuildScheduledEvent extends Base {
        * or `null` if the event does not have a scheduled time to end
        * @type {?number}
        */
-      this.scheduledEndTimestamp = data.scheduled_end_time
-        ? Date.parse(data.scheduled_end_time)
-        : null;
+      this.scheduledEndTimestamp = data.scheduled_end_time ? Date.parse(data.scheduled_end_time) : null;
     } else {
       this.scheduledEndTimestamp ??= null;
     }
@@ -178,10 +176,7 @@ class GuildScheduledEvent extends Base {
          * @type {?GuildScheduledEventEntityMetadata}
          */
         this.entityMetadata = {
-          location:
-            data.entity_metadata.location ??
-            this.entityMetadata?.location ??
-            null,
+          location: data.entity_metadata.location ?? this.entityMetadata?.location ?? null,
         };
       } else {
         this.entityMetadata = null;
@@ -232,8 +227,7 @@ class GuildScheduledEvent extends Base {
         get startAt() {
           return new Date(this.startTimestamp);
         },
-        endTimestamp:
-          data.recurrence_rule.end && Date.parse(data.recurrence_rule.end),
+        endTimestamp: data.recurrence_rule.end && Date.parse(data.recurrence_rule.end),
         get endAt() {
           return this.endTimestamp && new Date(this.endTimestamp);
         },
@@ -257,15 +251,7 @@ class GuildScheduledEvent extends Base {
    * @returns {?string}
    */
   coverImageURL({ format, size } = {}) {
-    return (
-      this.image &&
-      this.client.rest.cdn.GuildScheduledEventCover(
-        this.id,
-        this.image,
-        format,
-        size,
-      )
-    );
+    return this.image && this.client.rest.cdn.GuildScheduledEventCover(this.id, this.image, format, size);
   }
 
   /**
@@ -338,11 +324,7 @@ class GuildScheduledEvent extends Base {
    * @readonly
    */
   get url() {
-    return Endpoints.scheduledEvent(
-      this.client.options.http.scheduledEvent,
-      this.guildId,
-      this.id,
-    );
+    return Endpoints.scheduledEvent(this.client.options.http.scheduledEvent, this.guildId, this.id);
   }
 
   /**
@@ -351,10 +333,7 @@ class GuildScheduledEvent extends Base {
    * @returns {Promise<GuildScheduledEvent>}
    */
   fetch(force = true) {
-    return this.guild.scheduledEvents.fetch({
-      guildScheduledEvent: this.id,
-      force,
-    });
+    return this.guild.scheduledEvents.fetch({ guildScheduledEvent: this.id, force });
   }
 
   /**
@@ -377,11 +356,7 @@ class GuildScheduledEvent extends Base {
       if (!channelId) throw new Error('GUILD_CHANNEL_RESOLVE');
     }
     const invite = await this.guild.invites.create(channelId, options);
-    return Endpoints.invite(
-      this.client.options.http.invite,
-      invite.code,
-      this.id,
-    );
+    return Endpoints.invite(this.client.options.http.invite, invite.code, this.id);
   }
 
   /**
@@ -530,10 +505,7 @@ class GuildScheduledEvent extends Base {
    * @returns {boolean}
    */
   isActive() {
-    return (
-      GuildScheduledEventStatuses[this.status] ===
-      GuildScheduledEventStatuses.ACTIVE
-    );
+    return GuildScheduledEventStatuses[this.status] === GuildScheduledEventStatuses.ACTIVE;
   }
 
   /**
@@ -541,10 +513,7 @@ class GuildScheduledEvent extends Base {
    * @returns {boolean}
    */
   isCanceled() {
-    return (
-      GuildScheduledEventStatuses[this.status] ===
-      GuildScheduledEventStatuses.CANCELED
-    );
+    return GuildScheduledEventStatuses[this.status] === GuildScheduledEventStatuses.CANCELED;
   }
 
   /**
@@ -552,10 +521,7 @@ class GuildScheduledEvent extends Base {
    * @returns {boolean}
    */
   isCompleted() {
-    return (
-      GuildScheduledEventStatuses[this.status] ===
-      GuildScheduledEventStatuses.COMPLETED
-    );
+    return GuildScheduledEventStatuses[this.status] === GuildScheduledEventStatuses.COMPLETED;
   }
 
   /**
@@ -563,10 +529,7 @@ class GuildScheduledEvent extends Base {
    * @returns {boolean}
    */
   isScheduled() {
-    return (
-      GuildScheduledEventStatuses[this.status] ===
-      GuildScheduledEventStatuses.SCHEDULED
-    );
+    return GuildScheduledEventStatuses[this.status] === GuildScheduledEventStatuses.SCHEDULED;
   }
 }
 

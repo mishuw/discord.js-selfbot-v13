@@ -98,9 +98,7 @@ class ThreadMemberManager extends CachedManager {
   async add(member, reason) {
     const id = member === '@me' ? member : this.client.users.resolveId(member);
     if (!id) throw new TypeError('INVALID_TYPE', 'member', 'UserResolvable');
-    await this.client.api
-      .channels(this.thread.id, 'thread-members', id)
-      .put({ reason });
+    await this.client.api.channels(this.thread.id, 'thread-members', id).put({ reason });
     return id;
   }
 
@@ -111,9 +109,7 @@ class ThreadMemberManager extends CachedManager {
    * @returns {Promise<Snowflake>}
    */
   async remove(id, reason) {
-    await this.client.api
-      .channels(this.thread.id, 'thread-members', id)
-      .delete({ reason });
+    await this.client.api.channels(this.thread.id, 'thread-members', id).delete({ reason });
     return id;
   }
 
@@ -123,24 +119,17 @@ class ThreadMemberManager extends CachedManager {
       if (existing) return existing;
     }
 
-    const data = await this.client.api
-      .channels(this.thread.id, 'thread-members', memberId)
-      .get({
-        query: { with_member: withMember },
-      });
+    const data = await this.client.api.channels(this.thread.id, 'thread-members', memberId).get({
+      query: { with_member: withMember },
+    });
     return this._add(data, cache);
   }
 
   async _fetchMany({ cache, limit, after, withMember } = {}) {
-    const raw = await this.client.api
-      .channels(this.thread.id, 'thread-members')
-      .get({
-        query: { with_member: withMember, limit, after },
-      });
-    return raw.reduce(
-      (col, member) => col.set(member.user_id, this._add(member, cache)),
-      new Collection(),
-    );
+    const raw = await this.client.api.channels(this.thread.id, 'thread-members').get({
+      query: { with_member: withMember, limit, after },
+    });
+    return raw.reduce((col, member) => col.set(member.user_id, this._add(member, cache)), new Collection());
   }
 
   /**
@@ -190,9 +179,7 @@ class ThreadMemberManager extends CachedManager {
     const id = this.resolveId(member);
     return id
       ? this._fetchOne(id, options)
-      : this._fetchMany(
-          typeof member === 'boolean' ? { ...options, cache: member } : options,
-        );
+      : this._fetchMany(typeof member === 'boolean' ? { ...options, cache: member } : options);
   }
 }
 

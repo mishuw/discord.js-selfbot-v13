@@ -187,18 +187,13 @@ class GuildManager extends CachedManager {
       verificationLevel = VerificationLevels[verificationLevel];
     }
     if (typeof defaultMessageNotifications === 'string') {
-      defaultMessageNotifications =
-        DefaultMessageNotificationLevels[defaultMessageNotifications];
+      defaultMessageNotifications = DefaultMessageNotificationLevels[defaultMessageNotifications];
     }
     if (typeof explicitContentFilter === 'string') {
-      explicitContentFilter =
-        ExplicitContentFilterLevels[explicitContentFilter];
+      explicitContentFilter = ExplicitContentFilterLevels[explicitContentFilter];
     }
     for (const channel of channels) {
-      channel.type &&=
-        typeof channel.type === 'number'
-          ? channel.type
-          : ChannelTypes[channel.type];
+      channel.type &&= typeof channel.type === 'number' ? channel.type : ChannelTypes[channel.type];
       channel.parent_id = channel.parentId;
       delete channel.parentId;
       channel.user_limit = channel.userLimit;
@@ -247,11 +242,10 @@ class GuildManager extends CachedManager {
       },
     });
 
-    if (this.client.guilds.cache.has(data.id))
-      return this.client.guilds.cache.get(data.id);
+    if (this.client.guilds.cache.has(data.id)) return this.client.guilds.cache.get(data.id);
 
-    return new Promise((resolve) => {
-      const handleGuild = (guild) => {
+    return new Promise(resolve => {
+      const handleGuild = guild => {
         if (guild.id === data.id) {
           clearTimeout(timeout);
           this.client.removeListener(Events.GUILD_CREATE, handleGuild);
@@ -299,19 +293,12 @@ class GuildManager extends CachedManager {
         if (existing) return existing;
       }
 
-      const data = await this.client.api
-        .guilds(id)
-        .get({ query: { with_counts: options.withCounts ?? true } });
+      const data = await this.client.api.guilds(id).get({ query: { with_counts: options.withCounts ?? true } });
       return this._add(data, options.cache);
     }
 
-    const data = await this.client.api
-      .users('@me')
-      .guilds.get({ query: options });
-    return data.reduce(
-      (coll, guild) => coll.set(guild.id, new OAuth2Guild(this.client, guild)),
-      new Collection(),
-    );
+    const data = await this.client.api.users('@me').guilds.get({ query: options });
+    return data.reduce((coll, guild) => coll.set(guild.id, new OAuth2Guild(this.client, guild)), new Collection());
   }
 
   /**
@@ -332,10 +319,8 @@ class GuildManager extends CachedManager {
 
     const data = await this.client.api.guilds(guildId)['incident-actions'].put({
       data: {
-        invites_disabled_until:
-          invitesDisabledUntil && new Date(invitesDisabledUntil).toISOString(),
-        dms_disabled_until:
-          dmsDisabledUntil && new Date(dmsDisabledUntil).toISOString(),
+        invites_disabled_until: invitesDisabledUntil && new Date(invitesDisabledUntil).toISOString(),
+        dms_disabled_until: dmsDisabledUntil && new Date(dmsDisabledUntil).toISOString(),
       },
     });
 

@@ -86,13 +86,8 @@ class Collector extends EventEmitter {
     this.handleCollect = this.handleCollect.bind(this);
     this.handleDispose = this.handleDispose.bind(this);
 
-    if (options.time)
-      this._timeout = setTimeout(() => this.stop('time'), options.time).unref();
-    if (options.idle)
-      this._idletimeout = setTimeout(
-        () => this.stop('idle'),
-        options.idle,
-      ).unref();
+    if (options.time) this._timeout = setTimeout(() => this.stop('time'), options.time).unref();
+    if (options.idle) this._idletimeout = setTimeout(() => this.stop('idle'), options.idle).unref();
   }
 
   /**
@@ -116,10 +111,7 @@ class Collector extends EventEmitter {
 
       if (this._idletimeout) {
         clearTimeout(this._idletimeout);
-        this._idletimeout = setTimeout(
-          () => this.stop('idle'),
-          this.options.idle,
-        ).unref();
+        this._idletimeout = setTimeout(() => this.stop('idle'), this.options.idle).unref();
       }
     }
     this.checkEnd();
@@ -135,12 +127,7 @@ class Collector extends EventEmitter {
     if (!this.options.dispose) return;
 
     const dispose = this.dispose(...args);
-    if (
-      !dispose ||
-      !(await this.filter(...args)) ||
-      !this.collected.has(dispose)
-    )
-      return;
+    if (!dispose || !(await this.filter(...args)) || !this.collected.has(dispose)) return;
     this.collected.delete(dispose);
 
     /**
@@ -170,7 +157,7 @@ class Collector extends EventEmitter {
         this.removeListener('end', onEnd);
       };
 
-      const onCollect = (item) => {
+      const onCollect = item => {
         cleanup();
         resolve(item);
       };
@@ -226,17 +213,11 @@ class Collector extends EventEmitter {
   resetTimer({ time, idle } = {}) {
     if (this._timeout) {
       clearTimeout(this._timeout);
-      this._timeout = setTimeout(
-        () => this.stop('time'),
-        time ?? this.options.time,
-      ).unref();
+      this._timeout = setTimeout(() => this.stop('time'), time ?? this.options.time).unref();
     }
     if (this._idletimeout) {
       clearTimeout(this._idletimeout);
-      this._idletimeout = setTimeout(
-        () => this.stop('idle'),
-        idle ?? this.options.idle,
-      ).unref();
+      this._idletimeout = setTimeout(() => this.stop('idle'), idle ?? this.options.idle).unref();
     }
   }
 
@@ -256,7 +237,7 @@ class Collector extends EventEmitter {
    */
   async *[Symbol.asyncIterator]() {
     const queue = [];
-    const onCollect = (item) => queue.push(item);
+    const onCollect = item => queue.push(item);
     this.on('collect', onCollect);
 
     try {
@@ -265,7 +246,7 @@ class Collector extends EventEmitter {
           yield queue.shift();
         } else {
           // eslint-disable-next-line no-await-in-loop
-          await new Promise((resolve) => {
+          await new Promise(resolve => {
             const tick = () => {
               this.removeListener('collect', tick);
               this.removeListener('end', tick);

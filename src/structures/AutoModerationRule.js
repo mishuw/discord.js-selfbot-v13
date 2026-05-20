@@ -83,14 +83,10 @@ class AutoModerationRule extends Base {
       this.triggerMetadata = {
         keywordFilter: data.trigger_metadata.keyword_filter ?? [],
         regexPatterns: data.trigger_metadata.regex_patterns ?? [],
-        presets:
-          data.trigger_metadata.presets?.map(
-            (preset) => AutoModerationRuleKeywordPresetTypes[preset],
-          ) ?? [],
+        presets: data.trigger_metadata.presets?.map(preset => AutoModerationRuleKeywordPresetTypes[preset]) ?? [],
         allowList: data.trigger_metadata.allow_list ?? [],
         mentionTotalLimit: data.trigger_metadata.mention_total_limit ?? null,
-        mentionRaidProtectionEnabled:
-          data.trigger_metadata.mention_raid_protection_enabled ?? false,
+        mentionRaidProtectionEnabled: data.trigger_metadata.mention_raid_protection_enabled ?? false,
       };
     }
 
@@ -114,7 +110,7 @@ class AutoModerationRule extends Base {
        * The actions of this auto moderation rule.
        * @type {AutoModerationAction[]}
        */
-      this.actions = data.actions.map((action) => ({
+      this.actions = data.actions.map(action => ({
         type: AutoModerationActionTypes[action.type],
         metadata: {
           durationSeconds: action.metadata.duration_seconds ?? null,
@@ -138,10 +134,7 @@ class AutoModerationRule extends Base {
        * @type {Collection<Snowflake, Role>}
        */
       this.exemptRoles = new Collection(
-        data.exempt_roles.map((exemptRole) => [
-          exemptRole,
-          this.guild.roles.cache.get(exemptRole),
-        ]),
+        data.exempt_roles.map(exemptRole => [exemptRole, this.guild.roles.cache.get(exemptRole)]),
       );
     }
 
@@ -151,10 +144,7 @@ class AutoModerationRule extends Base {
        * @type {Collection<Snowflake, GuildChannel|ThreadChannel>}
        */
       this.exemptChannels = new Collection(
-        data.exempt_channels.map((exemptChannel) => [
-          exemptChannel,
-          this.guild.channels.cache.get(exemptChannel),
-        ]),
+        data.exempt_channels.map(exemptChannel => [exemptChannel, this.guild.channels.cache.get(exemptChannel)]),
       );
     }
   }
@@ -204,10 +194,7 @@ class AutoModerationRule extends Base {
    * @returns {Promise<AutoModerationRule>}
    */
   setKeywordFilter(keywordFilter, reason) {
-    return this.edit({
-      triggerMetadata: { ...this.triggerMetadata, keywordFilter },
-      reason,
-    });
+    return this.edit({ triggerMetadata: { ...this.triggerMetadata, keywordFilter }, reason });
   }
 
   /**
@@ -218,10 +205,7 @@ class AutoModerationRule extends Base {
    * @returns {Promise<AutoModerationRule>}
    */
   setRegexPatterns(regexPatterns, reason) {
-    return this.edit({
-      triggerMetadata: { ...this.triggerMetadata, regexPatterns },
-      reason,
-    });
+    return this.edit({ triggerMetadata: { ...this.triggerMetadata, regexPatterns }, reason });
   }
 
   /**
@@ -231,10 +215,7 @@ class AutoModerationRule extends Base {
    * @returns {Promise<AutoModerationRule>}
    */
   setPresets(presets, reason) {
-    return this.edit({
-      triggerMetadata: { ...this.triggerMetadata, presets },
-      reason,
-    });
+    return this.edit({ triggerMetadata: { ...this.triggerMetadata, presets }, reason });
   }
 
   /**
@@ -244,10 +225,7 @@ class AutoModerationRule extends Base {
    * @returns {Promise<AutoModerationRule>}
    */
   setAllowList(allowList, reason) {
-    return this.edit({
-      triggerMetadata: { ...this.triggerMetadata, allowList },
-      reason,
-    });
+    return this.edit({ triggerMetadata: { ...this.triggerMetadata, allowList }, reason });
   }
 
   /**
@@ -257,10 +235,7 @@ class AutoModerationRule extends Base {
    * @returns {Promise<AutoModerationRule>}
    */
   setMentionTotalLimit(mentionTotalLimit, reason) {
-    return this.edit({
-      triggerMetadata: { ...this.triggerMetadata, mentionTotalLimit },
-      reason,
-    });
+    return this.edit({ triggerMetadata: { ...this.triggerMetadata, mentionTotalLimit }, reason });
   }
 
   /**
@@ -271,13 +246,7 @@ class AutoModerationRule extends Base {
    * @returns {Promise<AutoModerationRule>}
    */
   setMentionRaidProtectionEnabled(mentionRaidProtectionEnabled, reason) {
-    return this.edit({
-      triggerMetadata: {
-        ...this.triggerMetadata,
-        mentionRaidProtectionEnabled,
-      },
-      reason,
-    });
+    return this.edit({ triggerMetadata: { ...this.triggerMetadata, mentionRaidProtectionEnabled }, reason });
   }
 
   /**

@@ -28,8 +28,7 @@ class IvfTransformer extends Transform {
 
     this.header = null;
     this.buf = null;
-    this.retFullFrame =
-      options && options.fullframe ? options.fullframe : false;
+    this.retFullFrame = options && options.fullframe ? options.fullframe : false;
   }
 
   _parseHeader(header) {
@@ -70,8 +69,7 @@ class IvfTransformer extends Transform {
   }
 
   _updateBufLen(size) {
-    if (this.buf.length > size)
-      this.buf = this.buf.subarray(size, this.buf.length);
+    if (this.buf.length > size) this.buf = this.buf.subarray(size, this.buf.length);
     else this.buf = null;
   }
 

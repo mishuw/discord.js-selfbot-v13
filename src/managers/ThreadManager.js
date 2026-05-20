@@ -139,35 +139,27 @@ class ThreadManager extends CachedManager {
    * @returns {Promise<FetchedThreads>}
    */
   async fetchActive(cache = true, options = {}) {
-    const raw = await this.client.api
-      .channels(this.channel.id)
-      .threads.search.get({
-        query: {
-          archived: options?.archived ?? false,
-          limit: options?.limit ?? 25,
-          offset: options?.offset ?? 0,
-          sort_by: options?.sortBy ?? 'last_message_time',
-          sort_order: options?.sortOrder ?? 'desc',
-        },
-      });
-
-    return this.constructor._mapThreads(raw, this.client, {
-      parent: this.channel,
-      cache,
+    const raw = await this.client.api.channels(this.channel.id).threads.search.get({
+      query: {
+        archived: options?.archived ?? false,
+        limit: options?.limit ?? 25,
+        offset: options?.offset ?? 0,
+        sort_by: options?.sortBy ?? 'last_message_time',
+        sort_order: options?.sortOrder ?? 'desc',
+      },
     });
+
+    return this.constructor._mapThreads(raw, this.client, { parent: this.channel, cache });
   }
 
   static _mapThreads(rawThreads, client, { parent, guild, cache }) {
     const threads = rawThreads.threads.reduce((coll, raw) => {
-      const thread = client.channels._add(raw, guild ?? parent?.guild, {
-        cache,
-      });
+      const thread = client.channels._add(raw, guild ?? parent?.guild, { cache });
       if (parent && thread.parentId !== parent.id) return coll;
       return coll.set(thread.id, thread);
     }, new Collection());
     // Discord sends the thread id as id in this object
-    for (const rawMember of rawThreads.members)
-      client.channels.cache.get(rawMember.id)?.members._add(rawMember);
+    for (const rawMember of rawThreads.members) client.channels.cache.get(rawMember.id)?.members._add(rawMember);
     // Patch firstMessage
     // According to https://github.com/aiko-chan-ai/discord.js-selfbot-v13/issues/1502, rawThreads.first_messages could be null.
     for (const rawMessage of rawThreads?.first_messages || []) {

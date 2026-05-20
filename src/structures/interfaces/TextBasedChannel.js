@@ -3,17 +3,13 @@
 /* eslint-disable import/order */
 const MessageCollector = require('../MessageCollector');
 const MessagePayload = require('../MessagePayload');
-const {
-  InteractionTypes,
-  ApplicationCommandOptionTypes,
-  Events,
-} = require('../../util/Constants');
+const { InteractionTypes, ApplicationCommandOptionTypes, Events } = require('../../util/Constants');
 const { Error } = require('../../errors');
 const SnowflakeUtil = require('../../util/SnowflakeUtil');
 const { setTimeout } = require('node:timers');
 const { s } = require('@sapphire/shapeshift');
 const Util = require('../../util/Util');
-const validateName = (stringName) =>
+const validateName = stringName =>
   s
     .string()
     .lengthGreaterThanOrEqual(1)
@@ -202,7 +198,7 @@ class TextBasedChannel {
     const { data, files } = await messagePayload.resolveFiles();
     // New API
     const attachments = await Util.getUploadURL(this.client, this.id, files);
-    const requestPromises = attachments.map(async (attachment) => {
+    const requestPromises = attachments.map(async attachment => {
       await Util.uploadFile(files[attachment.id].file, attachment.upload_url);
       return {
         id: attachment.id,
@@ -227,9 +223,7 @@ class TextBasedChannel {
     // API https://canary.discord.com/api/v9/guilds/:id/application-command-index // Guild
     //     https://canary.discord.com/api/v9/channels/:id/application-command-index // DM Channel
     // Updated: 07/01/2023
-    return this.client.api[this.guild ? 'guilds' : 'channels'][
-      this.guild?.id || this.id
-    ]['application-command-index']
+    return this.client.api[this.guild ? 'guilds' : 'channels'][this.guild?.id || this.id]['application-command-index']
       .get()
       .catch(() => ({
         application_commands: [],
@@ -239,26 +233,20 @@ class TextBasedChannel {
   }
 
   searchInteractionUserApps() {
-    return this.client.api.users['@me']['application-command-index']
-      .get()
-      .catch(() => ({
-        application_commands: [],
-        applications: [],
-        version: '',
-      }));
+    return this.client.api.users['@me']['application-command-index'].get().catch(() => ({
+      application_commands: [],
+      applications: [],
+      version: '',
+    }));
   }
 
   searchInteraction() {
-    return Promise.all([
-      this.searchInteractionFromGuildAndPrivateChannel(),
-      this.searchInteractionUserApps(),
-    ]).then(([dataA, dataB]) => ({
-      applications: [...dataA.applications, ...dataB.applications],
-      application_commands: [
-        ...dataA.application_commands,
-        ...dataB.application_commands,
-      ],
-    }));
+    return Promise.all([this.searchInteractionFromGuildAndPrivateChannel(), this.searchInteractionUserApps()]).then(
+      ([dataA, dataB]) => ({
+        applications: [...dataA.applications, ...dataB.applications],
+        application_commands: [...dataA.application_commands, ...dataB.application_commands],
+      }),
+    );
   }
 
   async sendSlash(botOrApplicationId, commandNameString, ...args) {
@@ -279,25 +267,18 @@ class TextBasedChannel {
     // Search all
     const data = await this.searchInteraction();
     // Find command...
-    const filterCommand = data.application_commands.filter((obj) =>
+    const filterCommand = data.application_commands.filter(obj =>
       // Filter: name | name_default
       [obj.name, obj.name_default].includes(commandName),
     );
     // Filter Bot
     botOrApplicationId = this.client.users.resolveId(botOrApplicationId);
-    const application = data.applications.find(
-      (obj) => obj.id == botOrApplicationId || obj.bot_id == botOrApplicationId,
-    );
+    const application = data.applications.find(obj => obj.id == botOrApplicationId || obj.bot_id == botOrApplicationId);
     if (!application) {
-      throw new Error(
-        'INVALID_APPLICATION_COMMAND',
-        "Bot/Application doesn't exist",
-      );
+      throw new Error('INVALID_APPLICATION_COMMAND', "Bot/Application doesn't exist");
     }
     // Find Command with application
-    const command = filterCommand.find(
-      (command) => command.application_id == application.id,
-    );
+    const command = filterCommand.find(command => command.application_id == application.id);
     if (!command) {
       throw new Error('INVALID_APPLICATION_COMMAND', application.id);
     }
@@ -309,43 +290,30 @@ class TextBasedChannel {
       // Subcommand Group > Subcommand
       // Find Sub group
       subGroup = command.options.find(
-        (obj) =>
-          obj.type == ApplicationCommandOptionTypes.SUB_COMMAND_GROUP &&
-          [obj.name, obj.name_default].includes(sub[0]),
+        obj =>
+          obj.type == ApplicationCommandOptionTypes.SUB_COMMAND_GROUP && [obj.name, obj.name_default].includes(sub[0]),
       );
-      if (!subGroup)
-        throw new Error('SLASH_COMMAND_SUB_COMMAND_GROUP_INVALID', sub[0]);
+      if (!subGroup) throw new Error('SLASH_COMMAND_SUB_COMMAND_GROUP_INVALID', sub[0]);
       // Find Sub
       subCommand = subGroup.options.find(
-        (obj) =>
-          obj.type == ApplicationCommandOptionTypes.SUB_COMMAND &&
-          [obj.name, obj.name_default].includes(sub[1]),
+        obj => obj.type == ApplicationCommandOptionTypes.SUB_COMMAND && [obj.name, obj.name_default].includes(sub[1]),
       );
-      if (!subCommand)
-        throw new Error('SLASH_COMMAND_SUB_COMMAND_INVALID', sub[1]);
+      if (!subCommand) throw new Error('SLASH_COMMAND_SUB_COMMAND_INVALID', sub[1]);
       // Options
       optionsMaxdepth = subCommand.options;
     } else if (sub.length == 1) {
       // Subcommand
       subCommand = command.options.find(
-        (obj) =>
-          obj.type == ApplicationCommandOptionTypes.SUB_COMMAND &&
-          [obj.name, obj.name_default].includes(sub[0]),
+        obj => obj.type == ApplicationCommandOptionTypes.SUB_COMMAND && [obj.name, obj.name_default].includes(sub[0]),
       );
-      if (!subCommand)
-        throw new Error('SLASH_COMMAND_SUB_COMMAND_INVALID', sub[0]);
+      if (!subCommand) throw new Error('SLASH_COMMAND_SUB_COMMAND_INVALID', sub[0]);
       // Options
       optionsMaxdepth = subCommand.options;
     } else {
       optionsMaxdepth = command.options;
     }
-    const valueRequired =
-      optionsMaxdepth?.filter((o) => o.required).length || 0;
-    for (
-      let i = 0;
-      i < Math.min(args.length, optionsMaxdepth?.length || 0);
-      i++
-    ) {
+    const valueRequired = optionsMaxdepth?.filter(o => o.required).length || 0;
+    for (let i = 0; i < Math.min(args.length, optionsMaxdepth?.length || 0); i++) {
       const optionInput = optionsMaxdepth[i];
       const value = args[i];
       const parseData = await parseOption(
@@ -365,11 +333,7 @@ class TextBasedChannel {
       attachments = parseData.attachments;
     }
     if (valueRequired > args.length) {
-      throw new Error(
-        'SLASH_COMMAND_REQUIRED_OPTIONS_MISSING',
-        valueRequired,
-        optionFormat.length,
-      );
+      throw new Error('SLASH_COMMAND_REQUIRED_OPTIONS_MISSING', valueRequired, optionFormat.length);
     }
     // Post
     let postData;
@@ -430,6 +394,32 @@ class TextBasedChannel {
    */
   sendTyping() {
     return this.client.api.channels(this.id).typing.post();
+  }
+
+  /**
+   * Simulates typing in the channel for a duration based on the content length.
+   * @param {string} content The content to simulate typing for
+   * @returns {Promise<void>} Resolves after the typing duration
+   * @example
+   * // Simulate typing for a message
+   * await channel.simulateTyping('Hello world!');
+   * channel.send('Hello world!');
+   */
+  async simulateTyping(content) {
+    if (!content || typeof content !== 'string') return;
+
+    // Average typing speed: ~300 characters per minute (50-60 WPM)
+    const charPerMinute = 300;
+    const msPerChar = 60000 / charPerMinute;
+    const duration = content.length * msPerChar;
+
+    // Add some randomness (+- 20%) to make it look more natural
+    const variance = duration * 0.2;
+    const finalDuration = Math.max(1000, duration + (Math.random() * variance * 2 - variance)); // Minimum 1 second
+
+    await this.sendTyping();
+    // Cap the waiting time at 10 seconds (Discord typing status timeout)
+    await new Promise(r => setTimeout(r, Math.min(finalDuration, 10000)));
   }
 
   /**
@@ -538,7 +528,7 @@ class TextBasedChannel {
   }
 
   static applyToClass(structure, full = false, ignore = []) {
-    const props = ['send'];
+    const props = ['send', 'simulateTyping'];
     if (full) {
       props.push(
         'sendSlash',
@@ -576,9 +566,7 @@ const MessageManager = require('../../managers/MessageManager');
 function parseChoices(parent, list_choices, value) {
   if (value !== undefined) {
     if (Array.isArray(list_choices) && list_choices.length) {
-      const choice = list_choices.find((c) =>
-        [c.name, c.value].includes(value),
-      );
+      const choice = list_choices.find(c => [c.name, c.value].includes(value));
       if (choice) {
         return choice.value;
       } else {
@@ -595,9 +583,7 @@ function parseChoices(parent, list_choices, value) {
 async function addDataFromAttachment(value, client, channelId, attachments) {
   value = await MessagePayload.resolveFile(value);
   if (!value?.file) {
-    throw new TypeError(
-      'The attachment data must be a BufferResolvable or Stream or FileOptions of MessageAttachment',
-    );
+    throw new TypeError('The attachment data must be a BufferResolvable or Stream or FileOptions of MessageAttachment');
   }
   const data = await Util.getUploadURL(client, channelId, [value]);
   await Util.uploadFile(value.file, data[0].upload_url);
@@ -644,12 +630,7 @@ async function parseOption(
       }
       case ApplicationCommandOptionTypes.ATTACHMENT:
       case 'ATTACHMENT': {
-        const parseData = await addDataFromAttachment(
-          value,
-          client,
-          channelId,
-          attachments,
-        );
+        const parseData = await addDataFromAttachment(value, client, channelId, attachments);
         data.value = parseData.id;
         attachments = parseData.attachments;
         break;
@@ -743,8 +724,8 @@ async function parseOption(
 }
 
 function awaitAutocomplete(client, nonce, defaultValue) {
-  return new Promise((resolve) => {
-    const handler = (data) => {
+  return new Promise(resolve => {
+    const handler = data => {
       if (data.t !== 'APPLICATION_COMMAND_AUTOCOMPLETE_RESPONSE') return;
       if (data.d?.nonce !== nonce) return;
       clearTimeout(timeout);
@@ -782,9 +763,7 @@ function createPostData(
   attachments = [],
 ) {
   const data = {
-    type: isAutocomplete
-      ? InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE
-      : InteractionTypes.APPLICATION_COMMAND,
+    type: isAutocomplete ? InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE : InteractionTypes.APPLICATION_COMMAND,
     application_id: applicationId,
     guild_id: guildId,
     channel_id: channelId,

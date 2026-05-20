@@ -87,10 +87,7 @@ class GuildChannel extends Channel {
 
   _clone() {
     const clone = super._clone();
-    clone.permissionOverwrites = new PermissionOverwriteManager(
-      clone,
-      this.permissionOverwrites.cache.values(),
-    );
+    clone.permissionOverwrites = new PermissionOverwriteManager(clone, this.permissionOverwrites.cache.values());
     return clone;
   }
 
@@ -118,7 +115,7 @@ class GuildChannel extends Channel {
     ]);
 
     // Compare all overwrites
-    return [...overwriteIds].every((key) => {
+    return [...overwriteIds].every(key => {
       const channelVal = this.permissionOverwrites.cache.get(key);
       const parentVal = this.parent.permissionOverwrites.cache.get(key);
 
@@ -214,11 +211,10 @@ class GuildChannel extends Channel {
    * @private
    */
   memberPermissions(member, checkAdmin) {
-    if (checkAdmin && member.id === this.guild.ownerId)
-      return new Permissions(Permissions.ALL).freeze();
+    if (checkAdmin && member.id === this.guild.ownerId) return new Permissions(Permissions.ALL).freeze();
 
     const roles = member.roles.cache;
-    const permissions = new Permissions(roles.map((role) => role.permissions));
+    const permissions = new Permissions(roles.map(role => role.permissions));
 
     if (checkAdmin && permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
       return new Permissions(Permissions.ALL).freeze();
@@ -229,16 +225,8 @@ class GuildChannel extends Channel {
     return permissions
       .remove(overwrites.everyone?.deny ?? Permissions.defaultBit)
       .add(overwrites.everyone?.allow ?? Permissions.defaultBit)
-      .remove(
-        overwrites.roles.length > 0
-          ? overwrites.roles.map((role) => role.deny)
-          : Permissions.defaultBit,
-      )
-      .add(
-        overwrites.roles.length > 0
-          ? overwrites.roles.map((role) => role.allow)
-          : Permissions.defaultBit,
-      )
+      .remove(overwrites.roles.length > 0 ? overwrites.roles.map(role => role.deny) : Permissions.defaultBit)
+      .add(overwrites.roles.length > 0 ? overwrites.roles.map(role => role.allow) : Permissions.defaultBit)
       .remove(overwrites.member?.deny ?? Permissions.defaultBit)
       .add(overwrites.member?.allow ?? Permissions.defaultBit)
       .freeze();
@@ -256,13 +244,8 @@ class GuildChannel extends Channel {
       return new Permissions(Permissions.ALL).freeze();
     }
 
-    const basePermissions = new Permissions([
-      role.permissions,
-      role.guild.roles.everyone.permissions,
-    ]);
-    const everyoneOverwrites = this.permissionOverwrites.cache.get(
-      this.guild.id,
-    );
+    const basePermissions = new Permissions([role.permissions, role.guild.roles.everyone.permissions]);
+    const everyoneOverwrites = this.permissionOverwrites.cache.get(this.guild.id);
     const roleOverwrites = this.permissionOverwrites.cache.get(role.id);
 
     return basePermissions
@@ -279,9 +262,7 @@ class GuildChannel extends Channel {
    */
   async lockPermissions() {
     if (!this.parent) throw new Error('GUILD_CHANNEL_ORPHAN');
-    const permissionOverwrites = this.parent.permissionOverwrites.cache.map(
-      (overwrite) => overwrite.toJSON(),
-    );
+    const permissionOverwrites = this.parent.permissionOverwrites.cache.map(overwrite => overwrite.toJSON());
     return this.edit({ permissionOverwrites });
   }
 
@@ -293,9 +274,7 @@ class GuildChannel extends Channel {
    * @readonly
    */
   get members() {
-    return this.guild.members.cache.filter((m) =>
-      this.permissionsFor(m).has(Permissions.FLAGS.VIEW_CHANNEL, false),
-    );
+    return this.guild.members.cache.filter(m => this.permissionsFor(m).has(Permissions.FLAGS.VIEW_CHANNEL, false));
   }
 
   /**
@@ -422,9 +401,7 @@ class GuildChannel extends Channel {
 
     if (equal) {
       if (this.permissionOverwrites && channel.permissionOverwrites) {
-        equal = this.permissionOverwrites.cache.equals(
-          channel.permissionOverwrites.cache,
-        );
+        equal = this.permissionOverwrites.cache.equals(channel.permissionOverwrites.cache);
       } else {
         equal = !this.permissionOverwrites && !channel.permissionOverwrites;
       }
@@ -439,11 +416,7 @@ class GuildChannel extends Channel {
    * @readonly
    */
   get deletable() {
-    return (
-      this.manageable &&
-      this.guild.rulesChannelId !== this.id &&
-      this.guild.publicUpdatesChannelId !== this.id
-    );
+    return this.manageable && this.guild.rulesChannelId !== this.id && this.guild.publicUpdatesChannelId !== this.id;
   }
 
   /**
@@ -458,8 +431,7 @@ class GuildChannel extends Channel {
 
     // This flag allows managing even if timed out
     if (permissions.has(Permissions.FLAGS.ADMINISTRATOR, false)) return true;
-    if (this.guild.members.me.communicationDisabledUntilTimestamp > Date.now())
-      return false;
+    if (this.guild.members.me.communicationDisabledUntilTimestamp > Date.now()) return false;
 
     const bitfield = VoiceBasedChannelTypes.includes(this.type)
       ? Permissions.FLAGS.MANAGE_CHANNELS | Permissions.FLAGS.CONNECT

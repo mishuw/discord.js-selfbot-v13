@@ -7,13 +7,7 @@ const DiscordAPIError = require('./DiscordAPIError');
 const HTTPError = require('./HTTPError');
 const RateLimitError = require('./RateLimitError');
 const {
-  Events: {
-    DEBUG,
-    RATE_LIMIT,
-    INVALID_REQUEST_WARNING,
-    API_RESPONSE,
-    API_REQUEST,
-  },
+  Events: { DEBUG, RATE_LIMIT, INVALID_REQUEST_WARNING, API_RESPONSE, API_REQUEST },
 } = require('../util/Constants');
 
 const captchaMessage = [
@@ -29,8 +23,7 @@ const captchaMessage = [
 ];
 
 function parseResponse(res) {
-  if (res.headers.get('content-type')?.startsWith('application/json'))
-    return res.json();
+  if (res.headers.get('content-type')?.startsWith('application/json')) return res.json();
   return res.arrayBuffer();
 }
 
@@ -44,13 +37,6 @@ function calculateReset(reset, resetAfter, serverDate) {
     return Date.now() + Number(resetAfter) * 1_000;
   }
   return new Date(Number(reset) * 1_000).getTime() - getAPIOffset(serverDate);
-}
-
-function calculateRetryDelay(retryCount, random = Math.random) {
-  const base = 250;
-  const max = 5_000;
-  const exponential = Math.min(max, base * 2 ** Math.max(0, retryCount - 1));
-  return exponential + Math.floor(random() * base);
 }
 
 /* Invalid request limiting is done on a per-IP basis, not a per-token basis.
@@ -81,9 +67,7 @@ class RequestHandler {
   }
 
   get globalLimited() {
-    return (
-      this.manager.globalRemaining <= 0 && Date.now() < this.manager.globalReset
-    );
+    return this.manager.globalRemaining <= 0 && Date.now() < this.manager.globalReset;
   }
 
   get localLimited() {
@@ -99,7 +83,7 @@ class RequestHandler {
   }
 
   globalDelayFor(ms) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       setTimeout(() => {
         this.manager.globalDelay = null;
         resolve();
@@ -125,9 +109,7 @@ class RequestHandler {
     const shouldThrow =
       typeof options.rejectOnRateLimit === 'function'
         ? await options.rejectOnRateLimit(rateLimitData)
-        : options.rejectOnRateLimit.some((route) =>
-            rateLimitData.route.startsWith(route.toLowerCase()),
-          );
+        : options.rejectOnRateLimit.some(route => rateLimitData.route.startsWith(route.toLowerCase()));
     if (shouldThrow) {
       throw new RateLimitError(rateLimitData);
     }
@@ -145,15 +127,11 @@ class RequestHandler {
       if (isGlobal) {
         // Set the variables based on the global rate limit
         limit = this.manager.globalLimit;
-        timeout =
-          this.manager.globalReset +
-          this.manager.client.options.restTimeOffset -
-          Date.now();
+        timeout = this.manager.globalReset + this.manager.client.options.restTimeOffset - Date.now();
       } else {
         // Set the variables based on the route-specific rate limit
         limit = this.limit;
-        timeout =
-          this.reset + this.manager.client.options.restTimeOffset - Date.now();
+        timeout = this.reset + this.manager.client.options.restTimeOffset - Date.now();
       }
 
       if (this.manager.client.listenerCount(RATE_LIMIT)) {
@@ -232,21 +210,10 @@ class RequestHandler {
     } catch (error) {
       // Retry the specified number of times for request abortions
       if (request.retries === this.manager.client.options.retryLimit) {
-        throw new HTTPError(
-          error.message,
-          error.constructor.name,
-          error.status,
-          request,
-        );
+        throw new HTTPError(error.message, error.constructor.name, error.status, request);
       }
 
       request.retries++;
-      const delay = calculateRetryDelay(request.retries);
-      this.manager.client.emit(
-        DEBUG,
-        `[Request Handler] Retrying failed request after ${delay}ms.\n  Method : ${request.method}\n  Path   : ${request.path}\n  Route  : ${request.route}\n  Retry  : ${request.retries}`,
-      );
-      await sleep(delay);
       return this.execute(request);
     }
 
@@ -283,15 +250,11 @@ class RequestHandler {
       this.limit = limit ? Number(limit) : Infinity;
       this.remaining = remaining ? Number(remaining) : 1;
 
-      this.reset =
-        reset || resetAfter
-          ? calculateReset(reset, resetAfter, serverDate)
-          : Date.now();
+      this.reset = reset || resetAfter ? calculateReset(reset, resetAfter, serverDate) : Date.now();
 
       // https://github.com/discord/discord-api-docs/issues/182
       if (!resetAfter && request.route.includes('reactions')) {
-        this.reset =
-          new Date(serverDate).getTime() - getAPIOffset(serverDate) + 250;
+        this.reset = new Date(serverDate).getTime() - getAPIOffset(serverDate) + 250;
       }
 
       // Handle retryAfter, which means we have actually hit a rate limit
@@ -324,9 +287,7 @@ class RequestHandler {
       const emitInvalid =
         this.manager.client.listenerCount(INVALID_REQUEST_WARNING) &&
         this.manager.client.options.invalidRequestWarningInterval > 0 &&
-        invalidCount %
-          this.manager.client.options.invalidRequestWarningInterval ===
-          0;
+        invalidCount % this.manager.client.options.invalidRequestWarningInterval === 0;
       if (emitInvalid) {
         /**
          * @typedef {Object} InvalidRequestWarningData
@@ -362,17 +323,11 @@ class RequestHandler {
         if (isGlobal) {
           // Set the variables based on the global rate limit
           limit = this.manager.globalLimit;
-          timeout =
-            this.manager.globalReset +
-            this.manager.client.options.restTimeOffset -
-            Date.now();
+          timeout = this.manager.globalReset + this.manager.client.options.restTimeOffset - Date.now();
         } else {
           // Set the variables based on the route-specific rate limit
           limit = this.limit;
-          timeout =
-            this.reset +
-            this.manager.client.options.restTimeOffset -
-            Date.now();
+          timeout = this.reset + this.manager.client.options.restTimeOffset - Date.now();
         }
 
         this.manager.client.emit(
@@ -405,7 +360,7 @@ class RequestHandler {
           data?.captcha_service &&
           typeof this.manager.client.options.captchaSolver == 'function' &&
           request.retries < this.manager.client.options.captchaRetryLimit &&
-          captchaMessage.some((s) => data.captcha_key[0].includes(s))
+          captchaMessage.some(s => data.captcha_key[0].includes(s))
         ) {
           // Retry the request after a captcha is solved
           this.manager.client.emit(
@@ -417,10 +372,7 @@ class RequestHandler {
     Sitekey : ${data.captcha_sitekey}
     rqToken : ${data.captcha_rqtoken}`,
           );
-          const captcha = await this.manager.client.options.captchaSolver(
-            data,
-            request.fullUserAgent,
-          );
+          const captcha = await this.manager.client.options.captchaSolver(data, request.fullUserAgent);
           this.manager.client.emit(
             DEBUG,
             `[Request Handler] Captcha details:
@@ -434,12 +386,7 @@ class RequestHandler {
           return this.execute(request, captcha, data.captcha_rqtoken);
         }
         // Two factor handling
-        if (
-          data?.code &&
-          data.code == 60003 &&
-          request.options.auth !== false &&
-          request.retries < 1
-        ) {
+        if (data?.code && data.code == 60003 && request.options.auth !== false && request.retries < 1) {
           // https://gist.github.com/Dziurwa14/de2498e5ee28d2089f095aa037957cbb
           // 60003: Two factor is required for this operation
           /**
@@ -456,13 +403,11 @@ class RequestHandler {
            * };
            */
           if (
-            data.mfa.methods.find((o) => o.type === 'totp') &&
+            data.mfa.methods.find(o => o.type === 'totp') &&
             typeof this.manager.client.options.TOTPKey === 'string'
           ) {
             // Get mfa code
-            const otp = this.manager.client.authenticator.generate(
-              this.manager.client.options.TOTPKey,
-            );
+            const otp = this.manager.client.authenticator.generate(this.manager.client.options.TOTPKey);
             this.manager.client.emit(
               DEBUG,
               `[Request Handler] ${data.message}
@@ -486,12 +431,7 @@ class RequestHandler {
           }
         }
       } catch (err) {
-        throw new HTTPError(
-          err.message,
-          err.constructor.name,
-          err.status,
-          request,
-        );
+        throw new HTTPError(err.message, err.constructor.name, err.status, request);
       }
 
       throw new DiscordAPIError(data, res.status, request);
@@ -501,21 +441,10 @@ class RequestHandler {
     if (res.status >= 500 && res.status < 600) {
       // Retry the specified number of times for possible serverside issues
       if (request.retries === this.manager.client.options.retryLimit) {
-        throw new HTTPError(
-          res.statusText,
-          res.constructor.name,
-          res.status,
-          request,
-        );
+        throw new HTTPError(res.statusText, res.constructor.name, res.status, request);
       }
 
       request.retries++;
-      const delay = calculateRetryDelay(request.retries);
-      this.manager.client.emit(
-        DEBUG,
-        `[Request Handler] Retrying server error after ${delay}ms.\n  Method : ${request.method}\n  Path   : ${request.path}\n  Route  : ${request.route}\n  Status : ${res.status}\n  Retry  : ${request.retries}`,
-      );
-      await sleep(delay);
       return this.execute(request);
     }
 
@@ -525,7 +454,6 @@ class RequestHandler {
 }
 
 module.exports = RequestHandler;
-module.exports.calculateRetryDelay = calculateRetryDelay;
 
 /**
  * @external HTTPMethod

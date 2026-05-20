@@ -74,9 +74,7 @@ class TextInputComponent extends BaseMessageComponent {
      * The style of this text input component
      * @type {?TextInputStyle}
      */
-    this.style = data.style
-      ? TextInputComponent.resolveStyle(data.style)
-      : null;
+    this.style = data.style ? TextInputComponent.resolveStyle(data.style) : null;
 
     /**
      * Value of this text input component

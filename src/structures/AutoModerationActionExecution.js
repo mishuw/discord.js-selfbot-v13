@@ -29,8 +29,7 @@ class AutoModerationActionExecution {
      * The trigger type of the auto moderation rule which was triggered.
      * @type {AutoModerationRuleTriggerType}
      */
-    this.ruleTriggerType =
-      AutoModerationRuleTriggerTypes[data.rule_trigger_type];
+    this.ruleTriggerType = AutoModerationRuleTriggerTypes[data.rule_trigger_type];
 
     /**
      * The id of the user that triggered this action.

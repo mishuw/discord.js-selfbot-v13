@@ -19,11 +19,7 @@ class GuildScheduledEventUserRemoveAction extends Action {
          * @param {GuildScheduledEvent} guildScheduledEvent The guild scheduled event
          * @param {User} user The user who unsubscribed
          */
-        client.emit(
-          Events.GUILD_SCHEDULED_EVENT_USER_REMOVE,
-          guildScheduledEvent,
-          user,
-        );
+        client.emit(Events.GUILD_SCHEDULED_EVENT_USER_REMOVE, guildScheduledEvent, user);
 
         return { guildScheduledEvent, user };
       }

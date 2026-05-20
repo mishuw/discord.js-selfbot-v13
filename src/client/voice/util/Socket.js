@@ -52,11 +52,11 @@ class UnixStream {
 }
 
 function StreamInput(stream) {
-  return new UnixStream(stream, (socket) => stream.pipe(socket));
+  return new UnixStream(stream, socket => stream.pipe(socket));
 }
 
 function StreamOutput(stream) {
-  return new UnixStream(stream, (socket) => socket.pipe(stream));
+  return new UnixStream(stream, socket => socket.pipe(stream));
 }
 
 module.exports = { StreamOutput, StreamInput, UnixStream };

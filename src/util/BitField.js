@@ -23,10 +23,7 @@ class BitField {
    * @returns {boolean}
    */
   any(bit) {
-    return (
-      (this.bitfield & this.constructor.resolve(bit)) !==
-      this.constructor.defaultBit
-    );
+    return (this.bitfield & this.constructor.resolve(bit)) !== this.constructor.defaultBit;
   }
 
   /**
@@ -76,8 +73,7 @@ class BitField {
     for (const bit of bits) {
       total |= this.constructor.resolve(bit);
     }
-    if (Object.isFrozen(this))
-      return new this.constructor(this.bitfield | total);
+    if (Object.isFrozen(this)) return new this.constructor(this.bitfield | total);
     this.bitfield |= total;
     return this;
   }
@@ -92,8 +88,7 @@ class BitField {
     for (const bit of bits) {
       total |= this.constructor.resolve(bit);
     }
-    if (Object.isFrozen(this))
-      return new this.constructor(this.bitfield & ~total);
+    if (Object.isFrozen(this)) return new this.constructor(this.bitfield & ~total);
     this.bitfield &= ~total;
     return this;
   }
@@ -106,8 +101,7 @@ class BitField {
    */
   serialize(...hasParams) {
     const serialized = {};
-    for (const [flag, bit] of Object.entries(this.constructor.FLAGS))
-      serialized[flag] = this.has(bit, ...hasParams);
+    for (const [flag, bit] of Object.entries(this.constructor.FLAGS)) serialized[flag] = this.has(bit, ...hasParams);
     return serialized;
   }
 
@@ -117,15 +111,11 @@ class BitField {
    * @returns {string[]}
    */
   toArray(...hasParams) {
-    return Object.keys(this.constructor.FLAGS).filter((bit) =>
-      this.has(bit, ...hasParams),
-    );
+    return Object.keys(this.constructor.FLAGS).filter(bit => this.has(bit, ...hasParams));
   }
 
   toJSON() {
-    return typeof this.bitfield === 'number'
-      ? this.bitfield
-      : this.bitfield.toString();
+    return typeof this.bitfield === 'number' ? this.bitfield : this.bitfield.toString();
   }
 
   valueOf() {
@@ -154,13 +144,9 @@ class BitField {
     const { defaultBit } = this;
     if (typeof defaultBit === typeof bit && bit >= defaultBit) return bit;
     if (bit instanceof BitField) return bit.bitfield;
-    if (Array.isArray(bit))
-      return bit
-        .map((p) => this.resolve(p))
-        .reduce((prev, p) => prev | p, defaultBit);
+    if (Array.isArray(bit)) return bit.map(p => this.resolve(p)).reduce((prev, p) => prev | p, defaultBit);
     if (typeof bit === 'string') {
-      if (!isNaN(bit))
-        return typeof defaultBit === 'bigint' ? BigInt(bit) : Number(bit);
+      if (!isNaN(bit)) return typeof defaultBit === 'bigint' ? BigInt(bit) : Number(bit);
       if (this.FLAGS[bit] !== undefined) return this.FLAGS[bit];
     }
     throw new RangeError('BITFIELD_INVALID', bit);

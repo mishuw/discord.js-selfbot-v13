@@ -3,10 +3,7 @@
 const { Collection } = require('@discordjs/collection');
 const Collector = require('./interfaces/Collector');
 const { Events } = require('../util/Constants');
-const {
-  InteractionTypes,
-  MessageComponentTypes,
-} = require('../util/Constants');
+const { InteractionTypes, MessageComponentTypes } = require('../util/Constants');
 
 /**
  * @typedef {CollectorOptions} InteractionCollectorOptions
@@ -70,7 +67,7 @@ class InteractionCollector extends Collector {
     this.interactionType =
       typeof options.interactionType === 'number'
         ? InteractionTypes[options.interactionType]
-        : (options.interactionType ?? null);
+        : options.interactionType ?? null;
 
     /**
      * The type of component to collect
@@ -79,7 +76,7 @@ class InteractionCollector extends Collector {
     this.componentType =
       typeof options.componentType === 'number'
         ? MessageComponentTypes[options.componentType]
-        : (options.componentType ?? null);
+        : options.componentType ?? null;
 
     /**
      * The users that have interacted with this collector
@@ -96,7 +93,7 @@ class InteractionCollector extends Collector {
     this.empty = this.empty.bind(this);
     this.client.incrementMaxListeners();
 
-    const bulkDeleteListener = (messages) => {
+    const bulkDeleteListener = messages => {
       if (messages.has(this.messageId)) this.stop('messageDelete');
     };
 
@@ -122,30 +119,15 @@ class InteractionCollector extends Collector {
 
     this.once('end', () => {
       this.client.removeListener(Events.INTERACTION_CREATE, this.handleCollect);
-      this.client.removeListener(
-        Events.MESSAGE_DELETE,
-        this._handleMessageDeletion,
-      );
-      this.client.removeListener(
-        Events.MESSAGE_BULK_DELETE,
-        bulkDeleteListener,
-      );
-      this.client.removeListener(
-        Events.CHANNEL_DELETE,
-        this._handleChannelDeletion,
-      );
-      this.client.removeListener(
-        Events.THREAD_DELETE,
-        this._handleThreadDeletion,
-      );
-      this.client.removeListener(
-        Events.GUILD_DELETE,
-        this._handleGuildDeletion,
-      );
+      this.client.removeListener(Events.MESSAGE_DELETE, this._handleMessageDeletion);
+      this.client.removeListener(Events.MESSAGE_BULK_DELETE, bulkDeleteListener);
+      this.client.removeListener(Events.CHANNEL_DELETE, this._handleChannelDeletion);
+      this.client.removeListener(Events.THREAD_DELETE, this._handleThreadDeletion);
+      this.client.removeListener(Events.GUILD_DELETE, this._handleGuildDeletion);
       this.client.decrementMaxListeners();
     });
 
-    this.on('collect', (interaction) => {
+    this.on('collect', interaction => {
       this.total++;
       this.users.set(interaction.user.id, interaction.user);
     });
@@ -163,12 +145,9 @@ class InteractionCollector extends Collector {
      * @event InteractionCollector#collect
      * @param {Interaction} interaction The interaction that was collected
      */
-    if (this.interactionType && interaction.type !== this.interactionType)
-      return null;
-    if (this.componentType && interaction.componentType !== this.componentType)
-      return null;
-    if (this.messageId && interaction.message?.id !== this.messageId)
-      return null;
+    if (this.interactionType && interaction.type !== this.interactionType) return null;
+    if (this.componentType && interaction.componentType !== this.componentType) return null;
+    if (this.messageId && interaction.message?.id !== this.messageId) return null;
     if (this.channelId && interaction.channelId !== this.channelId) return null;
     if (this.guildId && interaction.guildId !== this.guildId) return null;
 
@@ -187,10 +166,8 @@ class InteractionCollector extends Collector {
      * @param {Interaction} interaction The interaction that was disposed of
      */
     if (this.type && interaction.type !== this.type) return null;
-    if (this.componentType && interaction.componentType !== this.componentType)
-      return null;
-    if (this.messageId && interaction.message?.id !== this.messageId)
-      return null;
+    if (this.componentType && interaction.componentType !== this.componentType) return null;
+    if (this.messageId && interaction.message?.id !== this.messageId) return null;
     if (this.channelId && interaction.channelId !== this.channelId) return null;
     if (this.guildId && interaction.guildId !== this.guildId) return null;
 
@@ -214,13 +191,8 @@ class InteractionCollector extends Collector {
    */
   get endReason() {
     if (this.options.max && this.total >= this.options.max) return 'limit';
-    if (
-      this.options.maxComponents &&
-      this.collected.size >= this.options.maxComponents
-    )
-      return 'componentLimit';
-    if (this.options.maxUsers && this.users.size >= this.options.maxUsers)
-      return 'userLimit';
+    if (this.options.maxComponents && this.collected.size >= this.options.maxComponents) return 'componentLimit';
+    if (this.options.maxUsers && this.users.size >= this.options.maxUsers) return 'userLimit';
     return null;
   }
 
@@ -243,10 +215,7 @@ class InteractionCollector extends Collector {
    * @returns {void}
    */
   _handleChannelDeletion(channel) {
-    if (
-      channel.id === this.channelId ||
-      channel.threads?.cache.has(this.channelId)
-    ) {
+    if (channel.id === this.channelId || channel.threads?.cache.has(this.channelId)) {
       this.stop('channelDelete');
     }
   }

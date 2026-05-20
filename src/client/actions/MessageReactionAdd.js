@@ -35,9 +35,7 @@ class MessageReactionAdd extends Action {
     if (!message) return false;
 
     // Verify reaction
-    const includePartial = this.client.options.partials.includes(
-      PartialTypes.REACTION,
-    );
+    const includePartial = this.client.options.partials.includes(PartialTypes.REACTION);
     if (message.partial && !includePartial) return false;
     const reaction = message.reactions._add({
       emoji: data.emoji,
@@ -61,10 +59,7 @@ class MessageReactionAdd extends Action {
      * @param {User} user The user that applied the guild or reaction emoji
      * @param {MessageReactionEventDetails} details Details of adding the reaction
      */
-    this.client.emit(Events.MESSAGE_REACTION_ADD, reaction, user, {
-      type: data.type,
-      burst: data.burst,
-    });
+    this.client.emit(Events.MESSAGE_REACTION_ADD, reaction, user, { type: data.type, burst: data.burst });
 
     return { message, reaction, user };
   }

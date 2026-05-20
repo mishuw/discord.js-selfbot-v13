@@ -97,7 +97,7 @@ class DiscordAuthWebsocket extends EventEmitter {
   }
 
   #handleWebSocket() {
-    this.#ws.on('error', (error) => {
+    this.#ws.on('error', error => {
       /**
        * WS Error
        * @event DiscordAuthWebsocket#error
@@ -274,8 +274,8 @@ class DiscordAuthWebsocket extends EventEmitter {
   }
 
   #awaitLogin(client) {
-    return new Promise((r) => {
-      this.once(Event.FINISH, (token) => {
+    return new Promise(r => {
+      this.once(Event.FINISH, token => {
         r(client.login(token));
       });
     });
@@ -316,16 +316,12 @@ class DiscordAuthWebsocket extends EventEmitter {
    */
   generateQR() {
     if (!this.#fingerprint) return;
-    require('qrcode').toString(
-      this.AuthURL,
-      { type: 'utf8', errorCorrectionLevel: 'L' },
-      (err, url) => {
-        if (err) {
-          //
-        }
-        console.log(url);
-      },
-    );
+    require('qrcode').toString(this.AuthURL, { type: 'utf8', errorCorrectionLevel: 'L' }, (err, url) => {
+      if (err) {
+        //
+      }
+      console.log(url);
+    });
   }
 
   #findRealToken() {
@@ -339,10 +335,9 @@ class DiscordAuthWebsocket extends EventEmitter {
         'Sec-Fetch-Mode': 'cors',
         'Sec-Fetch-Site': 'same-origin',
         'X-Debug-Options': 'bugReporterEnabled',
-        'X-Super-Properties': `${Buffer.from(
-          JSON.stringify(defaultClientOptions.ws.properties),
-          'ascii',
-        ).toString('base64')}`,
+        'X-Super-Properties': `${Buffer.from(JSON.stringify(defaultClientOptions.ws.properties), 'ascii').toString(
+          'base64',
+        )}`,
         'X-Discord-Locale': 'en-US',
         'User-Agent': UserAgent,
         Referer: 'https://discord.com/channels/@me',
@@ -353,8 +348,8 @@ class DiscordAuthWebsocket extends EventEmitter {
         ticket: this.#ticket,
       }),
     })
-      .then((r) => r.json())
-      .then((res) => {
+      .then(r => r.json())
+      .then(res => {
         if (res.encrypted_token) {
           this.token = this.#decryptPayload(res.encrypted_token).toString();
         }

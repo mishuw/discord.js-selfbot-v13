@@ -6,17 +6,11 @@ const { Events } = require('../../util/Constants');
 
 class TypingStart extends Action {
   handle(data) {
-    const channel = this.getChannel({
-      id: data.channel_id,
-      ...('guild_id' in data && { guild_id: data.guild_id }),
-    });
+    const channel = this.getChannel({ id: data.channel_id, ...('guild_id' in data && { guild_id: data.guild_id }) });
     if (!channel) return;
 
     if (!channel.isText()) {
-      this.client.emit(
-        Events.WARN,
-        `Discord sent a typing packet to a ${channel.type} channel ${channel.id}`,
-      );
+      this.client.emit(Events.WARN, `Discord sent a typing packet to a ${channel.type} channel ${channel.id}`);
       return;
     }
 

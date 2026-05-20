@@ -14,11 +14,7 @@ let DirectoryChannel;
 let ForumChannel;
 let MediaChannel;
 const ChannelFlags = require('../util/ChannelFlags');
-const {
-  ChannelTypes,
-  ThreadChannelTypes,
-  VoiceBasedChannelTypes,
-} = require('../util/Constants');
+const { ChannelTypes, ThreadChannelTypes, VoiceBasedChannelTypes } = require('../util/Constants');
 const SnowflakeUtil = require('../util/SnowflakeUtil');
 
 /**
@@ -213,10 +209,7 @@ class Channel extends Base {
 
     let channel;
     if (!data.guild_id && !guild) {
-      if (
-        (data.recipients && data.type !== ChannelTypes.GROUP_DM) ||
-        data.type === ChannelTypes.DM
-      ) {
+      if ((data.recipients && data.type !== ChannelTypes.GROUP_DM) || data.type === ChannelTypes.DM) {
         channel = new DMChannel(client, data);
       } else if (data.type === ChannelTypes.GROUP_DM) {
         const GroupDMChannel = require('./GroupDMChannel');
@@ -255,8 +248,7 @@ class Channel extends Base {
           case ChannelTypes.GUILD_PUBLIC_THREAD:
           case ChannelTypes.GUILD_PRIVATE_THREAD: {
             channel = new ThreadChannel(guild, data, client);
-            if (!allowUnknownGuild)
-              channel.parent?.threads.cache.set(channel.id, channel);
+            if (!allowUnknownGuild) channel.parent?.threads.cache.set(channel.id, channel);
             break;
           }
 
@@ -272,8 +264,7 @@ class Channel extends Base {
             channel = new MediaChannel(guild, data, client);
             break;
         }
-        if (channel && !allowUnknownGuild)
-          guild.channels?.cache.set(channel.id, channel);
+        if (channel && !allowUnknownGuild) guild.channels?.cache.set(channel.id, channel);
       }
     }
     return channel;

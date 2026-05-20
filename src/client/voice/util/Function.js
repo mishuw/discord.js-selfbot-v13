@@ -41,7 +41,7 @@ async function randomPort(protocol = 'udp4', interfaceAddresses) {
   });
 
   const port = socket.address()?.port;
-  await new Promise((resolve) => socket.close(resolve));
+  await new Promise(resolve => socket.close(resolve));
   return port;
 }
 
@@ -53,11 +53,7 @@ async function randomPort(protocol = 'udp4', interfaceAddresses) {
  * @returns {Promise<number[]>} An array of assigned random ports.
  */
 async function randomPorts(num, protocol = 'udp4', interfaceAddresses) {
-  return Promise.all(
-    Array.from({ length: num }).map(() =>
-      randomPort(protocol, interfaceAddresses),
-    ),
-  );
+  return Promise.all(Array.from({ length: num }).map(() => randomPort(protocol, interfaceAddresses)));
 }
 
 /**
@@ -82,12 +78,12 @@ async function findPort(min, max, protocol = 'udp4', interfaceAddresses) {
       }),
     );
 
-    const error = await new Promise((resolve) => {
+    const error = await new Promise(resolve => {
       socket.once('error', resolve);
       socket.once('listening', () => resolve(null));
     });
 
-    await new Promise((resolve) => socket.close(resolve));
+    await new Promise(resolve => socket.close(resolve));
 
     if (error) continue;
 

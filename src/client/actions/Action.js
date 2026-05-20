@@ -38,20 +38,14 @@ class GenericAction {
     if (!('recipients' in data)) {
       // Try to resolve the recipient, but do not add the client user.
       const recipient = data.author ?? data.user ?? { id: data.user_id };
-      if (recipient.id !== this.client.user.id)
-        payloadData.recipients = [recipient];
+      if (recipient.id !== this.client.user.id) payloadData.recipients = [recipient];
     }
 
     if (id !== undefined) payloadData.id = id;
 
     return (
       data[this.client.actions.injectedChannel] ??
-      this.getPayload(
-        { ...data, ...payloadData },
-        this.client.channels,
-        id,
-        PartialTypes.CHANNEL,
-      )
+      this.getPayload({ ...data, ...payloadData }, this.client.channels, id, PartialTypes.CHANNEL)
     );
   }
 
@@ -88,20 +82,12 @@ class GenericAction {
   }
 
   getMember(data, guild) {
-    return this.getPayload(
-      data,
-      guild.members,
-      data.user.id,
-      PartialTypes.GUILD_MEMBER,
-    );
+    return this.getPayload(data, guild.members, data.user.id, PartialTypes.GUILD_MEMBER);
   }
 
   getUser(data) {
     const id = data.user_id;
-    return (
-      data[this.client.actions.injectedUser] ??
-      this.getPayload({ id }, this.client.users, id, PartialTypes.USER)
-    );
+    return data[this.client.actions.injectedUser] ?? this.getPayload({ id }, this.client.users, id, PartialTypes.USER);
   }
 
   getUserFromMember(data) {

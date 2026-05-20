@@ -36,9 +36,7 @@ class MessageComponentInteraction extends Interaction {
      * The type of component which was interacted with
      * @type {string}
      */
-    this.componentType = MessageComponentInteraction.resolveType(
-      data.data.component_type,
-    );
+    this.componentType = MessageComponentInteraction.resolveType(data.data.component_type);
 
     /**
      * Whether the reply to this interaction has been deferred
@@ -62,11 +60,7 @@ class MessageComponentInteraction extends Interaction {
      * An associated interaction webhook, can be used to further interact with this interaction
      * @type {InteractionWebhook}
      */
-    this.webhook = new InteractionWebhook(
-      this.client,
-      this.applicationId,
-      this.token,
-    );
+    this.webhook = new InteractionWebhook(this.client, this.applicationId, this.token);
   }
 
   /**
@@ -83,11 +77,8 @@ class MessageComponentInteraction extends Interaction {
    */
   get component() {
     return this.message.components
-      .flatMap((row) => row.components)
-      .find(
-        (component) =>
-          (component.customId ?? component.custom_id) === this.customId,
-      );
+      .flatMap(row => row.components)
+      .find(component => (component.customId ?? component.custom_id) === this.customId);
   }
 
   /**

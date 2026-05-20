@@ -52,7 +52,7 @@ class ReactionCollector extends Collector {
     this._handleGuildDeletion = this._handleGuildDeletion.bind(this);
     this._handleMessageDeletion = this._handleMessageDeletion.bind(this);
 
-    const bulkDeleteListener = (messages) => {
+    const bulkDeleteListener = messages => {
       if (messages.has(this.message.id)) this.stop('messageDelete');
     };
 
@@ -67,38 +67,14 @@ class ReactionCollector extends Collector {
     this.client.on(Events.GUILD_DELETE, this._handleGuildDeletion);
 
     this.once('end', () => {
-      this.client.removeListener(
-        Events.MESSAGE_REACTION_ADD,
-        this.handleCollect,
-      );
-      this.client.removeListener(
-        Events.MESSAGE_REACTION_REMOVE,
-        this.handleDispose,
-      );
-      this.client.removeListener(
-        Events.MESSAGE_REACTION_REMOVE_ALL,
-        this.empty,
-      );
-      this.client.removeListener(
-        Events.MESSAGE_DELETE,
-        this._handleMessageDeletion,
-      );
-      this.client.removeListener(
-        Events.MESSAGE_BULK_DELETE,
-        bulkDeleteListener,
-      );
-      this.client.removeListener(
-        Events.CHANNEL_DELETE,
-        this._handleChannelDeletion,
-      );
-      this.client.removeListener(
-        Events.THREAD_DELETE,
-        this._handleThreadDeletion,
-      );
-      this.client.removeListener(
-        Events.GUILD_DELETE,
-        this._handleGuildDeletion,
-      );
+      this.client.removeListener(Events.MESSAGE_REACTION_ADD, this.handleCollect);
+      this.client.removeListener(Events.MESSAGE_REACTION_REMOVE, this.handleDispose);
+      this.client.removeListener(Events.MESSAGE_REACTION_REMOVE_ALL, this.empty);
+      this.client.removeListener(Events.MESSAGE_DELETE, this._handleMessageDeletion);
+      this.client.removeListener(Events.MESSAGE_BULK_DELETE, bulkDeleteListener);
+      this.client.removeListener(Events.CHANNEL_DELETE, this._handleChannelDeletion);
+      this.client.removeListener(Events.THREAD_DELETE, this._handleThreadDeletion);
+      this.client.removeListener(Events.GUILD_DELETE, this._handleGuildDeletion);
       this.client.decrementMaxListeners();
     });
 
@@ -120,8 +96,7 @@ class ReactionCollector extends Collector {
 
     this.on('remove', (reaction, user) => {
       this.total--;
-      if (!this.collected.some((r) => r.users.cache.has(user.id)))
-        this.users.delete(user.id);
+      if (!this.collected.some(r => r.users.cache.has(user.id))) this.users.delete(user.id);
     });
   }
 
@@ -165,10 +140,7 @@ class ReactionCollector extends Collector {
      * @param {MessageReaction} reaction The reaction that was removed
      * @param {User} user The user that removed the reaction
      */
-    if (
-      this.collected.has(ReactionCollector.key(reaction)) &&
-      this.users.has(user.id)
-    ) {
+    if (this.collected.has(ReactionCollector.key(reaction)) && this.users.has(user.id)) {
       this.emit('remove', reaction, user);
     }
     return reaction.count ? null : ReactionCollector.key(reaction);
@@ -191,10 +163,8 @@ class ReactionCollector extends Collector {
    */
   get endReason() {
     if (this.options.max && this.total >= this.options.max) return 'limit';
-    if (this.options.maxEmojis && this.collected.size >= this.options.maxEmojis)
-      return 'emojiLimit';
-    if (this.options.maxUsers && this.users.size >= this.options.maxUsers)
-      return 'userLimit';
+    if (this.options.maxEmojis && this.collected.size >= this.options.maxEmojis) return 'emojiLimit';
+    if (this.options.maxUsers && this.users.size >= this.options.maxUsers) return 'userLimit';
     return null;
   }
 
@@ -217,10 +187,7 @@ class ReactionCollector extends Collector {
    * @returns {void}
    */
   _handleChannelDeletion(channel) {
-    if (
-      channel.id === this.message.channelId ||
-      channel.threads?.cache.has(this.message.channelId)
-    ) {
+    if (channel.id === this.message.channelId || channel.threads?.cache.has(this.message.channelId)) {
       this.stop('channelDelete');
     }
   }

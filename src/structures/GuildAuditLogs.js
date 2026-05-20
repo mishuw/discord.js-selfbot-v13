@@ -9,11 +9,7 @@ const Invite = require('./Invite');
 const { StageInstance } = require('./StageInstance');
 const { Sticker } = require('./Sticker');
 const Webhook = require('./Webhook');
-const {
-  OverwriteTypes,
-  PartialTypes,
-  AutoModerationRuleTriggerTypes,
-} = require('../util/Constants');
+const { OverwriteTypes, PartialTypes, AutoModerationRuleTriggerTypes } = require('../util/Constants');
 const SnowflakeUtil = require('../util/SnowflakeUtil');
 const Util = require('../util/Util');
 
@@ -194,11 +190,8 @@ const Actions = {
  */
 class GuildAuditLogs {
   constructor(guild, data) {
-    if (data.users)
-      for (const user of data.users) guild.client.users._add(user);
-    if (data.threads)
-      for (const thread of data.threads)
-        guild.client.channels._add(thread, guild);
+    if (data.users) for (const user of data.users) guild.client.users._add(user);
+    if (data.threads) for (const thread of data.threads) guild.client.channels._add(thread, guild);
     /**
      * Cached webhooks
      * @type {Collection<Snowflake, Webhook>}
@@ -219,10 +212,7 @@ class GuildAuditLogs {
     this.integrations = new Collection();
     if (data.integrations) {
       for (const integration of data.integrations) {
-        this.integrations.set(
-          integration.id,
-          new Integration(guild.client, integration, guild),
-        );
+        this.integrations.set(integration.id, new Integration(guild.client, integration, guild));
       }
     }
 
@@ -234,10 +224,7 @@ class GuildAuditLogs {
     this.applicationCommands = new Collection();
     if (data.application_commands) {
       for (const command of data.application_commands) {
-        this.applicationCommands.set(
-          command.id,
-          new ApplicationCommand(guild.client, command, guild),
-        );
+        this.applicationCommands.set(command.id, new ApplicationCommand(guild.client, command, guild));
       }
     }
     /**
@@ -247,10 +234,7 @@ class GuildAuditLogs {
      */
     this.autoModerationRules = data.auto_moderation_rules.reduce(
       (autoModerationRules, autoModerationRule) =>
-        autoModerationRules.set(
-          autoModerationRule.id,
-          guild.autoModerationRules._add(autoModerationRule),
-        ),
+        autoModerationRules.set(autoModerationRule.id, guild.autoModerationRules._add(autoModerationRule)),
       new Collection(),
     );
 
@@ -271,7 +255,7 @@ class GuildAuditLogs {
    */
   static async build(...args) {
     const logs = new GuildAuditLogs(...args);
-    await Promise.all(logs.entries.map((e) => e.target));
+    await Promise.all(logs.entries.map(e => e.target));
     return logs;
   }
 
@@ -444,9 +428,7 @@ class GuildAuditLogsEntry {
      * Specific action type of this entry in its string presentation
      * @type {AuditLogAction}
      */
-    this.action = Object.keys(Actions).find(
-      (k) => Actions[k] === data.action_type,
-    );
+    this.action = Object.keys(Actions).find(k => Actions[k] === data.action_type);
 
     /**
      * The reason of this entry
@@ -467,7 +449,7 @@ class GuildAuditLogsEntry {
     this.executor = data.user_id
       ? guild.client.options.partials.includes(PartialTypes.USER)
         ? guild.client.users._add({ id: data.user_id })
-        : (guild.client.users.cache.get(data.user_id) ?? null)
+        : guild.client.users.cache.get(data.user_id) ?? null
       : null;
 
     /**
@@ -483,7 +465,7 @@ class GuildAuditLogsEntry {
      * @type {AuditLogChange[]}
      */
     this.changes =
-      data.changes?.map((change) => ({
+      data.changes?.map(change => ({
         key: change.key,
         ...('old_value' in change ? { old: change.old_value } : {}),
         ...('new_value' in change ? { new: change.new_value } : {}),
@@ -511,18 +493,14 @@ class GuildAuditLogsEntry {
       case Actions.MEMBER_MOVE:
       case Actions.MESSAGE_DELETE:
         this.extra = {
-          channel: guild.channels.cache.get(data.options.channel_id) ?? {
-            id: data.options.channel_id,
-          },
+          channel: guild.channels.cache.get(data.options.channel_id) ?? { id: data.options.channel_id },
           count: Number(data.options.count),
         };
         break;
       case Actions.MESSAGE_PIN:
       case Actions.MESSAGE_UNPIN:
         this.extra = {
-          channel: guild.client.channels.cache.get(data.options.channel_id) ?? {
-            id: data.options.channel_id,
-          },
+          channel: guild.client.channels.cache.get(data.options.channel_id) ?? { id: data.options.channel_id },
           messageId: data.options.message_id,
         };
         break;
@@ -562,9 +540,7 @@ class GuildAuditLogsEntry {
       case Actions.STAGE_INSTANCE_DELETE:
       case Actions.STAGE_INSTANCE_UPDATE:
         this.extra = {
-          channel: guild.client.channels.cache.get(
-            data.options?.channel_id,
-          ) ?? { id: data.options?.channel_id },
+          channel: guild.client.channels.cache.get(data.options?.channel_id) ?? { id: data.options?.channel_id },
         };
         break;
       case Actions.APPLICATION_COMMAND_PERMISSION_UPDATE:
@@ -577,13 +553,8 @@ class GuildAuditLogsEntry {
       case Actions.AUTO_MODERATION_USER_COMMUNICATION_DISABLED:
         this.extra = {
           autoModerationRuleName: data.options.auto_moderation_rule_name,
-          autoModerationRuleTriggerType:
-            AutoModerationRuleTriggerTypes[
-              data.options.auto_moderation_rule_trigger_type
-            ],
-          channel: guild.client.channels.cache.get(
-            data.options?.channel_id,
-          ) ?? { id: data.options?.channel_id },
+          autoModerationRuleTriggerType: AutoModerationRuleTriggerTypes[data.options.auto_moderation_rule_trigger_type],
+          channel: guild.client.channels.cache.get(data.options?.channel_id) ?? { id: data.options?.channel_id },
         };
         break;
       default:
@@ -611,7 +582,7 @@ class GuildAuditLogsEntry {
     } else if (targetType === Targets.USER && data.target_id) {
       this.target = guild.client.options.partials.includes(PartialTypes.USER)
         ? guild.client.users._add({ id: data.target_id })
-        : (guild.client.users.cache.get(data.target_id) ?? null);
+        : guild.client.users.cache.get(data.target_id) ?? null;
     } else if (targetType === Targets.GUILD) {
       this.target = guild.client.guilds.cache.get(data.target_id);
     } else if (targetType === Targets.WEBHOOK) {
@@ -631,7 +602,7 @@ class GuildAuditLogsEntry {
           ),
         );
     } else if (targetType === Targets.INVITE) {
-      let change = this.changes.find((c) => c.key === 'code');
+      let change = this.changes.find(c => c.key === 'code');
       change = change.new ?? change.old;
 
       this.target =
@@ -650,8 +621,8 @@ class GuildAuditLogsEntry {
       // Discord sends a channel id for the MESSAGE_BULK_DELETE action type.
       this.target =
         data.action_type === Actions.MESSAGE_BULK_DELETE
-          ? (guild.channels.cache.get(data.target_id) ?? { id: data.target_id })
-          : (guild.client.users.cache.get(data.target_id) ?? null);
+          ? guild.channels.cache.get(data.target_id) ?? { id: data.target_id }
+          : guild.client.users.cache.get(data.target_id) ?? null;
     } else if (targetType === Targets.INTEGRATION) {
       this.target =
         logs?.integrations.get(data.target_id) ??
@@ -666,10 +637,7 @@ class GuildAuditLogsEntry {
           ),
           guild,
         );
-    } else if (
-      targetType === Targets.CHANNEL ||
-      targetType === Targets.THREAD
-    ) {
+    } else if (targetType === Targets.CHANNEL || targetType === Targets.THREAD) {
       this.target =
         guild.channels.cache.get(data.target_id) ??
         this.changes.reduce(
@@ -723,9 +691,7 @@ class GuildAuditLogsEntry {
           ),
         );
     } else if (targetType === Targets.APPLICATION_COMMAND) {
-      this.target = logs?.applicationCommands.get(data.target_id) ?? {
-        id: data.target_id,
-      };
+      this.target = logs?.applicationCommands.get(data.target_id) ?? { id: data.target_id };
     } else if (targetType === Targets.AUTO_MODERATION) {
       this.target =
         guild.autoModerationRules.cache.get(data.target_id) ??
@@ -741,13 +707,9 @@ class GuildAuditLogsEntry {
           guild,
         );
     } else if (targetType === Targets.ROLE) {
-      this.target = guild.roles.cache.get(data.target_id) ?? {
-        id: data.target_id,
-      };
+      this.target = guild.roles.cache.get(data.target_id) ?? { id: data.target_id };
     } else if (targetType === Targets.EMOJI) {
-      this.target = guild.emojis.cache.get(data.target_id) ?? {
-        id: data.target_id,
-      };
+      this.target = guild.emojis.cache.get(data.target_id) ?? { id: data.target_id };
     } else if (data.target_id) {
       // Missing SoundboardSound & Onboarding
       this.target = { id: data.target_id };

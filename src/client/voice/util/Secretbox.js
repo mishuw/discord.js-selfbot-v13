@@ -1,78 +1,24 @@
 'use strict';
 
 const libs = {
-  sodium: (sodium) => ({
-    crypto_aead_xchacha20poly1305_ietf_encrypt: (
-      plaintext,
-      additionalData,
-      nonce,
-      key,
-    ) =>
-      sodium.api.crypto_aead_xchacha20poly1305_ietf_encrypt(
-        plaintext,
-        additionalData,
-        null,
-        nonce,
-        key,
-      ),
-    crypto_aead_xchacha20poly1305_ietf_decrypt: (
-      plaintext,
-      additionalData,
-      nonce,
-      key,
-    ) =>
-      sodium.api.crypto_aead_xchacha20poly1305_ietf_decrypt(
-        plaintext,
-        additionalData,
-        null,
-        nonce,
-        key,
-      ),
+  sodium: sodium => ({
+    crypto_aead_xchacha20poly1305_ietf_encrypt: (plaintext, additionalData, nonce, key) =>
+      sodium.api.crypto_aead_xchacha20poly1305_ietf_encrypt(plaintext, additionalData, null, nonce, key),
+    crypto_aead_xchacha20poly1305_ietf_decrypt: (plaintext, additionalData, nonce, key) =>
+      sodium.api.crypto_aead_xchacha20poly1305_ietf_decrypt(plaintext, additionalData, null, nonce, key),
   }),
-  'libsodium-wrappers': (sodium) => ({
-    crypto_aead_xchacha20poly1305_ietf_encrypt: (
-      plaintext,
-      additionalData,
-      nonce,
-      key,
-    ) =>
-      sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
-        plaintext,
-        additionalData,
-        null,
-        nonce,
-        key,
-      ),
-    crypto_aead_xchacha20poly1305_ietf_decrypt: (
-      plaintext,
-      additionalData,
-      nonce,
-      key,
-    ) =>
-      sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
-        null,
-        plaintext,
-        additionalData,
-        nonce,
-        key,
-      ),
+  'libsodium-wrappers': sodium => ({
+    crypto_aead_xchacha20poly1305_ietf_encrypt: (plaintext, additionalData, nonce, key) =>
+      sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(plaintext, additionalData, null, nonce, key),
+    crypto_aead_xchacha20poly1305_ietf_decrypt: (plaintext, additionalData, nonce, key) =>
+      sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(null, plaintext, additionalData, nonce, key),
   }),
-  '@stablelib/xchacha20poly1305': (stablelib) => ({
-    crypto_aead_xchacha20poly1305_ietf_encrypt(
-      cipherText,
-      additionalData,
-      nonce,
-      key,
-    ) {
+  '@stablelib/xchacha20poly1305': stablelib => ({
+    crypto_aead_xchacha20poly1305_ietf_encrypt(cipherText, additionalData, nonce, key) {
       const crypto = new stablelib.XChaCha20Poly1305(key);
       return crypto.seal(nonce, cipherText, additionalData);
     },
-    crypto_aead_xchacha20poly1305_ietf_decrypt(
-      plaintext,
-      additionalData,
-      nonce,
-      key,
-    ) {
+    crypto_aead_xchacha20poly1305_ietf_decrypt(plaintext, additionalData, nonce, key) {
       const crypto = new stablelib.XChaCha20Poly1305(key);
       return crypto.open(nonce, plaintext, additionalData);
     },

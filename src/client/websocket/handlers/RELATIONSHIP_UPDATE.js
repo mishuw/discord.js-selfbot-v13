@@ -22,10 +22,8 @@ module.exports = (client, { d: data }) => {
   const oldNickname = client.relationships.friendNicknames.get(data.id);
   // Update
   if (data.type) client.relationships.cache.set(data.id, data.type);
-  if (data.nickname)
-    client.relationships.friendNicknames.set(data.id, data.nickname);
-  if (data.since)
-    client.relationships.sinceCache.set(data.id, new Date(data.since || 0));
+  if (data.nickname) client.relationships.friendNicknames.set(data.id, data.nickname);
+  if (data.since) client.relationships.sinceCache.set(data.id, new Date(data.since || 0));
   client.emit(
     Events.RELATIONSHIP_UPDATE,
     data.id,

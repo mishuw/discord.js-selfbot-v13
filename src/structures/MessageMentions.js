@@ -8,14 +8,7 @@ const Util = require('../util/Util');
  * Keeps track of mentions in a {@link Message}.
  */
 class MessageMentions {
-  constructor(
-    message,
-    users,
-    roles,
-    everyone,
-    crosspostedChannels,
-    repliedUser,
-  ) {
+  constructor(message, users, roles, everyone, crosspostedChannels, repliedUser) {
     /**
      * The client the message is from
      * @type {Client}
@@ -56,9 +49,7 @@ class MessageMentions {
         this.users = new Collection();
         for (const mention of users) {
           if (mention.member && message.guild) {
-            message.guild.members._add(
-              Object.assign(mention.member, { user: mention }),
-            );
+            message.guild.members._add(Object.assign(mention.member, { user: mention }));
           }
           const user = message.client.users._add(mention);
           this.users.set(user.id, user);
@@ -160,7 +151,7 @@ class MessageMentions {
     if (this._members) return this._members;
     if (!this.guild) return null;
     this._members = new Collection();
-    this.users.forEach((user) => {
+    this.users.forEach(user => {
       const member = this.guild.members.resolve(user);
       if (member) this._members.set(member.user.id, member);
     });
@@ -177,9 +168,7 @@ class MessageMentions {
     if (this._channels) return this._channels;
     this._channels = new Collection();
     let matches;
-    while (
-      (matches = this.constructor.CHANNELS_PATTERN.exec(this._content)) !== null
-    ) {
+    while ((matches = this.constructor.CHANNELS_PATTERN.exec(this._content)) !== null) {
       const chan = this.client.channels.cache.get(matches[1]);
       if (chan) this._channels.set(chan.id, chan);
     }
@@ -196,9 +185,7 @@ class MessageMentions {
     if (this._parsedUsers) return this._parsedUsers;
     this._parsedUsers = new Collection();
     let matches;
-    while (
-      (matches = this.constructor.USERS_PATTERN.exec(this._content)) !== null
-    ) {
+    while ((matches = this.constructor.USERS_PATTERN.exec(this._content)) !== null) {
       const user = this.client.users.cache.get(matches[1]);
       if (user) this._parsedUsers.set(user.id, user);
     }
@@ -222,31 +209,17 @@ class MessageMentions {
    * @param {MessageMentionsHasOptions} [options] The options for the check
    * @returns {boolean}
    */
-  has(
-    data,
-    {
-      ignoreDirect = false,
-      ignoreRoles = false,
-      ignoreRepliedUser = false,
-      ignoreEveryone = false,
-    } = {},
-  ) {
+  has(data, { ignoreDirect = false, ignoreRoles = false, ignoreRepliedUser = false, ignoreEveryone = false } = {}) {
     const user = this.client.users.resolve(data);
 
     if (!ignoreEveryone && user && this.everyone) return true;
 
     const userWasRepliedTo = user && this.repliedUser?.id === user.id;
 
-    if (!ignoreRepliedUser && userWasRepliedTo && this.users.has(user.id))
-      return true;
+    if (!ignoreRepliedUser && userWasRepliedTo && this.users.has(user.id)) return true;
 
     if (!ignoreDirect) {
-      if (
-        user &&
-        (!ignoreRepliedUser || this.parsedUsers.has(user.id)) &&
-        this.users.has(user.id)
-      )
-        return true;
+      if (user && (!ignoreRepliedUser || this.parsedUsers.has(user.id)) && this.users.has(user.id)) return true;
 
       const role = this.guild?.roles.resolve(data);
       if (role && this.roles.has(role.id)) return true;
@@ -258,8 +231,7 @@ class MessageMentions {
     if (!ignoreRoles) {
       const member = this.guild?.members.resolve(data);
       if (member) {
-        for (const mentionedRole of this.roles.values())
-          if (member.roles.cache.has(mentionedRole.id)) return true;
+        for (const mentionedRole of this.roles.values()) if (member.roles.cache.has(mentionedRole.id)) return true;
       }
     }
 

@@ -38,18 +38,11 @@ class VP8Dispatcher extends VideoDispatcher {
     const pictureIdBuf = Buffer.alloc(2);
     pictureIdBuf.writeUintBE(this.count, 0, 2);
     pictureIdBuf[0] |= 0x80;
-    return Buffer.concat([
-      this.createPayloadExtension(),
-      payloadDescriptorBuf,
-      pictureIdBuf,
-      buffer,
-    ]);
+    return Buffer.concat([this.createPayloadExtension(), payloadDescriptorBuf, pictureIdBuf, buffer]);
   }
 
   _codecCallback(chunk) {
-    const chunkSplit = this.partitionMtu(chunk).map((c, i) =>
-      this.makeChunk(c, i === 0),
-    );
+    const chunkSplit = this.partitionMtu(chunk).map((c, i) => this.makeChunk(c, i === 0));
     for (let i = 0; i < chunkSplit.length; i++) {
       this._playChunk(chunkSplit[i], i + 1 === chunkSplit.length);
     }

@@ -19,9 +19,7 @@ class CachedManager extends DataManager {
      * @readonly
      * @name CachedManager#_cache
      */
-    Object.defineProperty(this, '_cache', {
-      value: this.client.options.makeCache(this.constructor, this.holds),
-    });
+    Object.defineProperty(this, '_cache', { value: this.client.options.makeCache(this.constructor, this.holds) });
 
     let cleanup = this._cache[_cleanupSymbol]?.();
     if (cleanup) {
@@ -64,9 +62,7 @@ class CachedManager extends DataManager {
       return clone;
     }
 
-    const entry = this.holds
-      ? new this.holds(this.client, data, ...extras)
-      : data;
+    const entry = this.holds ? new this.holds(this.client, data, ...extras) : data;
     if (cache) this.cache.set(id ?? entry.id, entry);
     return entry;
   }

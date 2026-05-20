@@ -186,7 +186,7 @@ class ClientUserSettingManager extends BaseManager {
     if ('custom_status' in data) {
       this.customStatus = data.custom_status;
       const activities = this.client.presence.activities.filter(
-        (a) => ![ActivityTypes.CUSTOM, 'CUSTOM'].includes(a.type),
+        a => ![ActivityTypes.CUSTOM, 'CUSTOM'].includes(a.type),
       );
       if (data.custom_status) {
         const custom = new CustomStatus(this.client);
@@ -200,10 +200,7 @@ class ClientUserSettingManager extends BaseManager {
         if (emoji) custom.setEmoji(emoji);
         activities.push(custom);
       }
-      this.client.emit(
-        'debug',
-        '[SETTING > ClientUser] Sync activities & status',
-      );
+      this.client.emit('debug', '[SETTING > ClientUser] Sync activities & status');
       this.client.user.setPresence({ activities });
     }
     if ('friend_source_flags' in data) {
@@ -215,10 +212,7 @@ class ClientUserSettingManager extends BaseManager {
        * @type {Collection<Snowflake, Guild>}
        */
       this.disableDMfromGuilds = new Collection(
-        data.restricted_guilds.map((guildId) => [
-          guildId,
-          this.client.guilds.cache.get(guildId),
-        ]),
+        data.restricted_guilds.map(guildId => [guildId, this.client.guilds.cache.get(guildId)]),
       );
     }
   }
@@ -299,10 +293,7 @@ class ClientUserSettingManager extends BaseManager {
           data.emoji_name = options.emoji?.name;
           data.emoji_id = options.emoji?.id;
         } else {
-          data.emoji_name =
-            typeof options.emoji?.name === 'string'
-              ? options.emoji?.name
-              : null;
+          data.emoji_name = typeof options.emoji?.name === 'string' ? options.emoji?.name : null;
         }
       }
       return this.edit({ custom_status: data });
@@ -314,9 +305,7 @@ class ClientUserSettingManager extends BaseManager {
       };
       if (typeof options.text === 'string') {
         if (options.text.length > 128) {
-          throw new RangeError(
-            '[INVALID_VALUE] Custom status text must be less than 128 characters',
-          );
+          throw new RangeError('[INVALID_VALUE] Custom status text must be less than 128 characters');
         }
         data.text = options.text;
       }
@@ -326,20 +315,16 @@ class ClientUserSettingManager extends BaseManager {
           data.emoji_name = emoji.name;
           data.emoji_id = emoji.id;
         } else {
-          data.emoji_name =
-            typeof options.emoji === 'string' ? options.emoji : null;
+          data.emoji_name = typeof options.emoji === 'string' ? options.emoji : null;
         }
       }
       if (typeof options.expires === 'number') {
         if (options.expires < Date.now()) {
-          throw new RangeError(
-            `[INVALID_VALUE] Custom status expiration must be greater than ${Date.now()}`,
-          );
+          throw new RangeError(`[INVALID_VALUE] Custom status expiration must be greater than ${Date.now()}`);
         }
         data.expires_at = new Date(options.expires).toISOString();
       }
-      if (['online', 'idle', 'dnd', 'invisible'].includes(options.status))
-        this.edit({ status: options.status });
+      if (['online', 'idle', 'dnd', 'invisible'].includes(options.status)) this.edit({ status: options.status });
       return this.edit({ custom_status: data });
     }
   }
@@ -355,9 +340,7 @@ class ClientUserSettingManager extends BaseManager {
     }
     return this.edit({
       default_guilds_restricted: status,
-      restricted_guilds: status
-        ? this.client.guilds.cache.map((v) => v.id)
-        : [],
+      restricted_guilds: status ? this.client.guilds.cache.map(v => v.id) : [],
     });
   }
   /**
@@ -381,11 +364,8 @@ class ClientUserSettingManager extends BaseManager {
    * @returns {Promise}
    */
   removeRestrictedGuild(guildId) {
-    if (!this.disableDMfromServer.delete(guildId))
-      throw new Error('Guild is already restricted');
-    return this.edit({
-      restricted_guilds: this.disableDMfromServer.map((v, k) => k),
-    });
+    if (!this.disableDMfromServer.delete(guildId)) throw new Error('Guild is already restricted');
+    return this.edit({ restricted_guilds: this.disableDMfromServer.map((v, k) => k) });
   }
 }
 

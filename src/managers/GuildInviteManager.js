@@ -156,18 +156,12 @@ class GuildInviteManager extends CachedManager {
 
   async _fetchMany(cache) {
     const data = await this.client.api.guilds(this.guild.id).invites.get();
-    return data.reduce(
-      (col, invite) => col.set(invite.code, this._add(invite, cache)),
-      new Collection(),
-    );
+    return data.reduce((col, invite) => col.set(invite.code, this._add(invite, cache)), new Collection());
   }
 
   async _fetchChannelMany(channelId, cache) {
     const data = await this.client.api.channels(channelId).invites.get();
-    return data.reduce(
-      (col, invite) => col.set(invite.code, this._add(invite, cache)),
-      new Collection(),
-    );
+    return data.reduce((col, invite) => col.set(invite.code, this._add(invite, cache)), new Collection());
   }
 
   /**
@@ -183,16 +177,7 @@ class GuildInviteManager extends CachedManager {
    */
   async create(
     channel,
-    {
-      temporary = false,
-      maxAge = 86400,
-      maxUses = 0,
-      unique,
-      targetUser,
-      targetApplication,
-      targetType,
-      reason,
-    } = {},
+    { temporary = false, maxAge = 86400, maxUses = 0, unique, targetUser, targetApplication, targetType, reason } = {},
   ) {
     const id = this.guild.channels.resolveId(channel);
     if (!id) throw new Error('GUILD_CHANNEL_RESOLVE');
@@ -204,10 +189,7 @@ class GuildInviteManager extends CachedManager {
         max_uses: maxUses,
         unique,
         target_user_id: this.client.users.resolveId(targetUser),
-        target_application_id:
-          targetApplication?.id ??
-          targetApplication?.applicationId ??
-          targetApplication,
+        target_application_id: targetApplication?.id ?? targetApplication?.applicationId ?? targetApplication,
         target_type: targetType,
       },
       reason,

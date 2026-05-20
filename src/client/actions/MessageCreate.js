@@ -18,8 +18,7 @@ class MessageCreateAction extends Action {
       if (!channel.isText()) return {};
 
       const existing = channel.messages.cache.get(data.id);
-      if (existing && existing.author?.id !== this.client.user.id)
-        return { message: existing };
+      if (existing && existing.author?.id !== this.client.user.id) return { message: existing };
       const message = existing ?? channel.messages._add(data);
       channel.lastMessageId = data.id;
 
@@ -38,10 +37,7 @@ class MessageCreateAction extends Action {
        */
       if (client.emit('message', message) && !deprecationEmitted) {
         deprecationEmitted = true;
-        process.emitWarning(
-          'The message event is deprecated. Use messageCreate instead',
-          'DeprecationWarning',
-        );
+        process.emitWarning('The message event is deprecated. Use messageCreate instead', 'DeprecationWarning');
       }
 
       return { message };

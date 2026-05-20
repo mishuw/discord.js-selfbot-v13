@@ -39,12 +39,7 @@ class LimitedCollection extends Collection {
     if (typeof options !== 'object' || options === null) {
       throw new TypeError('INVALID_TYPE', 'options', 'object', true);
     }
-    const {
-      maxSize = Infinity,
-      keepOverLimit = null,
-      sweepInterval = 0,
-      sweepFilter = null,
-    } = options;
+    const { maxSize = Infinity, keepOverLimit = null, sweepInterval = 0, sweepFilter = null } = options;
 
     if (typeof maxSize !== 'number') {
       throw new TypeError('INVALID_TYPE', 'maxSize', 'number');
@@ -90,8 +85,7 @@ class LimitedCollection extends Collection {
         ? setInterval(() => {
             const sweepFn = this.sweepFilter(this);
             if (sweepFn === null) return;
-            if (typeof sweepFn !== 'function')
-              throw new TypeError('SWEEP_FILTER_RETURN');
+            if (typeof sweepFn !== 'function') throw new TypeError('SWEEP_FILTER_RETURN');
             this.sweep(sweepFn);
           }, sweepInterval * 1_000).unref()
         : null;
@@ -119,14 +113,10 @@ class LimitedCollection extends Collection {
    */
   static filterByLifetime({
     lifetime = 14400,
-    getComparisonTimestamp = (e) => e?.createdTimestamp,
+    getComparisonTimestamp = e => e?.createdTimestamp,
     excludeFromSweep = () => false,
   } = {}) {
-    return Sweepers.filterByLifetime({
-      lifetime,
-      getComparisonTimestamp,
-      excludeFromSweep,
-    });
+    return Sweepers.filterByLifetime({ lifetime, getComparisonTimestamp, excludeFromSweep });
   }
 
   [_cleanupSymbol]() {

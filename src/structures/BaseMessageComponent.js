@@ -49,8 +49,7 @@ class BaseMessageComponent {
      * The type of this component
      * @type {?MessageComponentType}
      */
-    this.type =
-      'type' in data ? BaseMessageComponent.resolveType(data.type) : null;
+    this.type = 'type' in data ? BaseMessageComponent.resolveType(data.type) : null;
   }
 
   setup(data) {
@@ -86,16 +85,12 @@ class BaseMessageComponent {
     switch (type) {
       case MessageComponentTypes.ACTION_ROW: {
         const MessageActionRow = require('./MessageActionRow');
-        component =
-          data instanceof MessageActionRow
-            ? data
-            : new MessageActionRow(data, client);
+        component = data instanceof MessageActionRow ? data : new MessageActionRow(data, client);
         break;
       }
       case MessageComponentTypes.BUTTON: {
         const MessageButton = require('./MessageButton');
-        component =
-          data instanceof MessageButton ? data : new MessageButton(data);
+        component = data instanceof MessageButton ? data : new MessageButton(data);
         break;
       }
       case MessageComponentTypes.STRING_SELECT:
@@ -104,84 +99,54 @@ class BaseMessageComponent {
       case MessageComponentTypes.MENTIONABLE_SELECT:
       case MessageComponentTypes.CHANNEL_SELECT: {
         const MessageSelectMenu = require('./MessageSelectMenu');
-        component =
-          data instanceof MessageSelectMenu
-            ? data
-            : new MessageSelectMenu(data);
+        component = data instanceof MessageSelectMenu ? data : new MessageSelectMenu(data);
         break;
       }
       case MessageComponentTypes.TEXT_INPUT: {
         const TextInputComponent = require('./TextInputComponent');
-        component =
-          data instanceof TextInputComponent
-            ? data
-            : new TextInputComponent(data);
+        component = data instanceof TextInputComponent ? data : new TextInputComponent(data);
         break;
       }
       case MessageComponentTypes.SECTION: {
         const SectionComponent = require('./SectionComponent');
-        component =
-          data instanceof SectionComponent ? data : new SectionComponent(data);
+        component = data instanceof SectionComponent ? data : new SectionComponent(data);
         break;
       }
       case MessageComponentTypes.TEXT_DISPLAY: {
         const TextDisplayComponent = require('./TextDisplayComponent');
-        component =
-          data instanceof TextDisplayComponent
-            ? data
-            : new TextDisplayComponent(data);
+        component = data instanceof TextDisplayComponent ? data : new TextDisplayComponent(data);
         break;
       }
       case MessageComponentTypes.THUMBNAIL: {
         const ThumbnailComponent = require('./ThumbnailComponent');
-        component =
-          data instanceof ThumbnailComponent
-            ? data
-            : new ThumbnailComponent(data);
+        component = data instanceof ThumbnailComponent ? data : new ThumbnailComponent(data);
         break;
       }
       case MessageComponentTypes.MEDIA_GALLERY: {
         const MediaGalleryComponent = require('./MediaGalleryComponent');
-        component =
-          data instanceof MediaGalleryComponent
-            ? data
-            : new MediaGalleryComponent(data);
+        component = data instanceof MediaGalleryComponent ? data : new MediaGalleryComponent(data);
         break;
       }
       case MessageComponentTypes.FILE: {
         const FileComponent = require('./FileComponent');
-        component =
-          data instanceof FileComponent ? data : new FileComponent(data);
+        component = data instanceof FileComponent ? data : new FileComponent(data);
         break;
       }
       case MessageComponentTypes.SEPARATOR: {
         const SeparatorComponent = require('./SeparatorComponent');
-        component =
-          data instanceof SeparatorComponent
-            ? data
-            : new SeparatorComponent(data);
+        component = data instanceof SeparatorComponent ? data : new SeparatorComponent(data);
         break;
       }
       case MessageComponentTypes.CONTAINER: {
         const ContainerComponent = require('./ContainerComponent');
-        component =
-          data instanceof ContainerComponent
-            ? data
-            : new ContainerComponent(data);
+        component = data instanceof ContainerComponent ? data : new ContainerComponent(data);
         break;
       }
       default:
         if (client) {
-          client.emit(
-            Events.DEBUG,
-            `[BaseMessageComponent] Received component with unknown type: ${data.type}`,
-          );
+          client.emit(Events.DEBUG, `[BaseMessageComponent] Received component with unknown type: ${data.type}`);
         } else {
-          throw new TypeError(
-            'INVALID_TYPE',
-            'data.type',
-            'valid MessageComponentType',
-          );
+          throw new TypeError('INVALID_TYPE', 'data.type', 'valid MessageComponentType');
         }
     }
     return component;
@@ -206,9 +171,7 @@ class BaseMessageComponent {
       case MessageComponentTypes.SECTION:
         return [...component.components, component.accessory];
       case MessageComponentTypes.CONTAINER:
-        return component.components.flatMap(
-          BaseMessageComponent.extractInteractiveComponents,
-        );
+        return component.components.flatMap(BaseMessageComponent.extractInteractiveComponents);
       default:
         return [component];
     }

@@ -33,8 +33,7 @@ class PacketHandler extends EventEmitter {
   }
 
   getNonceBuffer() {
-    return this.receiver.connection.authentication.mode ===
-      'aead_aes256_gcm_rtpsize'
+    return this.receiver.connection.authentication.mode === 'aead_aes256_gcm_rtpsize'
       ? Buffer.alloc(12)
       : Buffer.alloc(24);
   }
@@ -89,10 +88,7 @@ class PacketHandler extends EventEmitter {
     const header = buffer.slice(0, headerSize);
 
     // Encrypted contains the extension, if any, the opus packet, and the auth tag
-    const encrypted = buffer.slice(
-      headerSize,
-      buffer.length - AUTH_TAG_LENGTH - UNPADDED_NONCE_LENGTH,
-    );
+    const encrypted = buffer.slice(headerSize, buffer.length - AUTH_TAG_LENGTH - UNPADDED_NONCE_LENGTH);
     const authTag = buffer.slice(
       buffer.length - AUTH_TAG_LENGTH - UNPADDED_NONCE_LENGTH,
       buffer.length - UNPADDED_NONCE_LENGTH,
@@ -101,23 +97,17 @@ class PacketHandler extends EventEmitter {
     let packet;
     switch (mode) {
       case 'aead_aes256_gcm_rtpsize': {
-        const decipheriv = crypto.createDecipheriv(
-          'aes-256-gcm',
-          secret_key,
-          nonce,
-        );
+        const decipheriv = crypto.createDecipheriv('aes-256-gcm', secret_key, nonce);
         decipheriv.setAAD(header);
         decipheriv.setAuthTag(authTag);
 
-        const updated = decipheriv.update(encrypted);
-        const final = decipheriv.final();
-        packet = final.length === 0 ? updated : Buffer.concat([updated, final]);
+        packet = Buffer.concat([decipheriv.update(encrypted), decipheriv.final()]);
         break;
       }
       case 'aead_xchacha20_poly1305_rtpsize': {
         // Combined mode expects authtag in the encrypted message
         packet = secretbox.methods.crypto_aead_xchacha20poly1305_ietf_decrypt(
-          buffer.subarray(headerSize, buffer.length - UNPADDED_NONCE_LENGTH),
+          Buffer.concat([encrypted, authTag]),
           header,
           nonce,
           secret_key,
@@ -173,18 +163,10 @@ class PacketHandler extends EventEmitter {
       if (userStat.speaking === 0) {
         userStat.speaking = Speaking.FLAGS.SPEAKING;
       }
-      this.connection.onSpeaking({
-        user_id: userStat.userId,
-        ssrc: ssrc,
-        speaking: userStat.speaking,
-      });
+      this.connection.onSpeaking({ user_id: userStat.userId, ssrc: ssrc, speaking: userStat.speaking });
       speakingTimeout = setTimeout(() => {
         try {
-          this.connection.onSpeaking({
-            user_id: userStat.userId,
-            ssrc: ssrc,
-            speaking: 0,
-          });
+          this.connection.onSpeaking({ user_id: userStat.userId, ssrc: ssrc, speaking: 0 });
           clearTimeout(speakingTimeout);
           this.speakingTimeouts.delete(ssrc);
         } catch {
@@ -259,14 +241,11 @@ class PacketHandler extends EventEmitter {
       packet = this.parseBuffer(buffer);
       this.videoReceiver(ssrc, userStat, packet);
     }
-    if (userStat && !(packet instanceof Error))
-      this.receiver.emit('receiverData', userStat, packet);
+    if (userStat && !(packet instanceof Error)) this.receiver.emit('receiverData', userStat, packet);
   }
 
   // When udp connection is closed (STREAM_DELETE), destroy all streams (Memory leak)
   destroyAllStream() {
-    const audioStreams = this.streams.size;
-    const videoStreams = this.videoStreams.size;
     for (const stream of this.streams.values()) {
       stream.stream.destroy();
     }
@@ -275,17 +254,6 @@ class PacketHandler extends EventEmitter {
       stream.destroy();
     }
     this.videoStreams.clear();
-    for (const timeout of this.speakingTimeouts.values()) {
-      clearTimeout(timeout);
-    }
-    const speakingTimeouts = this.speakingTimeouts.size;
-    this.speakingTimeouts.clear();
-    this.emit('debug', {
-      message: 'Destroyed voice receiver streams',
-      audioStreams,
-      videoStreams,
-      speakingTimeouts,
-    });
   }
 }
 
